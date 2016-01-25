@@ -22,6 +22,10 @@ func Unique(cols ...string) *Constraint {
 	return fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))
 }
 
+func Key() *Constraint {
+	return "KEY"
+}
+
 func PrimaryKey(cols ...string) *Constraint {
 	if len(cols) > 0 {
 		return fmt.Sprintf("PRIMARY KEY")
