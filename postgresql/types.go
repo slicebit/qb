@@ -107,15 +107,6 @@ func Money() *qbit.Type {
 	}
 }
 
-// generates boolean type for postgresql syntax
-func Boolean() *qbit.Type {
-	return &qbit.Type{
-		Sql: func() string {
-			return "BOOLEAN"
-		},
-	}
-}
-
 // generates uuid type for postgresql syntax
 func UUID() *qbit.Type {
 	return &qbit.Type{
