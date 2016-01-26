@@ -2,38 +2,38 @@ package qbit
 
 import "database/sql"
 
-func Engine(driver string, dsn string) (*engine, error) {
+func NewEngine(driver string, dsn string) (*Engine, error) {
 
 	conn, err := sql.Open(driver, dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	return &engine{
+	return &Engine{
 		driver: driver,
 		dsn:    dsn,
 		db:     conn,
 	}, err
 }
 
-type engine struct {
+type Engine struct {
 	driver string
 	dsn    string
 	db     *sql.DB
 }
 
-func (e *engine) DB() *sql.DB {
+func (e *Engine) DB() *sql.DB {
 	return e.db
 }
 
-func (e *engine) Ping() error {
-	return nil
+func (e *Engine) Ping() error {
+	return e.db.Ping()
 }
 
-func (e *engine) Driver() string {
+func (e *Engine) Driver() string {
 	return e.driver
 }
 
-func (e *engine) Dsn() string {
+func (e *Engine) Dsn() string {
 	return e.dsn
 }
