@@ -22,7 +22,7 @@ func TestTable(t *testing.T) {
 				"email",
 				VarChar(512),
 				[]Constraint{
-					Unique("email"),
+					Unique(),
 					NotNull(),
 				},
 			),
