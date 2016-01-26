@@ -14,12 +14,20 @@ func NewBuilder() *Builder {
 	}
 }
 
+const BUILDER_DELIMITER  = "\n"
+
 // builder is a subset of dialect could be used for common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
 	prettyMode bool
 	query      *Query
 	errors     []error
+}
+
+// function resets query and its errors
+func (b *Builder) Reset() {
+	b.query = NewQuery()
+	b.errors = []error{}
 }
 
 // function builds the query clauses and returns the sql and bindings
@@ -35,16 +43,16 @@ func (b *Builder) Build() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-	var delimiter string
-
-	if b.prettyMode {
-		delimiter = "\n"
-	} else {
-		delimiter = " "
-	}
+//	var delimiter string
+//
+//	if b.prettyMode {
+//		delimiter = "\n"
+//	} else {
+//		delimiter = " "
+//	}
 
 	bindings := b.query.Bindings()
-	sql := fmt.Sprintf("%s;", strings.Join(b.query.Clauses(), delimiter))
+	sql := fmt.Sprintf("%s;", strings.Join(b.query.Clauses(), BUILDER_DELIMITER))
 
 	b.query = NewQuery()
 
@@ -57,6 +65,10 @@ func (b *Builder) AddError(err error) {
 
 func (b *Builder) HasError() bool {
 	return len(b.errors) > 0
+}
+
+func (b *Builder) Errors() []error {
+	return b.errors
 }
 
 func (b *Builder) questionMarks(values ...interface{}) []string {
@@ -275,14 +287,18 @@ func (b *Builder) CreateTable(table string, fields []string, constraints []strin
 
 	for k, f := range fields {
 		clause := fmt.Sprintf("\t%s", f)
-		if len(fields)-1 > k {
+		if len(fields)-1 > k || len(constraints) > 0 {
 			clause += ","
 		}
 		b.query.AddClause(clause)
 	}
 
-	for _, c := range constraints {
-		b.query.AddClause(fmt.Sprintf("%s, ", c))
+	for k, c := range constraints {
+		constraint := fmt.Sprintf("\t%s", c)
+		if len(constraints)-1 > k {
+			constraint += ","
+		}
+		b.query.AddClause(fmt.Sprintf("%s", constraint))
 	}
 
 	b.query.AddClause(")")
