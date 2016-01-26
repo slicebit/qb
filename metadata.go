@@ -1,27 +1,27 @@
 package qbit
 
-type metadata struct {
-	tables []table
-}
-
-func MetaData() *metadata {
-	return &metadata{
-		tables: new([]table),
+func NewMetadata() *Metadata {
+	return &Metadata{
+		tables: []Table{},
 	}
 }
 
-func (m *metadata) AddTable(table table) {
+type Metadata struct {
+	tables []Table
+}
+
+func (m *Metadata) AddTable(table Table) {
 	m.tables = append(m.tables, table)
 }
 
-func (m *metadata) Tables() {
+func (m *Metadata) Tables() []Table {
 	return m.tables
 }
 
-func (m *metadata) CreateAll(engine *Engine) error {
+func (m *Metadata) CreateAll(engine *Engine) error {
 	return nil
 }
 
-func (m *metadata) DropAll(engine *Engine) error {
+func (m *Metadata) DropAll(engine *Engine) error {
 	return nil
 }
