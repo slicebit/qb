@@ -60,6 +60,4 @@ func TestTable(t *testing.T) {
 );`, "`female`")
 
 	assert.Equal(t, table.Sql(), q)
-
-	fmt.Println(table.Sql())
 }

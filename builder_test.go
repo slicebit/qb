@@ -302,8 +302,6 @@ func TestBuilderCreateTable(t *testing.T) {
 		},
 	).Build()
 
-	fmt.Println(query)
-
 	qct := `CREATE TABLE user(
 	id UUID PRIMARY KEY,
 	email CHAR(255) NOT NULL,
