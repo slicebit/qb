@@ -5,8 +5,8 @@ import (
 )
 
 // function generates a table column
-func NewColumn(name string, t Type, constraints []Constraint) *Column {
-	return &Column{
+func NewColumn(name string, t *Type, constraints []Constraint) Column {
+	return Column{
 		Name:        name,
 		T:           t,
 		Constraints: constraints,
@@ -15,7 +15,7 @@ func NewColumn(name string, t Type, constraints []Constraint) *Column {
 
 type Column struct {
 	Name        string
-	T           Type
+	T           *Type
 	Constraints []Constraint
 }
 
