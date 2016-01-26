@@ -101,6 +101,12 @@ func (b *Builder) Set(m map[string]interface{}) *Builder {
 	return b
 }
 
+// function generates "delete" statement
+func (b *Builder) Delete(table string) *Builder {
+	b.query.AddClause(fmt.Sprintf("DELETE FROM %s", table))
+	return b
+}
+
 // function generates "select %s" statement
 func (b *Builder) Select(columns ...string) *Builder {
 	clause := fmt.Sprintf("SELECT %s", strings.Join(columns, ", "))
