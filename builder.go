@@ -265,10 +265,14 @@ func (b *Builder) Or(expressions ...string) string {
 // function generates generic CREATE TABLE statement
 func (b *Builder) CreateTable(table string, fields []string, constraints []string) *Builder {
 
-	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s("))
+	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", table))
 
-	for _, f := range fields {
-		b.query.AddClause(fmt.Sprintf("%s,", f))
+	for k, f := range fields {
+		clause := fmt.Sprintf("\t%s", f)
+		if len(fields)-1 > k {
+			clause += ","
+		}
+		b.query.AddClause(clause)
 	}
 
 	for _, c := range constraints {
