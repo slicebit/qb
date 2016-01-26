@@ -1,19 +1,35 @@
 package qbit
 
-func Table(name string, columns []Column, constraints []Constraint) *table {
-	return &table{
-		name: name,
-		columns: columns,
+//import "fmt"
+
+func NewTable(name string, columns []Column, constraints []Constraint) *Table {
+	return &Table{
+		name:        name,
+		columns:     columns,
 		constraints: constraints,
+		builder:     NewBuilder(),
 	}
 }
 
-type table struct {
-	name string
-	columns []Column
+type Table struct {
+	name        string
+	columns     []Column
 	constraints []Constraint
+	builder     *Builder
 }
 
-func (t *table) String(engine string) string {
-	return ""
+func (t *Table) Sql() string {
+
+	cols := []string{}
+	for _, v := range t.columns {
+		cols = append(cols, v.Sql())
+	}
+
+	constraints := []string{}
+	for _, v := range t.constraints {
+		constraints = append(constraints, v.Name)
+	}
+
+	sql, _, _ := t.builder.CreateTable(t.name, cols, constraints).Build()
+	return sql
 }
