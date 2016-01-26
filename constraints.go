@@ -9,34 +9,34 @@ type Constraint struct {
 	Name string
 }
 
-func NotNull() *Constraint {
-	return &Constraint{"NOT NULL"}
+func NotNull() Constraint {
+	return Constraint{"NOT NULL"}
 }
 
-func Default(value interface{}) *Constraint {
-	return &Constraint{fmt.Sprintf("DEFAULT `%s`", value)}
+func Default(value interface{}) Constraint {
+	return Constraint{fmt.Sprintf("DEFAULT `%s`", value)}
 }
 
-func Unique(cols ...string) *Constraint {
+func Unique(cols ...string) Constraint {
 	if len(cols) > 0 {
-		return &Constraint{fmt.Sprintf("UNIQUE")}
+		return Constraint{"UNIQUE"}
 	}
-	return &Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
+	return Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
 }
 
-func Key() *Constraint {
-	return &Constraint{"KEY"}
+func Key() Constraint {
+	return Constraint{"KEY"}
 }
 
-func PrimaryKey(cols ...string) *Constraint {
-	if len(cols) > 0 {
-		return &Constraint{fmt.Sprintf("PRIMARY KEY")}
+func PrimaryKey(cols ...string) Constraint {
+	if len(cols) == 0 {
+		return Constraint{"PRIMARY KEY"}
 	}
-	return &Constraint{fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))}
+	return Constraint{fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))}
 }
 
-func ForeignKey(cols string, table string, refcols string) *Constraint {
-	return &Constraint{fmt.Sprintf(
+func ForeignKey(cols string, table string, refcols string) Constraint {
+	return Constraint{fmt.Sprintf(
 		"FOREIGN KEY (%s) REFERENCES %s ($s)",
 		cols,
 		table,
