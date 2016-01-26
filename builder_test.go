@@ -1,28 +1,47 @@
 package qbit
 
 import (
+	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"strings"
 )
 
-var builder *Builder
+var b *Builder
 
 func TestBuilderInit(t *testing.T) {
 
-	builder = NewBuilder()
+	b = NewBuilder()
 
-	query, _, _ := builder.
+	query, _, _ := b.
 		Select("id").
 		From("user").
 		Build()
 
 	assert.Equal(t, query, "SELECT id\nFROM user;")
+	b.Reset()
+}
+
+func TestBuilderError(t *testing.T) {
+
+	b.AddError(errors.New("Syntax Error"))
+	assert.Equal(t, b.Errors(), []error{errors.New("Syntax Error")})
+	assert.Equal(t, b.HasError(), true)
+
+	query, _, err := b.
+		Select("id").
+		From("user").
+		Build()
+
+	assert.Equal(t, query, "")
+	assert.Equal(t, err, errors.New(strings.Join([]string{"Syntax Error"}, "\n")))
+	b.Reset()
 }
 
 func TestBuilderSelectSimple(t *testing.T) {
 
-	query, _, _ := builder.
+	query, _, _ := b.
 		Select("id", "email", "name").
 		From("user").
 		Build()
@@ -32,7 +51,7 @@ func TestBuilderSelectSimple(t *testing.T) {
 
 func TestBuilderSelectSingleCondition(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "email", "name").
 		From("user").
 		Where("id = $1", 5).
@@ -44,10 +63,10 @@ func TestBuilderSelectSingleCondition(t *testing.T) {
 
 func TestBuilderSelectOrderByMultiConditionWithAnd(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "email", "name").
 		From("user").
-		Where(builder.And("email = $1", "name = $2"), "a@b.c", "Aras Can Akin").
+		Where(b.And("email = $1", "name = $2"), "a@b.c", "Aras Can Akin").
 		OrderBy("email ASC, name DESC").
 		Build()
 
@@ -58,10 +77,10 @@ func TestBuilderSelectOrderByMultiConditionWithAnd(t *testing.T) {
 
 func TestBuilderSelectMultiConditionWithOr(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "email", "name").
 		From("user").
-		Where(builder.Or("email = $1", "name = $2"), "a@b.c", "Aras Can Akin").
+		Where(b.Or("email = $1", "name = $2"), "a@b.c", "Aras Can Akin").
 		Limit(10, 15).
 		Build()
 
@@ -72,11 +91,11 @@ func TestBuilderSelectMultiConditionWithOr(t *testing.T) {
 
 func TestBuilderSelectAvgGroupByHaving(t *testing.T) {
 
-	query, _, _ := builder.
-		Select(builder.Avg("price")).
+	query, _, _ := b.
+		Select(b.Avg("price")).
 		From("products").
 		GroupBy("category").
-		Having(fmt.Sprintf("%s < 50", builder.Max("price"))).
+		Having(fmt.Sprintf("%s < 50", b.Max("price"))).
 		Build()
 
 	assert.Equal(t, query, "SELECT AVG(price)\nFROM products\nGROUP BY category\nHAVING MAX(price) < 50;")
@@ -84,8 +103,8 @@ func TestBuilderSelectAvgGroupByHaving(t *testing.T) {
 
 func TestBuilderSelectSumCount(t *testing.T) {
 
-	query, _, _ := builder.
-		Select(builder.Sum("price"), builder.Count("id")).
+	query, _, _ := b.
+		Select(b.Sum("price"), b.Count("id")).
 		From("products").
 		Build()
 
@@ -94,8 +113,8 @@ func TestBuilderSelectSumCount(t *testing.T) {
 
 func TestBuilderSelectMinMax(t *testing.T) {
 
-	query, _, _ := builder.
-		Select(builder.Min("price"), builder.Max("price")).
+	query, _, _ := b.
+		Select(b.Min("price"), b.Max("price")).
 		From("products").
 		Build()
 
@@ -104,12 +123,12 @@ func TestBuilderSelectMinMax(t *testing.T) {
 
 func TestBuilderSelectEqNeq(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "email", "name").
 		From("user").
-		Where(builder.And(
-		builder.Eq("email", "a@b.c"),
-		builder.NotEq("name", "Aras Can Akin"))).
+		Where(b.And(
+		b.Eq("email", "a@b.c"),
+		b.NotEq("name", "Aras Can Akin"))).
 		Build()
 
 	assert.Equal(t, query, "SELECT id, email, name\nFROM user\nWHERE (email = ? AND name != ?);")
@@ -118,12 +137,12 @@ func TestBuilderSelectEqNeq(t *testing.T) {
 
 func TestBuilderSelectInNotIn(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "email", "name").
 		From("user").
-		Where(builder.And(
-		builder.In("name", "Aras Can Akin"),
-		builder.NotIn("email", "a@b.c"),
+		Where(b.And(
+		b.In("name", "Aras Can Akin"),
+		b.NotIn("email", "a@b.c"),
 	)).Build()
 
 	assert.Equal(t, query, "SELECT id, email, name\nFROM user\nWHERE (name IN (?) AND email NOT IN (?));")
@@ -133,14 +152,14 @@ func TestBuilderSelectInNotIn(t *testing.T) {
 
 func TestBuilderSelectGtGteStSte(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "age", "avg").
 		From("goqb.user").
-		Where(builder.And(
-		builder.St("age", 35),
-		builder.Gt("age", 18),
-		builder.Ste("avg", 4.0),
-		builder.Gte("avg", 2.8),
+		Where(b.And(
+		b.St("age", 35),
+		b.Gt("age", 18),
+		b.Ste("avg", 4.0),
+		b.Gte("avg", 2.8),
 	)).Build()
 
 	assert.Equal(t, query, "SELECT id, age, avg\nFROM goqb.user\nWHERE (age < ? AND age > ? AND avg <= ? AND avg >= ?);")
@@ -149,7 +168,7 @@ func TestBuilderSelectGtGteStSte(t *testing.T) {
 
 func TestBuilderBasicInsert(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Insert("user", "name", "email", "password").
 		Values("Aras Can Akin", "a@b.c", "p4ssw0rd").
 		Build()
@@ -176,7 +195,7 @@ func TestBuilderBasicInsert(t *testing.T) {
 
 func TestBuilderBasicUpdate(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Update("user").
 		Set(
 		map[string]interface{}{
@@ -192,7 +211,7 @@ func TestBuilderBasicUpdate(t *testing.T) {
 
 func TestBuilderDelete(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Delete("user").
 		Where("id = ?", 5).
 		Build()
@@ -203,7 +222,7 @@ func TestBuilderDelete(t *testing.T) {
 
 func TestBuilderInnerJoin(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "name", "email").
 		From("user").
 		InnerJoin("email", "user.id = email.id").
@@ -216,7 +235,7 @@ func TestBuilderInnerJoin(t *testing.T) {
 
 func TestBuilderLeftJoin(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "name").
 		From("user").
 		LeftOuterJoin("email", "user.id = email.id").
@@ -229,7 +248,7 @@ func TestBuilderLeftJoin(t *testing.T) {
 
 func TestBuilderRightJoin(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "email_address").
 		From("user").
 		RightOuterJoin("email", "user.id = email.id").
@@ -242,7 +261,7 @@ func TestBuilderRightJoin(t *testing.T) {
 
 func TestBuilderFullOuterJoin(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "name", "email").
 		From("user").
 		FullOuterJoin("email", "user.id = email.id").
@@ -256,7 +275,7 @@ func TestBuilderFullOuterJoin(t *testing.T) {
 
 func TestBuilderCrossJoin(t *testing.T) {
 
-	query, bindings, _ := builder.
+	query, bindings, _ := b.
 		Select("id", "name", "email").
 		From("user").
 		CrossJoin("email").
@@ -265,4 +284,62 @@ func TestBuilderCrossJoin(t *testing.T) {
 
 	assert.Equal(t, query, "SELECT id, name, email\nFROM user\nCROSS JOIN email\nWHERE id = ?;")
 	assert.Equal(t, bindings, []interface{}{5})
+}
+
+func TestBuilderCreateTable(t *testing.T) {
+
+	query, _, _ := b.
+		CreateTable("user",
+		[]string{
+			"id UUID PRIMARY KEY",
+			"email CHAR(255) NOT NULL",
+			"name VARCHAR(255) NOT NULL",
+			"username VARCHAR(255) NOT NULL",
+		},
+		[]string{
+			Unique("email", "name").Name,
+			Unique("username").Name,
+		},
+	).Build()
+
+	fmt.Println(query)
+
+	qct := `CREATE TABLE user(
+	id UUID PRIMARY KEY,
+	email CHAR(255) NOT NULL,
+	name VARCHAR(255) NOT NULL,
+	username VARCHAR(255) NOT NULL,
+	UNIQUE(email, name),
+	UNIQUE(username)
+);`
+	assert.Equal(t, query, qct)
+}
+
+func TestBuilderAlterTableAddColumn(t *testing.T) {
+
+	query, _, _ := b.
+		AlterTable("user").
+		Add("name", "TEXT").
+		Build()
+
+	assert.Equal(t, query, "ALTER TABLE user\nADD name TEXT;")
+}
+
+func TestBuilderAlterTableDropColumn(t *testing.T) {
+
+	query, _, _ := b.
+		AlterTable("user").
+		Drop("name").
+		Build()
+
+	assert.Equal(t, query, "ALTER TABLE user\nDROP name;")
+}
+
+func TestBuilderDropTable(t *testing.T) {
+
+	query, _, _ := b.
+		DropTable("user").
+		Build()
+
+	assert.Equal(t, query, "DROP TABLE user;")
 }
