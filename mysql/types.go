@@ -36,6 +36,14 @@ func DateTime() *qbit.Type {
 	}
 }
 
+func Timestamp() *qbit.Type {
+	return &qbit.Type{
+		Sql: func() string {
+			return "TIMESTAMP"
+		},
+	}
+}
+
 // generates a date time type in mysql syntax
 func Time() *qbit.Type {
 	return &qbit.Type{
