@@ -70,3 +70,12 @@ func Text() *Type {
 		},
 	}
 }
+
+// generates common boolean type syntax
+func Boolean() *Type {
+	return &Type{
+		Sql: func() string {
+			return "BOOLEAN"
+		},
+	}
+}
