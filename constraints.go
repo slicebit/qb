@@ -18,7 +18,7 @@ func Default(value interface{}) Constraint {
 }
 
 func Unique(cols ...string) Constraint {
-	if len(cols) > 0 {
+	if len(cols) == 0 {
 		return Constraint{"UNIQUE"}
 	}
 	return Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
