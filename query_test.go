@@ -1,36 +1,19 @@
 package qbit
 
 import (
-	"fmt"
-	"strings"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func Query() *query {
-	return &query{
-		clauses:  []string{},
-		bindings: []interface{}{},
-	}
-}
+func TestQuery(t *testing.T) {
 
-type query struct {
-	clauses    []string
-	bindings   []interface{}
-}
+	query := NewQuery()
+	query.AddClause("SELECT name")
+	query.AddClause("FROM user")
 
-func (q *query) AddClause(clause string) {
-	q.clauses = append(q.clauses, clause)
-}
+	query.AddClause("WHERE user.id = ?")
+	query.AddBinding(5)
 
-func (q *query) AddBinding(bindings ...interface{}) {
-	for _, v := range bindings {
-		q.bindings = append(q.bindings, v)
-	}
-}
-
-func (q *query) Clauses() []string {
-	return q.clauses
-}
-
-func (q *query) Bindings() []interface{} {
-	return q.bindings
+	assert.Equal(t, query.Clauses(), []string{"SELECT name", "FROM user", "WHERE user.id = ?"})
+	assert.Equal(t, query.Bindings(), []interface{}{5})
 }
