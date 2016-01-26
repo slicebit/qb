@@ -1,11 +1,6 @@
 package qbit
 
-import (
-	"fmt"
-	"strings"
-)
-
-func Query() *Query {
+func NewQuery() *Query {
 	return &Query{
 		clauses:  []string{},
 		bindings: []interface{}{},
@@ -13,8 +8,8 @@ func Query() *Query {
 }
 
 type Query struct {
-	clauses    []string
-	bindings   []interface{}
+	clauses  []string
+	bindings []interface{}
 }
 
 func (q *Query) AddClause(clause string) {
