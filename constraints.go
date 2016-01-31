@@ -14,7 +14,7 @@ func NotNull() Constraint {
 }
 
 func Default(value interface{}) Constraint {
-	return Constraint{fmt.Sprintf("DEFAULT `%s`", value)}
+	return Constraint{fmt.Sprintf("DEFAULT `%v`", value)}
 }
 
 func Unique(cols ...string) Constraint {
@@ -37,7 +37,7 @@ func PrimaryKey(cols ...string) Constraint {
 
 func ForeignKey(cols string, table string, refcols string) Constraint {
 	return Constraint{fmt.Sprintf(
-		"FOREIGN KEY (%s) REFERENCES %s ($s)",
+		"FOREIGN KEY (%s) REFERENCES %s(%s)",
 		cols,
 		table,
 		refcols,
