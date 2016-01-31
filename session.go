@@ -1,11 +1,15 @@
 package qbit
 
-func Session(engine Engine) *session {
+func NewSession(engine *Engine) *session {
 	return &session{
 		engine: engine,
 	}
 }
 
 type session struct {
-	engine Engine
+	engine *Engine
+}
+
+func (s *session) Engine() *Engine {
+	return s.engine
 }
