@@ -79,3 +79,30 @@ func Boolean() *Type {
 		},
 	}
 }
+
+// generates Date type for common syntax
+func Date() *Type {
+	return &Type{
+		Sql: func() string {
+			return "DATE"
+		},
+	}
+}
+
+// generates a date time type in common syntax
+func DateTime() *Type {
+	return &Type{
+		Sql: func() string {
+			return "DATETIME"
+		},
+	}
+}
+
+// generates a date time type in common syntax
+func Time() *Type {
+	return &Type{
+		Sql: func() string {
+			return "TIME"
+		},
+	}
+}
