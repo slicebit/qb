@@ -23,30 +23,11 @@ func BigSerial() *qbit.Type {
 	}
 }
 
-// generates Float type for postgresql syntax
-// p: precision in binary digits
-func Float(p int) *qbit.Type {
-	return &qbit.Type{
-		Sql: func() string {
-			return fmt.Sprintf("FLOAT(%d)", p)
-		},
-	}
-}
-
 // generates Real type for postgresql syntax
-func Real(p int) *qbit.Type {
+func Real() *qbit.Type {
 	return &qbit.Type{
 		Sql: func() string {
 			return "REAL"
-		},
-	}
-}
-
-// generates Date type for postgresql syntax
-func Date(p int) *qbit.Type {
-	return &qbit.Type{
-		Sql: func() string {
-			return "DATE"
 		},
 	}
 }
