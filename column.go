@@ -1,4 +1,5 @@
 package qbit
+
 import (
 	"fmt"
 	"strings"
