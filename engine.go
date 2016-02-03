@@ -22,6 +22,21 @@ type Engine struct {
 	db     *sql.DB
 }
 
+func (e *Engine) Exec(sql string, bindings []interface{}) (sql.Result, error) {
+
+	stmt, err := e.db.Prepare(sql)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := stmt.Exec(bindings)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (e *Engine) DB() *sql.DB {
 	return e.db
 }

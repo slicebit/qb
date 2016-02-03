@@ -1,13 +1,40 @@
 package qbit
 
-func NewMetadata() *Metadata {
+import (
+//	"github.com/aacanakin/qbit/mysql"
+//	"github.com/aacanakin/qbit/postgres"
+//	"github.com/aacanakin/qbit/sqlite"
+//	"log"
+)
+
+func NewMetadata(engine *Engine) *Metadata {
+
+	//	var mapper Mapper
+	//
+	//	if engine.Driver() == "mysql" {
+	//		mapper = mysql.NewMapper()
+	//	} else if engine.Driver() == "sqlite" {
+	//		mapper = sqlite.NewMapper()
+	//	} else if engine.Driver() == "postgres" {
+	//		mapper = postgres.NewMapper()
+	//	} else {
+	//		log.Fatalln("Invalid Driver: ", engine.Driver())
+	//	}
+
 	return &Metadata{
 		tables: []Table{},
+		engine: engine,
+		//		mapper: mapper,
 	}
 }
 
 type Metadata struct {
 	tables []Table
+	engine *Engine
+}
+
+func (m *Metadata) Add(model interface{}) {
+	//	m.AddTable(m.mapper.Convert(model))
 }
 
 func (m *Metadata) AddTable(table Table) {

@@ -1,7 +1,5 @@
 package qbit
 
-//import "fmt"
-
 func NewTable(name string, columns []Column, constraints []Constraint) *Table {
 	return &Table{
 		name:        name,
