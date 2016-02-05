@@ -85,6 +85,7 @@ func Int() *Type {
 }
 
 // generates common smallint syntax
+// mysql: Signed: -32768 to 32767, Unsigned: 0 to 65535
 func SmallInt() *Type {
 	return &Type{
 		Sql: func() string {
@@ -125,18 +126,20 @@ func Numeric(p int, s int) *Type {
 }
 
 // generates float type syntax
+
 // mysql: If only p is specified, p is the binary precision. if p and s are both specified, p is the maximum number of all digits (both sides of the decimal point),
-// 		  s is the maximum number of digits after the point. p and s are optional
-// 		  -3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to 3.402823466E+3
+// s is the maximum number of digits after the point. p and s are optional
+// -3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to 3.402823466E+3
+
 // postgres: p specifies the precision in binary digits
-// 			 1E-307 to 1E+308, 1 ⇐ p ⇐ 53
+// 1E-307 to 1E+308, 1 ⇐ p ⇐ 53
 func Float(p int, s ...int) *Type {
 	return &Type{
 		Sql: func() string {
 			if len(s) == 0 {
 				return fmt.Sprintf("FLOAT(%d)", p)
 			} else {
-				return fmt.Sprintf("FLOAT(%d,%d)", p, s[0])
+				return fmt.Sprintf("FLOAT(%d, %d)", p, s[0])
 			}
 		},
 	}
@@ -268,6 +271,7 @@ func LongBlob(n int64) *Type {
 }
 
 // generates money type for postgresql syntax
+// postgres: -92,233,720,368,547,758.08 to 92,233,720,368,547,758.07
 func Money() *Type {
 	return &Type{
 		Sql: func() string {
@@ -277,6 +281,7 @@ func Money() *Type {
 }
 
 // generates common boolean type syntax
+// TRUE, FALSE and NULL
 func Boolean() *Type {
 	return &Type{
 		Sql: func() string {
@@ -286,6 +291,7 @@ func Boolean() *Type {
 }
 
 // generates uuid type for postgresql syntax
+// postgres: 16 bytes
 func UUID() *Type {
 	return &Type{
 		Sql: func() string {
@@ -295,10 +301,14 @@ func UUID() *Type {
 }
 
 // generates enum type for mysql syntax
+// mysql: Maximum 65,535 distinct values
 func Enum(vals ...string) *Type {
 	return &Type{
 		Sql: func() string {
-			return fmt.Sprintf("ENUM(%s)", strings.Join(vals, ','))
+			for k, v := range vals {
+				vals[k] = fmt.Sprintf("'%s'", v)
+			}
+			return fmt.Sprintf("ENUM(%s)", strings.Join(vals, ", "))
 		},
 	}
 }
