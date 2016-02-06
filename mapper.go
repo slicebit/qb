@@ -1,9 +1,8 @@
-package mysql
+package qbit
 
 import (
 	"fmt"
 	"github.com/fatih/structs"
-	"github.com/aacanakin/qbit"
 )
 
 func NewMapper() *Mapper {
@@ -13,7 +12,7 @@ func NewMapper() *Mapper {
 type Mapper struct {
 }
 
-func (m *Mapper) Convert(model interface{}) *qbit.Table {
+func (m *Mapper) Convert(model interface{}) *Table {
 
 	//	fmt.Printf("%s\n", structs.Fields(model))
 
@@ -25,5 +24,5 @@ func (m *Mapper) Convert(model interface{}) *qbit.Table {
 	//		fmt.Printf("field name: %s\n", modelType.Field(i).Name)
 	//		fmt.Printf("field tag: %s\n", string(modelType.Field(i).Tag))
 	//	}
-	return qbit.NewTable("-", []qbit.Column{}, []qbit.Constraint{})
+	return NewTable("-", []Column{}, []Constraint{})
 }
