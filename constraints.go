@@ -40,10 +40,26 @@ func PrimaryKey(cols ...string) Constraint {
 }
 
 func ForeignKey(cols string, table string, refcols string) Constraint {
-	return Constraint{fmt.Sprintf(
-		"FOREIGN KEY (%s) REFERENCES %s(%s)",
-		cols,
-		table,
-		refcols,
-	)}
+	return Constraint{
+		fmt.Sprintf(
+			"FOREIGN KEY (%s) REFERENCES %s(%s)",
+			cols,
+			table,
+			refcols,
+		),
+	}
+}
+
+func References(table string, refcol string) Constraint {
+	return Constraint{
+		fmt.Sprintf(
+			"REFERENCES %s(%s)",
+			table,
+			refcol,
+		),
+	}
+}
+
+func Index() Constraint {
+	return Constraint{"INDEX"}
 }
