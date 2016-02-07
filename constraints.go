@@ -9,6 +9,10 @@ type Constraint struct {
 	Name string
 }
 
+func Null() Constraint {
+	return Constraint{"NULL"}
+}
+
 func NotNull() Constraint {
 	return Constraint{"NOT NULL"}
 }
