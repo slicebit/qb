@@ -31,3 +31,11 @@ func (t *Table) Sql() string {
 	sql, _, _ := t.builder.CreateTable(t.name, cols, constraints).Build()
 	return sql
 }
+
+func (t *Table) AddConstraint(c Constraint) {
+	t.constraints = append(t.constraints, c)
+}
+
+func (t *Table) Constraints() []Constraint {
+	return t.constraints
+}
