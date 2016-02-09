@@ -21,9 +21,20 @@ type Column struct {
 }
 
 func (c *Column) Sql() string {
+
 	constraints := []string{}
 	for _, v := range c.Constraints {
 		constraints = append(constraints, v.Name)
 	}
-	return fmt.Sprintf("%s %s %s", c.Name, c.Type.Sql(), strings.Join(constraints, " "))
+
+	colPieces := []string{
+		c.Name,
+		c.Type.Sql(),
+	}
+
+	if len(constraints) > 0 {
+		colPieces = append(colPieces, strings.Join(constraints, " "))
+	}
+
+	return fmt.Sprintf("%s", strings.Join(colPieces, " "))
 }
