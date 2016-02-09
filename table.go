@@ -32,6 +32,10 @@ func (t *Table) Sql() string {
 	return sql
 }
 
+func (t *Table) AddColumn(column Column) {
+	t.columns = append(t.columns, column)
+}
+
 func (t *Table) AddConstraint(c Constraint) {
 	t.constraints = append(t.constraints, c)
 }
