@@ -9,7 +9,7 @@ import (
 )
 
 type User struct {
-	Id         string `qbit:"type:uuid; constraints:primary_key"`
+	Id         string `qbit:"type:uuid"`
 	Email      string `qbit:"type:varchar(255); constraints:unique,notnull"`
 	FullName   string `qbit:"constraints:notnull,index"`
 	FacebookId int64  `qbit:"constraints:null"`
@@ -17,6 +17,8 @@ type User struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	DeletedAt  *time.Time
+	PrimaryKey `qbit:"id"`
+	ForeignKey `qbit:"id references profile.id"`
 }
 
 func TestMapper(t *testing.T) {
@@ -29,9 +31,11 @@ func TestMapper(t *testing.T) {
 		return
 	}
 
-	mapper := NewMapper()
+	mapper := NewMapper("postgres")
 
 	userTable, err := mapper.Convert(User{})
+
+	fmt.Println("error: ", err.Error())
 
 	//	fmt.Println(err)
 	//	fmt.Println(userTable.Sql())
