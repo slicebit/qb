@@ -15,7 +15,7 @@ func TestTable(t *testing.T) {
 				"id",
 				BigInt(),
 				[]Constraint{
-					PrimaryKey(),
+//					PrimaryKey(),
 				},
 			),
 			NewColumn(
