@@ -9,14 +9,14 @@ import (
 func NewColumn(name string, t *Type, constraints []Constraint) Column {
 	return Column{
 		Name:        name,
-		T:           t,
+		Type:        t,
 		Constraints: constraints,
 	}
 }
 
 type Column struct {
 	Name        string
-	T           *Type
+	Type        *Type
 	Constraints []Constraint
 }
 
@@ -25,5 +25,5 @@ func (c *Column) Sql() string {
 	for _, v := range c.Constraints {
 		constraints = append(constraints, v.Name)
 	}
-	return fmt.Sprintf("%s %s %s", c.Name, c.T.Sql(), strings.Join(constraints, " "))
+	return fmt.Sprintf("%s %s %s", c.Name, c.Type.Sql(), strings.Join(constraints, " "))
 }
