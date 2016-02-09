@@ -111,8 +111,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		colName := snaker.CamelToSnake(f.Name())
 		colType := fmt.Sprintf("%T", f.Value())
 
-		// clean trailing spaces of tag
-		rawTag = strings.Replace(f.Tag(TAG), " ", "", 1)
+		rawTag = f.Tag(TAG)
 
 		constraints := []Constraint{}
 		fmt.Printf("field name: %s\n", colName)
@@ -121,6 +120,9 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		fmt.Printf("field constraints: %v\n", constraints)
 
 		if colType != "qbit.PrimaryKey" && colType != "qbit.ForeignKey" {
+
+			// clean trailing spaces of tag
+			rawTag = strings.Replace(f.Tag(TAG), " ", "", 1)
 
 			// parse tag
 			tag, err := ParseTag(rawTag)
@@ -137,25 +139,29 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 			fmt.Printf("field tag.Type: %s\n", tag.Type)
 			fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
 
+			col = Column{
+				Name:        colName,
+				Constraints: constraints,
+				Type:        VarChar(255), // TODO: map type
+			}
+
 		} else if colType == "qbit.PrimaryKey" {
 
-			table.AddConstraint(&Constraint{
-				Name: fmt.Sprintf("(%s)", rawTag),
+			table.AddConstraint(Constraint{
+				Name: fmt.Sprintf("PRIMARY KEY (%s)", rawTag),
 			})
 
 		} else { // colType == "qbit.ForeignKey"
 
+			rawTag = strings.Replace(rawTag, "references", "REFERENCES", 1)
+			table.AddConstraint(Constraint{
+				Name: fmt.Sprintf("FOREIGN KEY %s", rawTag),
+			})
 		}
 
 		fmt.Println()
 
-		col = Column{
-			Name:        colName,
-			Constraints: constraints,
-			Type:        VarChar(255),
-		}
-		cols = append(cols, col)
-		cols = append(cols, col)
+		table.AddColumn(col)
 	}
 
 	//	cols, err := m.convertColumns(structs.Fields(model))
@@ -163,7 +169,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 	//		return nil, err
 	//	}
 
-//	fmt.Println("cols: ", cols)
+	//	fmt.Println("cols: ", cols)
 
 	return table, nil
 

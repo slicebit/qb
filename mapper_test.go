@@ -18,7 +18,7 @@ type User struct {
 	UpdatedAt  time.Time
 	DeletedAt  *time.Time
 	PrimaryKey `qbit:"id"`
-	ForeignKey `qbit:"id references profile.id"`
+	ForeignKey `qbit:"(id) references (profile.id)"`
 }
 
 func TestMapper(t *testing.T) {
@@ -35,11 +35,13 @@ func TestMapper(t *testing.T) {
 
 	userTable, err := mapper.Convert(User{})
 
-	fmt.Println("error: ", err.Error())
+	if err != nil {
+		fmt.Errorf("Error: %s\n", err.Error())
+	}
 
 	//	fmt.Println(err)
-	//	fmt.Println(userTable.Sql())
 	fmt.Println(userTable)
+	fmt.Println(userTable.Sql())
 
 	//	result, err := engine.Exec(userTable.Sql(), []interface{}{})
 
