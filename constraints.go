@@ -5,8 +5,11 @@ import (
 	"strings"
 )
 
+type PrimaryKey Constraint
+type ForeignKey Constraint
+
 type Constraint struct {
-	Name string
+	Name     string
 }
 
 func Null() Constraint {
@@ -32,33 +35,38 @@ func Key() Constraint {
 	return Constraint{"KEY"}
 }
 
-func PrimaryKey(cols ...string) Constraint {
-	if len(cols) == 0 {
-		return Constraint{"PRIMARY KEY"}
-	}
-	return Constraint{fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))}
-}
+// TODO: Determine if these are needed
+//func PrimaryKey(cols ...string) Constraint {
+//	if len(cols) == 0 {
+//		return Constraint{"PRIMARY KEY"}
+//	}
+//	constraint := Constraint{fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))}
+//	constraint.Delegate = true
+//	return constraint
+//}
 
-func ForeignKey(cols string, table string, refcols string) Constraint {
-	return Constraint{
-		fmt.Sprintf(
-			"FOREIGN KEY (%s) REFERENCES %s(%s)",
-			cols,
-			table,
-			refcols,
-		),
-	}
-}
+//func ForeignKey(cols string, reftable string, refcols string) Constraint {
+//	constraint := Constraint{
+//		fmt.Sprintf(
+//			"FOREIGN KEY (%s) REFERENCES %s(%s)",
+//			cols,
+//			reftable,
+//			refcols,
+//		),
+//	}
+//	constraint.Delegate = true
+//	return constraint
+//}
 
-func References(table string, refcol string) Constraint {
-	return Constraint{
-		fmt.Sprintf(
-			"REFERENCES %s(%s)",
-			table,
-			refcol,
-		),
-	}
-}
+//func References(table string, refcol string) Constraint {
+//	return Constraint{
+//		fmt.Sprintf(
+//			"REFERENCES %s(%s)",
+//			table,
+//			refcol,
+//		),
+//	}
+//}
 
 func Index() Constraint {
 	return Constraint{"INDEX"}
