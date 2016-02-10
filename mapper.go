@@ -97,21 +97,6 @@ func (m *Mapper) convertConstraints(rawConstraints []string) ([]Constraint, erro
 			return nil, errors.New(fmt.Sprintf("Invalid constraint: %s", v))
 		}
 
-		//else if v == "primary_key" {
-		//			constraint = PrimaryKey()
-		//}
-
-		//else if strings.Contains(v, "foreignkey") {
-		//			tableColumnPair := strings.Split(m.extractValue(v), ".")
-		//			if len(tableColumnPair) != 2 {
-		//				return nil, errors.New("Invalid foreign key tag. It should be foreign_key(table.column)")
-		//			}
-		//			// returns unformatted foreign key with parametric name
-		//			constraint = ForeignKey("%s", )
-		//}
-
-		//		fmt.Println("Matched constraint: ", constraint.Name)
-
 		constraints = append(constraints, constraint)
 	}
 
@@ -199,59 +184,8 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 			table.AddColumn(col)
 		}
 
-//		if colType != "qbit.PrimaryKey" && colType != "qbit.ForeignKey" {
-//
-//			// clean trailing spaces of tag
-//			rawTag = strings.Replace(f.Tag(TAG), " ", "", 1)
-//
-//			// parse tag
-//			tag, err := ParseTag(rawTag)
-//			if err != nil {
-//				return nil, err
-//			}
-//
-//			// convert tag into constraints
-//			constraints, err = m.convertConstraints(tag.Constraints)
-//			if err != nil {
-//				return nil, err
-//			}
-//
-//			fmt.Printf("field tag.Type: %s\n", tag.Type)
-//			fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
-//
-//			col = Column{
-//				Name:        colName,
-//				Constraints: constraints,
-//				Type:        m.ConvertType(colType, tag.Type), // TODO: map type
-//			}
-//
-//			table.AddColumn(col)
-//
-//		} else if colType == "qbit.PrimaryKey" {
-//
-//			table.AddConstraint(Constraint{
-//				Name: fmt.Sprintf("PRIMARY KEY (%s)", rawTag),
-//			})
-//
-//		} else { // colType == "qbit.ForeignKey"
-//
-//			rawTag = strings.Replace(rawTag, "references", "REFERENCES", 1)
-//			table.AddConstraint(Constraint{
-//				Name: fmt.Sprintf("FOREIGN KEY %s", rawTag),
-//			})
-//		}
-
 		fmt.Println()
 	}
 
-	//	cols, err := m.convertColumns(structs.Fields(model))
-	//	if err != nil {
-	//		return nil, err
-	//	}
-
-	//	fmt.Println("cols: ", cols)
-
 	return table, nil
-
-	//	return NewTable(name, cols, []Constraint{}), nil
 }
