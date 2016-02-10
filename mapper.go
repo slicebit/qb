@@ -15,35 +15,62 @@ const TAG = "qbit"
 const DEFAULT_FLOAT_P = 53
 
 func NewMapper(driver string) *Mapper {
-
-	var typeMapper TypeMapper
-	switch driver {
-	case "mysql":
-		typeMapper = MysqlTypeMapper{}
-		break
-	case "postgres":
-		typeMapper = PostgresTypeMapper{}
-		break
-	case "sqlite":
-		typeMapper = SqliteTypeMapper{}
-		break
-	}
-
 	return &Mapper{
-		driver:     driver,
-		typeMapper: typeMapper,
+		driver: driver,
 	}
 }
 
 type Mapper struct {
-	driver     string
-	typeMapper TypeMapper
+	driver string
 }
 
 func (m *Mapper) extractValue(value string) string {
-	startIndex := strings.Index(value, "(")
-	endIndex := strings.Index(value, ")")
-	return value[startIndex+1 : endIndex]
+
+	hasParams := strings.Contains(value, "(") && strings.Contains(value, ")")
+
+	if hasParams {
+		startIndex := strings.Index(value, "(")
+		endIndex := strings.Index(value, ")")
+		return value[startIndex+1 : endIndex]
+	}
+
+	return ""
+}
+
+func (m *Mapper) ConvertType(colType string, tagType string) *Type {
+
+	// convert tagType
+	if tagType != "" {
+		tagType = strings.ToUpper(tagType)
+		return &Type{func() string { return tagType }}
+	}
+
+	// convert default type
+	switch colType {
+	case "string":
+		return VarChar()
+	case "int":
+		return Int()
+	case "int64":
+		return BigInt()
+	case "float32":
+		return Float()
+	case "float64":
+		return Float()
+	case "bool":
+		return Boolean()
+	case "uuid.UUID":
+		if m.driver == "postgres" {
+			return UUID()
+		}
+		return VarChar(36)
+	case "time.Time":
+		return Timestamp()
+	case "*time.Time":
+		return Timestamp()
+	default:
+		return VarChar()
+	}
 }
 
 func (m *Mapper) convertConstraints(rawConstraints []string) ([]Constraint, error) {
@@ -142,8 +169,10 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 			col = Column{
 				Name:        colName,
 				Constraints: constraints,
-				Type:        VarChar(255), // TODO: map type
+				Type:        m.ConvertType(colType, tag.Type), // TODO: map type
 			}
+
+			table.AddColumn(col)
 
 		} else if colType == "qbit.PrimaryKey" {
 
@@ -160,8 +189,6 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		}
 
 		fmt.Println()
-
-		table.AddColumn(col)
 	}
 
 	//	cols, err := m.convertColumns(structs.Fields(model))

@@ -9,10 +9,26 @@ type Type struct {
 	Sql func() string
 }
 
+var TYPE_DEFAULTS = map[string]int{
+	"CHAR":       1,
+	"VARCHAR":    255,
+	"NUMERIC_P":  6,
+	"NUMERIC_S":  2,
+	"FLOAT_P":    53,
+	"DOUBLE_P":   53,
+	"INTERVAL_P": 6,
+	"BLOB":       65555,
+	"MEDIUMBLOB": 16777215,
+}
+
 // generates common char type syntax
 // mysql: 0 ⇐ n ⇐ 255, default is 1
 // postgres: 1 ⇐ n ⇐ 1G, default is 1
-func Char(size int) *Type {
+func Char(s ...int) *Type {
+	size := TYPE_DEFAULTS["CHAR"]
+	if len(s) > 0 {
+		size = s[0]
+	}
 	return &Type{
 		Sql: func() string {
 			return fmt.Sprintf("CHAR(%d)", size)
@@ -23,7 +39,11 @@ func Char(size int) *Type {
 // generates common varchar type syntax
 // mysql: 1 ⇐ n ⇐ 65535/charsize, n is mandatory
 // postgres: 1 ⇐ n ⇐ 1G, default is 1G
-func VarChar(size int) *Type {
+func VarChar(s ...int) *Type {
+	size := TYPE_DEFAULTS["VARCHAR"]
+	if len(s) > 0 {
+		size = s[0]
+	}
 	return &Type{
 		Sql: func() string {
 			return fmt.Sprintf("VARCHAR(%d)", size)
@@ -117,7 +137,19 @@ func BigSerial() *Type {
 // generates common numeric type syntax
 // p: max number of all digits (both sides)
 // s: max number of digits after the decimal point
-func Numeric(p int, s int) *Type {
+//func Numeric(p int, s int) *Type {
+func Numeric(ps ...int) *Type {
+
+	p := TYPE_DEFAULTS["NUMERIC_P"]
+	s := TYPE_DEFAULTS["NUMERIC_S"]
+
+	if len(ps) == 1 {
+		p = ps[0]
+	} else if len(ps) == 2 {
+		p = ps[0]
+		s = ps[1]
+	}
+
 	return &Type{
 		Sql: func() string {
 			return fmt.Sprintf("NUMERIC(%d, %d)", p, s)
@@ -133,14 +165,19 @@ func Numeric(p int, s int) *Type {
 
 // postgres: p specifies the precision in binary digits
 // 1E-307 to 1E+308, 1 ⇐ p ⇐ 53
-func Float(p int, s ...int) *Type {
+//func Float(p int, s ...int) *Type {
+func Float(ps ...int) *Type {
+	//	p := TYPE_DEFAULTS["FLOAT_P"]
+	//	if len(ps) == 1 {
+	//		p = ps[0]
+	//	}
 	return &Type{
 		Sql: func() string {
-			if len(s) == 0 {
+			if len(ps) == 1 {
+				p := ps[0]
 				return fmt.Sprintf("FLOAT(%d)", p)
-			} else {
-				return fmt.Sprintf("FLOAT(%d, %d)", p, s[0])
 			}
+			return fmt.Sprintf("FLOAT")
 		},
 	}
 }
@@ -262,10 +299,10 @@ func MediumBlob(n int) *Type {
 
 // generates blob type in mysql syntax
 // mysql: 4G (2^32 – 1) bytes
-func LongBlob(n int64) *Type {
+func LongBlob() *Type {
 	return &Type{
 		Sql: func() string {
-			return fmt.Sprintf("LONGBLOB(%d)", n)
+			return fmt.Sprintf("LONGBLOB")
 		},
 	}
 }

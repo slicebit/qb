@@ -36,7 +36,7 @@ func TestTypes(t *testing.T) {
 	assert.Equal(t, Bytea().Sql(), "BYTEA")
 	assert.Equal(t, Blob(400).Sql(), "BLOB(400)")
 	assert.Equal(t, MediumBlob(400).Sql(), "MEDIUMBLOB(400)")
-	assert.Equal(t, LongBlob(400).Sql(), "LONGBLOB(400)")
+	assert.Equal(t, LongBlob().Sql(), "LONGBLOB")
 
 	assert.Equal(t, Money().Sql(), "MONEY")
 

@@ -14,6 +14,7 @@ type User struct {
 	FullName   string `qbit:"constraints:notnull,index"`
 	FacebookId int64  `qbit:"constraints:null"`
 	UserType   string `qbit:"constraints:default(guest)"`
+	Points     float32
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	DeletedAt  *time.Time
@@ -39,8 +40,6 @@ func TestMapper(t *testing.T) {
 		fmt.Errorf("Error: %s\n", err.Error())
 	}
 
-	//	fmt.Println(err)
-	fmt.Println(userTable)
 	fmt.Println(userTable.Sql())
 
 	//	result, err := engine.Exec(userTable.Sql(), []interface{}{})
