@@ -2,14 +2,16 @@ package qbit
 
 import (
 	"fmt"
-	"strings"
+//	"strings"
 )
 
 type PrimaryKey Constraint
 type ForeignKey Constraint
+type Unique Constraint
+type Index Constraint
 
 type Constraint struct {
-	Name     string
+	Name string
 }
 
 func Null() Constraint {
@@ -24,27 +26,21 @@ func Default(value interface{}) Constraint {
 	return Constraint{fmt.Sprintf("DEFAULT `%v`", value)}
 }
 
-func Unique(cols ...string) Constraint {
-	if len(cols) == 0 {
-		return Constraint{"UNIQUE"}
-	}
-	return Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
-}
+//func Unique(cols ...string) Constraint {
+//	if len(cols) == 0 {
+//		return Constraint{"UNIQUE"}
+//	}
+//	return Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
+//}
 
-func Key() Constraint {
-	return Constraint{"KEY"}
-}
-
-// TODO: Determine if these are needed
 //func PrimaryKey(cols ...string) Constraint {
 //	if len(cols) == 0 {
 //		return Constraint{"PRIMARY KEY"}
 //	}
 //	constraint := Constraint{fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))}
-//	constraint.Delegate = true
 //	return constraint
 //}
-
+//
 //func ForeignKey(cols string, reftable string, refcols string) Constraint {
 //	constraint := Constraint{
 //		fmt.Sprintf(
@@ -54,7 +50,6 @@ func Key() Constraint {
 //			refcols,
 //		),
 //	}
-//	constraint.Delegate = true
 //	return constraint
 //}
 
@@ -68,6 +63,6 @@ func Key() Constraint {
 //	}
 //}
 
-func Index() Constraint {
-	return Constraint{"INDEX"}
-}
+//func Index() Constraint {
+//	return Constraint{"INDEX"}
+//}

@@ -15,14 +15,14 @@ func TestTable(t *testing.T) {
 				"id",
 				BigInt(),
 				[]Constraint{
-//					PrimaryKey(),
+				//					PrimaryKey(),
 				},
 			),
 			NewColumn(
 				"email",
 				VarChar(512),
 				[]Constraint{
-					Unique(),
+					Constraint{"UNIQUE"},
 					NotNull(),
 				},
 			),

@@ -12,14 +12,17 @@ type User struct {
 	Id         string `qbit:"type:uuid"`
 	Email      string `qbit:"type:varchar(255); constraints:unique,notnull"`
 	FullName   string `qbit:"constraints:notnull,index"`
+	Password   string `qbit:"type:text"`
 	FacebookId int64  `qbit:"constraints:null"`
 	UserType   string `qbit:"constraints:default(guest)"`
 	Points     float32
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeletedAt  *time.Time
+	CreatedAt  time.Time  `qbit:"constraints:notnull"`
+	UpdatedAt  time.Time  `qbit:"constraints:notnull"`
+	DeletedAt  *time.Time `qbit:"constraints:null"`
 	PrimaryKey `qbit:"id"`
 	ForeignKey `qbit:"(id) references (profile.id)"`
+	Index      `qbit:"email,password;email,id"`
+	Unique     `qbit:"email,full_name"`
 }
 
 func TestMapper(t *testing.T) {

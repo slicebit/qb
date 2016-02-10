@@ -297,8 +297,8 @@ func TestBuilderCreateTable(t *testing.T) {
 			"username VARCHAR(255) NOT NULL",
 		},
 		[]string{
-			Unique("email", "name").Name,
-			Unique("username").Name,
+			Constraint{"UNIQUE(email, name)"}.Name,
+			Constraint{"UNIQUE(username)"}.Name,
 		},
 	).Build()
 

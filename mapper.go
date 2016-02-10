@@ -84,11 +84,13 @@ func (m *Mapper) convertConstraints(rawConstraints []string) ([]Constraint, erro
 		} else if v == "notnull" {
 			constraint = NotNull()
 		} else if v == "unique" {
-			constraint = Unique()
-		} else if v == "key" {
-			constraint = Key()
+			constraint = Constraint{
+				Name: "UNIQUE",
+			}
 		} else if v == "index" {
-			constraint = Index()
+			constraint = Constraint{
+				Name: "INDEX",
+			}
 		} else if strings.Contains(v, "default") {
 			constraint = Default(m.extractValue(v))
 		} else {
@@ -145,7 +147,30 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		fmt.Printf("field type name: %T\n", f.Value())
 		fmt.Printf("field constraints: %v\n", constraints)
 
-		if colType != "qbit.PrimaryKey" && colType != "qbit.ForeignKey" {
+		if colType == "qbit.PrimaryKey" {
+			table.AddConstraint(Constraint{
+				Name: fmt.Sprintf("PRIMARY KEY (%s)", rawTag),
+			})
+		} else if colType == "qbit.ForeignKey" {
+			rawTag = strings.Replace(rawTag, "references", "REFERENCES", 1)
+			table.AddConstraint(Constraint{
+				Name: fmt.Sprintf("FOREIGN KEY %s", rawTag),
+			})
+		} else if colType == "qbit.Index" {
+			rawTagPieces := strings.Split(rawTag, ";")
+			for _, v := range rawTagPieces {
+				table.AddConstraint(Constraint{
+					Name: fmt.Sprintf("INDEX(%s)", v),
+				})
+			}
+		} else if colType == "qbit.Unique" {
+			rawTagPieces := strings.Split(rawTag, ";")
+			for _, v := range rawTagPieces {
+				table.AddConstraint(Constraint{
+					Name: fmt.Sprintf("UNIQUE(%s)", v),
+				})
+			}
+		} else {
 
 			// clean trailing spaces of tag
 			rawTag = strings.Replace(f.Tag(TAG), " ", "", 1)
@@ -172,20 +197,49 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 			}
 
 			table.AddColumn(col)
-
-		} else if colType == "qbit.PrimaryKey" {
-
-			table.AddConstraint(Constraint{
-				Name: fmt.Sprintf("PRIMARY KEY (%s)", rawTag),
-			})
-
-		} else { // colType == "qbit.ForeignKey"
-
-			rawTag = strings.Replace(rawTag, "references", "REFERENCES", 1)
-			table.AddConstraint(Constraint{
-				Name: fmt.Sprintf("FOREIGN KEY %s", rawTag),
-			})
 		}
+
+//		if colType != "qbit.PrimaryKey" && colType != "qbit.ForeignKey" {
+//
+//			// clean trailing spaces of tag
+//			rawTag = strings.Replace(f.Tag(TAG), " ", "", 1)
+//
+//			// parse tag
+//			tag, err := ParseTag(rawTag)
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			// convert tag into constraints
+//			constraints, err = m.convertConstraints(tag.Constraints)
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			fmt.Printf("field tag.Type: %s\n", tag.Type)
+//			fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
+//
+//			col = Column{
+//				Name:        colName,
+//				Constraints: constraints,
+//				Type:        m.ConvertType(colType, tag.Type), // TODO: map type
+//			}
+//
+//			table.AddColumn(col)
+//
+//		} else if colType == "qbit.PrimaryKey" {
+//
+//			table.AddConstraint(Constraint{
+//				Name: fmt.Sprintf("PRIMARY KEY (%s)", rawTag),
+//			})
+//
+//		} else { // colType == "qbit.ForeignKey"
+//
+//			rawTag = strings.Replace(rawTag, "references", "REFERENCES", 1)
+//			table.AddConstraint(Constraint{
+//				Name: fmt.Sprintf("FOREIGN KEY %s", rawTag),
+//			})
+//		}
 
 		fmt.Println()
 	}
