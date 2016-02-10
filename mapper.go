@@ -12,7 +12,6 @@ import (
 )
 
 const TAG = "qbit"
-const DEFAULT_FLOAT_P = 53
 
 func NewMapper(driver string) *Mapper {
 	return &Mapper{
