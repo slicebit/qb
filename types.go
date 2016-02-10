@@ -14,7 +14,6 @@ var TYPE_DEFAULTS = map[string]int{
 	"VARCHAR":    255,
 	"NUMERIC_P":  6,
 	"NUMERIC_S":  2,
-	"FLOAT_P":    53,
 	"DOUBLE_P":   53,
 	"INTERVAL_P": 6,
 	"BLOB":       65555,
