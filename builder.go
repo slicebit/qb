@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// NewBuilder generates a new builder object
 func NewBuilder() *Builder {
 	return &Builder{
 		prettyMode: true,
@@ -14,9 +15,9 @@ func NewBuilder() *Builder {
 	}
 }
 
-const BUILDER_DELIMITER  = "\n"
+const builderDelimiter = "\n"
 
-// builder is a subset of dialect could be used for common sql queries
+// Builder is a subset of dialect could be used for common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
 	prettyMode bool
@@ -24,13 +25,14 @@ type Builder struct {
 	errors     []error
 }
 
-// function resets query and its errors
+// Reset clears query bindings and its errors
 func (b *Builder) Reset() {
 	b.query = NewQuery()
 	b.errors = []error{}
 }
 
-// function builds the query clauses and returns the sql and bindings
+// Build generates sql query and bindings from clauses and bindings.
+// The query clauses and returns the sql and bindings
 func (b *Builder) Build() (string, []interface{}, error) {
 
 	if b.HasError() {
@@ -43,50 +45,53 @@ func (b *Builder) Build() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
-//	var delimiter string
-//
-//	if b.prettyMode {
-//		delimiter = "\n"
-//	} else {
-//		delimiter = " "
-//	}
+	//	var delimiter string
+	//
+	//	if b.prettyMode {
+	//		delimiter = "\n"
+	//	} else {
+	//		delimiter = " "
+	//	}
 
 	bindings := b.query.Bindings()
-	sql := fmt.Sprintf("%s;", strings.Join(b.query.Clauses(), BUILDER_DELIMITER))
+	sql := fmt.Sprintf("%s;", strings.Join(b.query.Clauses(), builderDelimiter))
 
 	b.query = NewQuery()
 
 	return sql, bindings, nil
 }
 
+// AddError appends a new error to builder
 func (b *Builder) AddError(err error) {
 	b.errors = append(b.errors, err)
 }
 
+// HasError returns if the builder has any syntax or build errors
 func (b *Builder) HasError() bool {
 	return len(b.errors) > 0
 }
 
+// Errors returns builder errors as an error slice
 func (b *Builder) Errors() []error {
 	return b.errors
 }
 
 func (b *Builder) questionMarks(values ...interface{}) []string {
 	questionMarks := make([]string, len(values))
-	for k, _ := range values {
+	for k := range values {
 		questionMarks[k] = "?"
 	}
 	return questionMarks
 }
 
-// function generates an "insert into %s(%s)" statement
+// Insert generates an "insert into %s(%s)" statement
 func (b *Builder) Insert(table string, columns ...string) *Builder {
 	clause := fmt.Sprintf("INSERT INTO %s(%s)", table, strings.Join(columns, ", "))
 	b.query.AddClause(clause)
 	return b
 }
 
-// function generates "values(%s)" statement and add bindings for each value
+// Values generates "values(%s)" statement and add bindings for each value
 func (b *Builder) Values(values ...interface{}) *Builder {
 	b.query.AddBinding(values...)
 	clause := fmt.Sprintf("VALUES (%s)", strings.Join(b.questionMarks(values...), ", "))
@@ -94,14 +99,14 @@ func (b *Builder) Values(values ...interface{}) *Builder {
 	return b
 }
 
-// function generates "update %s" statement
+// Update generates "update %s" statement
 func (b *Builder) Update(table string) *Builder {
 	clause := fmt.Sprintf("UPDATE %s", table)
 	b.query.AddClause(clause)
 	return b
 }
 
-// function generates "set a = ?" statement for each key a and add bindings for map value
+// Set generates "set a = ?" statement for each key a and add bindings for map value
 func (b *Builder) Set(m map[string]interface{}) *Builder {
 	updates := []string{}
 	for k, v := range m {
@@ -113,81 +118,81 @@ func (b *Builder) Set(m map[string]interface{}) *Builder {
 	return b
 }
 
-// function generates "delete" statement
+// Delete generates "delete" statement
 func (b *Builder) Delete(table string) *Builder {
 	b.query.AddClause(fmt.Sprintf("DELETE FROM %s", table))
 	return b
 }
 
-// function generates "select %s" statement
+// Select generates "select %s" statement
 func (b *Builder) Select(columns ...string) *Builder {
 	clause := fmt.Sprintf("SELECT %s", strings.Join(columns, ", "))
 	b.query.AddClause(clause)
 	return b
 }
 
-// function generates "from %s" statement for each table name
+// From generates "from %s" statement for each table name
 func (b *Builder) From(tables ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("FROM %s", strings.Join(tables, ", ")))
 	return b
 }
 
-// function generates "inner join %s on %s" statement for each expression
+// InnerJoin generates "inner join %s on %s" statement for each expression
 func (b *Builder) InnerJoin(table string, expressions ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("INNER JOIN %s ON %s", table, strings.Join(expressions, " ")))
 	return b
 }
 
-// function generates "cross join %s" statement for table
+// CrossJoin generates "cross join %s" statement for table
 func (b *Builder) CrossJoin(table string) *Builder {
 	b.query.AddClause(fmt.Sprintf("CROSS JOIN %s", table))
 	return b
 }
 
-// function generates "left outer join %s on %s" statement for each expression
+// LeftOuterJoin generates "left outer join %s on %s" statement for each expression
 func (b *Builder) LeftOuterJoin(table string, expressions ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("LEFT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
 	return b
 }
 
-// function generates "right outer join %s on %s" statement for each expression
+// RightOuterJoin generates "right outer join %s on %s" statement for each expression
 func (b *Builder) RightOuterJoin(table string, expressions ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("RIGHT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
 	return b
 }
 
-// function generates "full outer join %s on %s" for each expression
+// FullOuterJoin generates "full outer join %s on %s" for each expression
 func (b *Builder) FullOuterJoin(table string, expressions ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("FULL OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
 	return b
 }
 
-// function generates "where %s" for the expression and adds bindings for each value
+// Where generates "where %s" for the expression and adds bindings for each value
 func (b *Builder) Where(expression string, bindings ...interface{}) *Builder {
 	b.query.AddClause(fmt.Sprintf("WHERE %s", expression))
 	b.query.AddBinding(bindings...)
 	return b
 }
 
-// function generates "order by %s" for each expression
+// OrderBy generates "order by %s" for each expression
 func (b *Builder) OrderBy(expressions ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("ORDER BY %s", strings.Join(expressions, ", ")))
 	return b
 }
 
-// function generates "group by %s" for each column
+// GroupBy generates "group by %s" for each column
 func (b *Builder) GroupBy(columns ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("GROUP BY %s", strings.Join(columns, ", ")))
 	return b
 }
 
-// function generates "having %s" for each expression
+// Having generates "having %s" for each expression
 func (b *Builder) Having(expressions ...string) *Builder {
 	b.query.AddClause(fmt.Sprintf("HAVING %s", strings.Join(expressions, ", ")))
 	return b
 }
 
-// function generates limit %d offset %d for offset and count
+// Limit generates limit %d offset %d for offset and count
 func (b *Builder) Limit(offset int, count int) *Builder {
 	b.query.AddClause(fmt.Sprintf("LIMIT %d OFFSET %d", count, offset))
 	return b
@@ -195,92 +200,92 @@ func (b *Builder) Limit(offset int, count int) *Builder {
 
 // aggregates
 
-// function generates "avg(%s)" statement for column
+// Avg function generates "avg(%s)" statement for column
 func (b *Builder) Avg(column string) string {
 	return fmt.Sprintf("AVG(%s)", column)
 }
 
-// function generates "count(%s)" statement for column
+// Count function generates "count(%s)" statement for column
 func (b *Builder) Count(column string) string {
 	return fmt.Sprintf("COUNT(%s)", column)
 }
 
-// function generates "sum(%s)" statement for column
+// Sum function generates "sum(%s)" statement for column
 func (b *Builder) Sum(column string) string {
 	return fmt.Sprintf("SUM(%s)", column)
 }
 
-// function generates "min(%s)" statement for column
+// Min function generates "min(%s)" statement for column
 func (b *Builder) Min(column string) string {
 	return fmt.Sprintf("MIN(%s)", column)
 }
 
-// function generates "max(%s)" statement for column
+// Max function generates "max(%s)" statement for column
 func (b *Builder) Max(column string) string {
 	return fmt.Sprintf("MAX(%s)", column)
 }
 
 // expressions
 
-// function generates "%s not in (%s)" for key and adds bindings for each value
+// NotIn function generates "%s not in (%s)" for key and adds bindings for each value
 func (b *Builder) NotIn(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
 	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(b.questionMarks(values...), ","))
 }
 
-// function generates "%s in (%s)" for key and adds bindings for each value
+// In function generates "%s in (%s)" for key and adds bindings for each value
 func (b *Builder) In(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
 	return fmt.Sprintf("%s IN (%s)", key, strings.Join(b.questionMarks(values...), ","))
 }
 
-// function generates "%s != ?" for key and adds binding for value
+// NotEq function generates "%s != ?" for key and adds binding for value
 func (b *Builder) NotEq(key string, value interface{}) string {
 	b.query.AddBinding(value)
 	return fmt.Sprintf("%s != ?", key)
 }
 
-// function generates "%s = ?" for key and adds binding for value
+// Eq function generates "%s = ?" for key and adds binding for value
 func (b *Builder) Eq(key string, value interface{}) string {
 	b.query.AddBinding(value)
 	return fmt.Sprintf("%s = ?", key)
 }
 
-// function generates "%s > ?" for key and adds binding for value
+// Gt function generates "%s > ?" for key and adds binding for value
 func (b *Builder) Gt(key string, value interface{}) string {
 	b.query.AddBinding(value)
 	return fmt.Sprintf("%s > ?", key)
 }
 
-// function generates "%s >= ?" for key and adds binding for value
+// Gte function generates "%s >= ?" for key and adds binding for value
 func (b *Builder) Gte(key string, value interface{}) string {
 	b.query.AddBinding(value)
 	return fmt.Sprintf("%s >= ?", key)
 }
 
-// function generates "%s < ?" for key and adds binding for value
+// St function generates "%s < ?" for key and adds binding for value
 func (b *Builder) St(key string, value interface{}) string {
 	b.query.AddBinding(value)
 	return fmt.Sprintf("%s < ?", key)
 }
 
-// function generates "%s <= ?" for key and adds binding for value
+// Ste function generates "%s <= ?" for key and adds binding for value
 func (b *Builder) Ste(key string, value interface{}) string {
 	b.query.AddBinding(value)
 	return fmt.Sprintf("%s <= ?", key)
 }
 
-// function generates " AND " between any number of expressions
+// And function generates " AND " between any number of expressions
 func (b *Builder) And(expressions ...string) string {
 	return fmt.Sprintf("(%s)", strings.Join(expressions, " AND "))
 }
 
-// function generates " OR " between any number of expressions
+// Or function generates " OR " between any number of expressions
 func (b *Builder) Or(expressions ...string) string {
 	return strings.Join(expressions, " OR ")
 }
 
-// function generates generic CREATE TABLE statement
+// CreateTable generates generic CREATE TABLE statement
 func (b *Builder) CreateTable(table string, fields []string, constraints []string) *Builder {
 
 	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", table))
@@ -305,28 +310,28 @@ func (b *Builder) CreateTable(table string, fields []string, constraints []strin
 	return b
 }
 
-// function generates generic ALTER TABLE statement
+// AlterTable generates generic ALTER TABLE statement
 func (b *Builder) AlterTable(table string) *Builder {
 
 	b.query.AddClause(fmt.Sprintf("ALTER TABLE %s", table))
 	return b
 }
 
-// function generates generic DROP TABLE statement
+// DropTable generates generic DROP TABLE statement
 func (b *Builder) DropTable(table string) *Builder {
 
 	b.query.AddClause(fmt.Sprintf("DROP TABLE %s", table))
 	return b
 }
 
-// function generates generic ADD COLUMN statement
+// Add generates generic ADD COLUMN statement
 func (b *Builder) Add(colName string, colType string) *Builder {
 
 	b.query.AddClause(fmt.Sprintf("ADD %s %s", colName, colType))
 	return b
 }
 
-// function generates generic DROP COLUMN statement
+// Drop generates generic DROP COLUMN statement
 func (b *Builder) Drop(colName string) *Builder {
 
 	b.query.AddClause(fmt.Sprintf("DROP %s", colName))
