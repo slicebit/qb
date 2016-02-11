@@ -9,11 +9,11 @@ import (
 )
 
 type User struct {
-	Id              string `qbit:"type:uuid"`
+	ID              string `qbit:"type:uuid"`
 	Email           string `qbit:"type:varchar(255); constraints:unique,notnull"`
 	FullName        string `qbit:"constraints:notnull,index"`
 	Password        string `qbit:"type:text"`
-	FacebookId      int64  `qbit:"constraints:null"`
+	FacebookID      int64  `qbit:"constraints:null"`
 	UserType        string `qbit:"constraints:default(guest)"`
 	Points          float32
 	CreatedAt       time.Time  `qbit:"constraints:notnull"`
