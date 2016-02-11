@@ -148,7 +148,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 					Name: fmt.Sprintf("INDEX(%s)", v),
 				})
 			}
-		} else if colType == "qbit.Unique" {
+		} else if colType == "qbit.CompositeUnique" {
 			rawTagPieces := strings.Split(rawTag, ";")
 			for _, v := range rawTagPieces {
 				table.AddConstraint(Constraint{
