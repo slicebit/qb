@@ -5,37 +5,41 @@ import (
 	"strings"
 )
 
-// builtin constraints that should be used with tag
-// e.g;
+// PrimaryKey is the builtin constraints that should be used with tag
 // type User struct {
 //		Id int
 //		PrimaryKey `qbit:"id"`
 // }
 type PrimaryKey Constraint
+
+// ForeignKey is the builtin constraint that should be used with tag
 type ForeignKey Constraint
+
+// CompositeUnique is the builtin multiple unique constraint that should be used with tag
 type CompositeUnique Constraint
 
+// Constraint is the generic struct for table level and column level constraints
 type Constraint struct {
 	Name string
 }
 
-// function generates generic null constraint
+// Null generates generic null constraint
 func Null() Constraint {
 	return Constraint{"NULL"}
 }
 
-// function generates generic not null constraint
+// NotNull generates generic not null constraint
 func NotNull() Constraint {
 	return Constraint{"NOT NULL"}
 }
 
-// function generates generic default constraint
+// Default generates generic default constraint
 func Default(value interface{}) Constraint {
 	return Constraint{fmt.Sprintf("DEFAULT `%v`", value)}
 }
 
-// function generates generic unique constraint
-// if cols are givern, then composite unique constraint will be built
+// Unique generates generic unique constraint
+// if cols are given, then composite unique constraint will be built
 func Unique(cols ...string) Constraint {
 	if len(cols) == 0 {
 		return Constraint{"UNIQUE"}
@@ -43,7 +47,7 @@ func Unique(cols ...string) Constraint {
 	return Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
 }
 
-// function generates generic primary key syntax
+// Primary generates generic primary key syntax
 // if cols are given, then composite primary key will be built
 func Primary(cols ...string) Constraint {
 	if len(cols) == 0 {
@@ -53,7 +57,7 @@ func Primary(cols ...string) Constraint {
 	return constraint
 }
 
-// function generates generic foreign key syntax
+// Foreign generates generic foreign key syntax
 func Foreign(cols string, reftable string, refcols string) Constraint {
 	constraint := Constraint{
 		fmt.Sprintf(
