@@ -1,24 +1,23 @@
 package qbit
 
 import (
-	//	"errors"
+	"errors"
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/serenize/snaker"
-	//	"reflect"
 	"strings"
-	//	"errors"
-	"errors"
 )
 
-const TAG = "qbit"
+const tag = "qbit"
 
+// NewMapper instantiates a new mapper object and returns it as a mapper pointer
 func NewMapper(driver string) *Mapper {
 	return &Mapper{
 		driver: driver,
 	}
 }
 
+// Mapper is the generic struct for struct to table mapping
 type Mapper struct {
 	driver string
 }
@@ -36,6 +35,9 @@ func (m *Mapper) extractValue(value string) string {
 	return ""
 }
 
+// ConvertType returns the type mapping of column.
+// If tagType is, then colType would automatically be resolved.
+// If tagType is not "", then automatic type resolving would be overridden by tagType
 func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 
 	// convert tagType
@@ -94,7 +96,7 @@ func (m *Mapper) convertConstraints(rawConstraints []string) ([]Constraint, erro
 		} else if strings.Contains(v, "default") {
 			constraint = Default(m.extractValue(v))
 		} else {
-			return nil, errors.New(fmt.Sprintf("Invalid constraint: %s", v))
+			return nil, errors.New(fmt.Errorf("Invalid constraint: %s", v))
 		}
 
 		constraints = append(constraints, constraint)
@@ -103,6 +105,7 @@ func (m *Mapper) convertConstraints(rawConstraints []string) ([]Constraint, erro
 	return constraints, nil
 }
 
+// Convert parses struct and converts it to a new table
 func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
 	modelName := snaker.CamelToSnake(structs.Name(model))
@@ -124,7 +127,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		colName := snaker.CamelToSnake(f.Name())
 		colType := fmt.Sprintf("%T", f.Value())
 
-		rawTag = f.Tag(TAG)
+		rawTag = f.Tag(tag)
 
 		constraints := []Constraint{}
 		fmt.Printf("field name: %s\n", colName)
@@ -158,7 +161,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		} else {
 
 			// clean trailing spaces of tag
-			rawTag = strings.Replace(f.Tag(TAG), " ", "", 1)
+			rawTag = strings.Replace(f.Tag(tag), " ", "", 1)
 
 			// parse tag
 			tag, err := ParseTag(rawTag)
