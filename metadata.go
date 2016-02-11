@@ -7,48 +7,37 @@ import (
 //	"log"
 )
 
-func NewMetadata(engine *Engine) *Metadata {
+func MetaData(engine *Engine) *metadata {
 
-	//	var mapper Mapper
-	//
-	//	if engine.Driver() == "mysql" {
-	//		mapper = mysql.NewMapper()
-	//	} else if engine.Driver() == "sqlite" {
-	//		mapper = sqlite.NewMapper()
-	//	} else if engine.Driver() == "postgres" {
-	//		mapper = postgres.NewMapper()
-	//	} else {
-	//		log.Fatalln("Invalid Driver: ", engine.Driver())
-	//	}
-
-	return &Metadata{
+	return &metadata{
 		tables: []Table{},
 		engine: engine,
-		//		mapper: mapper,
+		mapper: NewMapper(engine.Driver()),
 	}
 }
 
-type Metadata struct {
+type metadata struct {
 	tables []Table
 	engine *Engine
+	mapper *Mapper
 }
 
-func (m *Metadata) Add(model interface{}) {
+func (m *metadata) Add(model interface{}) {
 	//	m.AddTable(m.mapper.Convert(model))
 }
 
-func (m *Metadata) AddTable(table Table) {
+func (m *metadata) AddTable(table Table) {
 	m.tables = append(m.tables, table)
 }
 
-func (m *Metadata) Tables() []Table {
+func (m *metadata) Tables() []Table {
 	return m.tables
 }
 
-func (m *Metadata) CreateAll(engine *Engine) error {
+func (m *metadata) CreateAll(engine *Engine) error {
 	return nil
 }
 
-func (m *Metadata) DropAll(engine *Engine) error {
+func (m *metadata) DropAll(engine *Engine) error {
 	return nil
 }
