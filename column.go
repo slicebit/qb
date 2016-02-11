@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// function generates a table column
+// NewColumn creates and returns a table column
 func NewColumn(name string, t *Type, constraints []Constraint) Column {
 	return Column{
 		Name:        name,
@@ -14,13 +14,15 @@ func NewColumn(name string, t *Type, constraints []Constraint) Column {
 	}
 }
 
+// Column is the base abstraction for table struct columns
 type Column struct {
 	Name        string
 	Type        *Type
 	Constraints []Constraint
 }
 
-func (c *Column) Sql() string {
+// SQL returns column as an sql statement
+func (c *Column) SQL() string {
 
 	constraints := []string{}
 	for _, v := range c.Constraints {
