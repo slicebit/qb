@@ -7,6 +7,7 @@ import (
 	"fmt"
 )
 
+// Tag is the base abstraction of qbit tag
 type Tag struct {
 
 	// contains default, null, notnull, unique, primary_key, foreign_key(table.column), check(condition > 0)
@@ -16,6 +17,7 @@ type Tag struct {
 	Type string
 }
 
+// ParseTag parses raw qbit tag and builds a Tag object
 func ParseTag(rawTag string) (*Tag, error) {
 
 	tag := &Tag{
@@ -38,7 +40,7 @@ func ParseTag(rawTag string) (*Tag, error) {
 				return nil, errors.New("Invalid keyword in struct tag")
 			}
 		} else {
-			return nil, errors.New(fmt.Sprintf("Invalid tag key length, tag: %v", tag))
+			return nil, errors.New(fmt.Errorf("Invalid tag key length, tag: %v", tag))
 		}
 	}
 
