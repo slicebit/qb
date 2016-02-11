@@ -20,7 +20,7 @@ func (t *Table) Sql() string {
 
 	cols := []string{}
 	for _, v := range t.columns {
-		cols = append(cols, v.Sql())
+		cols = append(cols, v.SQL())
 	}
 
 	constraints := []string{}
