@@ -59,5 +59,5 @@ func TestTable(t *testing.T) {
 	birth_date CHAR(16) NOT NULL
 );`, "`female`")
 
-	assert.Equal(t, table.Sql(), q)
+	assert.Equal(t, table.SQL(), q)
 }

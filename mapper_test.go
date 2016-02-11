@@ -43,7 +43,7 @@ func TestMapper(t *testing.T) {
 		fmt.Errorf("Error: %s\n", err.Error())
 	}
 
-	fmt.Println(userTable.Sql())
+	fmt.Println(userTable.SQL())
 
 	//	result, err := engine.Exec(userTable.Sql(), []interface{}{})
 
