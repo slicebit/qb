@@ -7,37 +7,44 @@ import (
 //	"log"
 )
 
-func MetaData(engine *Engine) *metadata {
+// NewMetaData creates a new MetaData object and returns
+func NewMetaData(engine *Engine) *MetaData {
 
-	return &metadata{
+	return &MetaData{
 		tables: []Table{},
 		engine: engine,
 		mapper: NewMapper(engine.Driver()),
 	}
 }
 
-type metadata struct {
+// MetaData is the container for database structs and tables
+type MetaData struct {
 	tables []Table
 	engine *Engine
 	mapper *Mapper
 }
 
-func (m *metadata) Add(model interface{}) {
+// Add retrieves the struct and converts it using mapper and appends to tables slice
+func (m *MetaData) Add(model interface{}) {
 	//	m.AddTable(m.mapper.Convert(model))
 }
 
-func (m *metadata) AddTable(table Table) {
+// AddTable appends table to tables slice
+func (m *MetaData) AddTable(table Table) {
 	m.tables = append(m.tables, table)
 }
 
-func (m *metadata) Tables() []Table {
+// Tables returns the current tables slice
+func (m *MetaData) Tables() []Table {
 	return m.tables
 }
 
-func (m *metadata) CreateAll(engine *Engine) error {
+// CreateAll creates all the tables added to metadata
+func (m *MetaData) CreateAll(engine *Engine) error {
 	return nil
 }
 
-func (m *metadata) DropAll(engine *Engine) error {
+// DropAll drops all the tables which is added to metadata
+func (m *MetaData) DropAll(engine *Engine) error {
 	return nil
 }
