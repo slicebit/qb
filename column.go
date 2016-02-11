@@ -31,7 +31,7 @@ func (c *Column) SQL() string {
 
 	colPieces := []string{
 		c.Name,
-		c.Type.Sql(),
+		c.Type.SQL(),
 	}
 
 	if len(constraints) > 0 {
