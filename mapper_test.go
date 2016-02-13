@@ -9,20 +9,20 @@ import (
 )
 
 type User struct {
-	ID              string `qbit:"type:uuid"`
+	ID              string `qbit:"type:uuid;constraints:primary_key"`
 	Email           string `qbit:"type:varchar(255); constraints:unique,notnull"`
 	FullName        string `qbit:"constraints:notnull,index"`
 	Password        string `qbit:"type:text"`
 	FacebookID      int64  `qbit:"constraints:null"`
 	UserType        string `qbit:"constraints:default(guest)"`
-	Points          float32
+	Points          float32 `qbit:"constraints:ref(user_score.points)"`
 	CreatedAt       time.Time  `qbit:"constraints:notnull"`
 	UpdatedAt       time.Time  `qbit:"constraints:notnull"`
 	DeletedAt       *time.Time `qbit:"constraints:null"`
 
-	PrimaryKey      `qbit:"id"`
-	ForeignKey      `qbit:"(id) references (profile.id)"`
-	CompositeUnique `qbit:"email,full_name"`
+//	PrimaryKey      `qbit:"id"`
+//	ForeignKey      `qbit:"(id) references (profile.id)"`
+//	CompositeUnique `qbit:"email,full_name"`
 }
 
 func TestMapper(t *testing.T) {

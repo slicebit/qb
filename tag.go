@@ -40,7 +40,7 @@ func ParseTag(rawTag string) (*Tag, error) {
 				return nil, errors.New("Invalid keyword in struct tag")
 			}
 		} else {
-			return nil, errors.New(fmt.Errorf("Invalid tag key length, tag: %v", tag))
+			return nil, fmt.Errorf("Invalid tag key length, tag: %v", tag)
 		}
 	}
 

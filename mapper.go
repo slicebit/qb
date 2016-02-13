@@ -1,14 +1,13 @@
 package qbit
 
 import (
-	"errors"
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/serenize/snaker"
 	"strings"
 )
 
-const tag = "qbit"
+const tagPrefix = "qbit"
 
 // NewMapper instantiates a new mapper object and returns it as a mapper pointer
 func NewMapper(driver string) *Mapper {
@@ -74,37 +73,6 @@ func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 	}
 }
 
-func (m *Mapper) convertConstraints(rawConstraints []string) ([]Constraint, error) {
-
-	constraints := []Constraint{}
-
-	var constraint Constraint
-	for _, v := range rawConstraints {
-
-		if v == "null" {
-			constraint = Null()
-		} else if v == "notnull" {
-			constraint = NotNull()
-		} else if v == "unique" {
-			constraint = Constraint{
-				Name: "UNIQUE",
-			}
-		} else if v == "index" {
-			constraint = Constraint{
-				Name: "INDEX",
-			}
-		} else if strings.Contains(v, "default") {
-			constraint = Default(m.extractValue(v))
-		} else {
-			return nil, errors.New(fmt.Errorf("Invalid constraint: %s", v))
-		}
-
-		constraints = append(constraints, constraint)
-	}
-
-	return constraints, nil
-}
-
 // Convert parses struct and converts it to a new table
 func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
@@ -127,7 +95,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		colName := snaker.CamelToSnake(f.Name())
 		colType := fmt.Sprintf("%T", f.Value())
 
-		rawTag = f.Tag(tag)
+		rawTag = f.Tag(tagPrefix)
 
 		constraints := []Constraint{}
 		fmt.Printf("field name: %s\n", colName)
@@ -135,57 +103,55 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		fmt.Printf("field type name: %T\n", f.Value())
 		fmt.Printf("field constraints: %v\n", constraints)
 
-		if colType == "qbit.PrimaryKey" {
-			table.AddConstraint(Constraint{
-				Name: fmt.Sprintf("PRIMARY KEY (%s)", rawTag),
-			})
-		} else if colType == "qbit.ForeignKey" {
-			rawTag = strings.Replace(rawTag, "references", "REFERENCES", 1)
-			table.AddConstraint(Constraint{
-				Name: fmt.Sprintf("FOREIGN KEY %s", rawTag),
-			})
-		} else if colType == "qbit.Index" {
-			rawTagPieces := strings.Split(rawTag, ";")
-			for _, v := range rawTagPieces {
-				table.AddConstraint(Constraint{
-					Name: fmt.Sprintf("INDEX(%s)", v),
-				})
-			}
-		} else if colType == "qbit.CompositeUnique" {
-			rawTagPieces := strings.Split(rawTag, ";")
-			for _, v := range rawTagPieces {
-				table.AddConstraint(Constraint{
-					Name: fmt.Sprintf("UNIQUE(%s)", v),
-				})
-			}
-		} else {
+		// clean trailing spaces of tag
+		rawTag = strings.Replace(f.Tag(tagPrefix), " ", "", 1)
 
-			// clean trailing spaces of tag
-			rawTag = strings.Replace(f.Tag(tag), " ", "", 1)
-
-			// parse tag
-			tag, err := ParseTag(rawTag)
-			if err != nil {
-				return nil, err
-			}
-
-			// convert tag into constraints
-			constraints, err = m.convertConstraints(tag.Constraints)
-			if err != nil {
-				return nil, err
-			}
-
-			fmt.Printf("field tag.Type: %s\n", tag.Type)
-			fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
-
-			col = Column{
-				Name:        colName,
-				Constraints: constraints,
-				Type:        m.ConvertType(colType, tag.Type), // TODO: map type
-			}
-
-			table.AddColumn(col)
+		// parse tag
+		tag, err := ParseTag(rawTag)
+		if err != nil {
+			return nil, err
 		}
+
+		// convert tag into constraints
+		var constraint Constraint
+		for _, v := range tag.Constraints {
+			if v == "null" {
+				constraint = Null()
+			} else if v == "notnull" {
+				constraint = NotNull()
+			} else if v == "unique" {
+				constraint = Constraint{
+					Name: "UNIQUE",
+				}
+			} else if v == "index" {
+				constraint = Constraint{
+					Name: "INDEX",
+				}
+			} else if strings.Contains(v, "default") {
+				constraint = Default(m.extractValue(v))
+			} else if strings.Contains(v, "primary_key") {
+				table.AddPrimary(colName)
+				continue
+			} else if strings.Contains(v, "ref") && strings.Contains(v, "(") && strings.Contains(v, ")") {
+				tc := strings.Split(m.extractValue(v), ".")
+				table.AddRef(colName, tc[0], tc[1])
+				continue
+			} else {
+				return nil, fmt.Errorf("Invalid constraint: %s", v)
+			}
+			constraints = append(constraints, constraint)
+		}
+
+		fmt.Printf("field tag.Type: %s\n", tag.Type)
+		fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
+
+		col = Column{
+			Name:        colName,
+			Constraints: constraints,
+			Type:        m.ConvertType(colType, tag.Type),
+		}
+
+		table.AddColumn(col)
 
 		fmt.Println()
 	}
