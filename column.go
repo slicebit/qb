@@ -1,4 +1,4 @@
-package qbit
+package qb
 
 import (
 	"fmt"

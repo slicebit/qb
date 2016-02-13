@@ -1,4 +1,4 @@
-package qbit
+package qb
 
 // NewQuery creates a new query and returns its pointer
 func NewQuery() *Query {

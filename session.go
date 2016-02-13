@@ -1,4 +1,4 @@
-package qbit
+package qb
 
 // NewSession generates a new Session given engine and returns session pointer
 func NewSession(engine *Engine) *Session {

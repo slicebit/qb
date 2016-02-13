@@ -1,4 +1,4 @@
-package qbit
+package qb
 
 // Dialect is the abstraction of set of any expression api functions
 type Dialect interface {
