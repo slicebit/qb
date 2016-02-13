@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const tagPrefix = "qbit"
+const tagPrefix = "qb"
 
 // NewMapper instantiates a new mapper object and returns it as a mapper pointer
 func NewMapper(driver string) *Mapper {
