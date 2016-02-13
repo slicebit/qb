@@ -9,43 +9,46 @@ import (
 )
 
 type User struct {
-	ID         string     `qb:"type:uuid;constraints:primary_key"`
+	ID         string     `qb:"constraints:primary_key"`
 	Email      string     `qb:"type:varchar(255); constraints:unique,notnull"`
-	FullName   string     `qb:"constraints:notnull,index"`
+	FullName   string     `qb:"constraints:notnull"`
 	Password   string     `qb:"type:text"`
 	FacebookID int64      `qb:"constraints:null"`
 	UserType   string     `qb:"constraints:default(guest)"`
-	Points     float32    `qb:"constraints:ref(user_score.points)"`
 	CreatedAt  time.Time  `qb:"constraints:notnull"`
 	UpdatedAt  time.Time  `qb:"constraints:notnull"`
 	DeletedAt  *time.Time `qb:"constraints:null"`
 }
 
+type UserScore struct {
+	UserID string `qb:"constraints:ref(user.id),primary_key"`
+	Score  int64
+}
+
+type UserErr struct {
+	ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
+	Email string `qb:"wrongtag:"`
+}
+
 func TestMapper(t *testing.T) {
 
-	engine, err := NewEngine("mysql", "root:@tcp(127.0.0.1:3306)/qbit_test")
-	defer engine.DB().Close()
+	mapper := NewMapper("mysql")
 
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
+	userTable, err := mapper.Convert(User{})
+	userScoreTable, err := mapper.Convert(UserScore{})
+
+	assert.Nil(t, err)
+	fmt.Println(userTable.SQL())
+	fmt.Println(userScoreTable.SQL())
+}
+
+func TestMapperError(t *testing.T) {
 
 	mapper := NewMapper("postgres")
 
-	userTable, err := mapper.Convert(User{})
+	userErrTable, err := mapper.Convert(UserErr{})
 
-	if err != nil {
-		fmt.Errorf("Error: %s\n", err.Error())
-	}
-
-	fmt.Println(userTable.SQL())
-
-	//	result, err := engine.Exec(userTable.Sql(), []interface{}{})
-
-	//	assert.Equal(t, err, nil)
-	//	fmt.Println(result)
-
-	assert.Equal(t, 1, 1)
-
+	fmt.Println(err)
+	assert.NotNil(t, err)
+	assert.Empty(t, userErrTable)
 }
