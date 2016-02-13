@@ -65,12 +65,12 @@ func (t *Table) AddConstraint(c Constraint) {
 	t.constraints = append(t.constraints, c)
 }
 
-// AddPrimaryCol appends a primary column that will be lazily built as a constraint
+// AddPrimary appends a primary column that will be lazily built as a primary key constraint
 func (t *Table) AddPrimary(col string) {
 	t.primaryCols = append(t.primaryCols, col)
 }
 
-// AddRef appends a new reference struct that will be lazily built as a constraint
+// AddRef appends a new reference struct that will be lazily built as a foreign key constraint
 func (t *Table) AddRef(col string, refTable string, refCol string) {
 
 	if len(t.refs) > 0 {
