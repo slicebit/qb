@@ -13,9 +13,7 @@ func TestTable(t *testing.T) {
 			NewColumn(
 				"id",
 				BigInt(),
-				[]Constraint{
-
-				},
+				[]Constraint{},
 			),
 			NewColumn(
 				"email",
