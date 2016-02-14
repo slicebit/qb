@@ -1,7 +1,6 @@
 package qb
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -15,7 +14,7 @@ func TestTable(t *testing.T) {
 				"id",
 				BigInt(),
 				[]Constraint{
-				//					PrimaryKey(),
+
 				},
 			),
 			NewColumn(
@@ -48,16 +47,18 @@ func TestTable(t *testing.T) {
 				},
 			),
 		},
-		[]Constraint{},
+		[]Constraint{
+			Primary("id"),
+		},
 	)
 
-	q := fmt.Sprintf(`CREATE TABLE user(
-	id BIGINT PRIMARY KEY,
-	email VARCHAR(512) UNIQUE NOT NULL,
-	bio TEXT NOT NULL,
-	gender CHAR(16) DEFAULT %s,
-	birth_date CHAR(16) NOT NULL
-);`, "`female`")
+	q := "CREATE TABLE user(\n" +
+		"\t`id` BIGINT,\n" +
+		"\t`email` VARCHAR(512) UNIQUE NOT NULL,\n" +
+		"\t`bio` TEXT NOT NULL,\n" +
+		"\t`gender` CHAR(16) DEFAULT 'female',\n" +
+		"\t`birth_date` CHAR(16) NOT NULL,\n" +
+		"\tPRIMARY KEY(id)\n);"
 
 	assert.Equal(t, table.SQL(), q)
 }
