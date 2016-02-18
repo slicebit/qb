@@ -25,14 +25,14 @@ type Engine struct {
 }
 
 // Exec executes insert & update type queries and returns sql.Result and error
-func (e *Engine) Exec(sql string, bindings []interface{}) (sql.Result, error) {
+func (e *Engine) Exec(query *Query) (sql.Result, error) {
 
-	stmt, err := e.db.Prepare(sql)
+	stmt, err := e.db.Prepare(query.SQL())
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := stmt.Exec(bindings)
+	res, err := stmt.Exec(query.Bindings())
 	if err != nil {
 		return nil, err
 	}
