@@ -20,8 +20,10 @@ func TestTypes(t *testing.T) {
 	assert.Equal(t, Serial().SQL(), "SERIAL")
 	assert.Equal(t, BigSerial().SQL(), "BIGSERIAL")
 
+	assert.Equal(t, Numeric().SQL(), "NUMERIC(6, 2)")
+	assert.Equal(t, Numeric(7).SQL(), "NUMERIC(7, 2)")
 	assert.Equal(t, Numeric(6, 3).SQL(), "NUMERIC(6, 3)")
-	assert.Equal(t, Float(6, 3).SQL(), "FLOAT(6, 3)")
+	assert.Equal(t, Float().SQL(), "FLOAT")
 	assert.Equal(t, Float(6).SQL(), "FLOAT(6)")
 	assert.Equal(t, Double(6, 3).SQL(), "DOUBLE(6, 3)")
 	assert.Equal(t, DoublePrecision().SQL(), "DOUBLE PRECISION")

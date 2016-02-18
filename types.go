@@ -163,16 +163,16 @@ func Numeric(ps ...int) *Type {
 // -3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to 3.402823466E+3
 // postgres: p specifies the precision in binary digits
 // 1E-307 to 1E+308, 1 ⇐ p ⇐ 53
-func Float(ps ...int) *Type {
+func Float(p ...int) *Type {
 	//	p := TYPE_DEFAULTS["FLOAT_P"]
 	//	if len(ps) == 1 {
 	//		p = ps[0]
 	//	}
 	return &Type{
 		SQL: func() string {
-			if len(ps) == 1 {
-				p := ps[0]
-				return fmt.Sprintf("FLOAT(%d)", p)
+			if len(p) == 1 {
+				precision := p[0]
+				return fmt.Sprintf("FLOAT(%d)", precision)
 			}
 			return fmt.Sprintf("FLOAT")
 		},
