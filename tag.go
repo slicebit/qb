@@ -20,27 +20,31 @@ type Tag struct {
 // ParseTag parses raw qbit tag and builds a Tag object
 func ParseTag(rawTag string) (*Tag, error) {
 
+	rawTag = strings.Trim(rawTag, " ")
+
 	tag := &Tag{
 		Constraints: []string{},
 	}
 
-	if strings.Trim(rawTag, " ") == "" {
+	if rawTag == "" {
 		return tag, nil
 	}
 
 	tags := strings.Split(rawTag, ";")
 	for _, t := range tags {
-		tagKey := strings.Split(t, ":")
-		if len(tagKey) == 2 {
-			if tagKey[0] == "type" {
-				tag.Type = tagKey[1]
-			} else if tagKey[0] == "constraints" || tagKey[0] == "constraint" {
-				tag.Constraints = strings.Split(tagKey[1], ",")
-			} else {
-				return nil, errors.New("Invalid keyword in struct tag")
+		tagKeyVal := strings.Split(t, ":")
+		if len(tagKeyVal) != 2 {
+			return nil, errors.New(fmt.Sprintf("Invalid tag key length, tag: %v", tag))
+		}
+
+		if tagKeyVal[0] == "type" {
+			tag.Type = tagKeyVal[1]
+		} else if tagKeyVal[0] == "constraints" || tagKeyVal[0] == "constraint" {
+			for _, c := range strings.Split(tagKeyVal[1], ",") {
+				if c != "" {
+					tag.Constraints = append(tag.Constraints, c)
+				}
 			}
-		} else {
-			return nil, fmt.Errorf("Invalid tag key length, tag: %v", tag)
 		}
 	}
 
