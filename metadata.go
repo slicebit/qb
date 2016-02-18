@@ -11,7 +11,7 @@ import (
 func NewMetaData(engine *Engine) *MetaData {
 
 	return &MetaData{
-		tables: []Table{},
+		tables: []*Table{},
 		engine: engine,
 		mapper: NewMapper(engine.Driver()),
 	}
@@ -19,23 +19,29 @@ func NewMetaData(engine *Engine) *MetaData {
 
 // MetaData is the container for database structs and tables
 type MetaData struct {
-	tables []Table
+	tables []*Table
 	engine *Engine
 	mapper *Mapper
 }
 
 // Add retrieves the struct and converts it using mapper and appends to tables slice
 func (m *MetaData) Add(model interface{}) {
-	//	m.AddTable(m.mapper.Convert(model))
+
+	table, err := m.mapper.Convert(model)
+	if err != nil {
+		panic(err)
+	}
+
+	m.AddTable(table)
 }
 
 // AddTable appends table to tables slice
-func (m *MetaData) AddTable(table Table) {
+func (m *MetaData) AddTable(table *Table) {
 	m.tables = append(m.tables, table)
 }
 
 // Tables returns the current tables slice
-func (m *MetaData) Tables() []Table {
+func (m *MetaData) Tables() []*Table {
 	return m.tables
 }
 
