@@ -50,7 +50,6 @@ func TestMapperError(t *testing.T) {
 
 	userErrTable, err := mapper.Convert(UserErr{})
 
-	fmt.Println(err)
 	assert.NotNil(t, err)
 	assert.Empty(t, userErrTable)
 }
