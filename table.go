@@ -111,5 +111,7 @@ func (t *Table) Insert(kv map[string]interface{}) (*Query, error) {
 		values = append(values, v)
 	}
 
+	// TODO: Validate column name
+
 	return t.builder.Insert(t.name, keys...).Values(values...).Build()
 }
