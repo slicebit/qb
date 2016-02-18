@@ -51,8 +51,12 @@ func (t *Table) SQL() string {
 		constraints = append(constraints, v.Name)
 	}
 
-	sql, _, _ := t.builder.CreateTable(t.name, cols, constraints).Build()
-	return sql
+	query, err := t.builder.CreateTable(t.name, cols, constraints).Build()
+	if err != nil {
+		return ""
+	}
+
+	return query.SQL()
 }
 
 // AddColumn appends a new column to current table
@@ -68,6 +72,12 @@ func (t *Table) AddConstraint(c Constraint) {
 // AddPrimary appends a primary column that will be lazily built as a primary key constraint
 func (t *Table) AddPrimary(col string) {
 	t.primaryCols = append(t.primaryCols, col)
+}
+
+type ref struct {
+	cols     []string
+	refTable string
+	refCols  []string
 }
 
 // AddRef appends a new reference struct that will be lazily built as a foreign key constraint
@@ -94,8 +104,15 @@ func (t *Table) Constraints() []Constraint {
 	return t.constraints
 }
 
-type ref struct {
-	cols     []string
-	refTable string
-	refCols  []string
+func (t *Table) Insert(kv map[string]interface{}) (*Query, error) {
+
+	keys := make([]string, len(kv))
+	vals := make([]interface{}, len(kv))
+
+	for k, v := range kv {
+		keys = append(keys, k)
+		vals = append(vals, v)
+	}
+
+	return t.builder.Insert(t.name, keys...).Values(vals...).Build()
 }
