@@ -9,25 +9,22 @@ import (
 )
 
 type User struct {
-	ID         string     `qb:"constraints:primary_key"`
-	Email      string     `qb:"type:varchar(255); constraints:unique,notnull"`
-	FullName   string     `qb:"constraints:notnull"`
-	Password   string     `qb:"type:text"`
-	FacebookID int64      `qb:"constraints:null"`
-	UserType   string     `qb:"constraints:default(guest)"`
-	CreatedAt  time.Time  `qb:"constraints:notnull"`
-	UpdatedAt  time.Time  `qb:"constraints:notnull"`
-	DeletedAt  *time.Time `qb:"constraints:null"`
+	ID          string     `qb:"constraints:primary_key"`
+	FacebookID  int64      `qb:"constraints:ref(facebook.id)"`
+	ProfileID   int64      `qb:"constraints:ref(profile.id)"`
+	ProfileName string     `qb:"constraints:ref(profile.name)"`
+	Email       string     `qb:"type:varchar(255); constraints:unique,notnull"`
+	FullName    string     `qb:"constraints:notnull"`
+	Password    string     `qb:"type:text"`
+	UserType    string     `qb:"constraints:default(guest)"`
+	CreatedAt   time.Time  `qb:"constraints:notnull"`
+	UpdatedAt   time.Time  `qb:"constraints:notnull"`
+	DeletedAt   *time.Time `qb:"constraints:null"`
 }
 
 type UserScore struct {
 	UserID string `qb:"constraints:ref(user.id),primary_key"`
 	Score  int64
-}
-
-type UserErr struct {
-	ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
-	Email string `qb:"wrongtag:"`
 }
 
 func TestMapper(t *testing.T) {
@@ -40,6 +37,11 @@ func TestMapper(t *testing.T) {
 	assert.Nil(t, err)
 	fmt.Println(userTable.SQL())
 	fmt.Println(userScoreTable.SQL())
+}
+
+type UserErr struct {
+	ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
+	Email string `qb:"wrongtag:"`
 }
 
 func TestMapperError(t *testing.T) {
