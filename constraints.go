@@ -35,7 +35,7 @@ func NotNull() Constraint {
 
 // Default generates generic default constraint
 func Default(value interface{}) Constraint {
-	return Constraint{fmt.Sprintf("DEFAULT '%s'", value)}
+	return Constraint{fmt.Sprintf("DEFAULT '%v'", value)}
 }
 
 // Unique generates generic unique constraint
