@@ -1,10 +1,10 @@
 package qb
 
 import (
+	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"fmt"
 )
 
 func TestEngine(t *testing.T) {
