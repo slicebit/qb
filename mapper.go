@@ -59,11 +59,6 @@ func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 		return Float()
 	case "bool":
 		return Boolean()
-	case "uuid.UUID":
-		if m.driver == "postgres" {
-			return UUID()
-		}
-		return VarChar(36)
 	case "time.Time":
 		return Timestamp()
 	case "*time.Time":
@@ -122,10 +117,6 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 			} else if v == "unique" {
 				constraint = Constraint{
 					Name: "UNIQUE",
-				}
-			} else if v == "index" {
-				constraint = Constraint{
-					Name: "INDEX",
 				}
 			} else if strings.Contains(v, "default") {
 				constraint = Default(m.extractValue(v))
