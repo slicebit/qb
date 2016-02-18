@@ -15,8 +15,6 @@ func NewBuilder() *Builder {
 	}
 }
 
-const builderDelimiter = "\n"
-
 // Builder is a subset of dialect could be used for common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
@@ -33,7 +31,7 @@ func (b *Builder) Reset() {
 
 // Build generates sql query and bindings from clauses and bindings.
 // The query clauses and returns the sql and bindings
-func (b *Builder) Build() (string, []interface{}, error) {
+func (b *Builder) Build() (*Query, error) {
 
 	if b.HasError() {
 		errs := []string{}
@@ -42,23 +40,13 @@ func (b *Builder) Build() (string, []interface{}, error) {
 		}
 		err := errors.New(strings.Join(errs, "\n"))
 		b.errors = []error{}
-		return "", nil, err
+		return NewQuery(), err
 	}
 
-	//	var delimiter string
-	//
-	//	if b.prettyMode {
-	//		delimiter = "\n"
-	//	} else {
-	//		delimiter = " "
-	//	}
-
-	bindings := b.query.Bindings()
-	sql := fmt.Sprintf("%s;", strings.Join(b.query.Clauses(), builderDelimiter))
-
+	query := b.query
 	b.query = NewQuery()
 
-	return sql, bindings, nil
+	return query, nil
 }
 
 // AddError appends a new error to builder
