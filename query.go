@@ -1,17 +1,30 @@
 package qb
 
+import (
+	"fmt"
+	"strings"
+)
+
+const defaultDelimiter = "\n"
+
 // NewQuery creates a new query and returns its pointer
 func NewQuery() *Query {
 	return &Query{
 		clauses:  []string{},
 		bindings: []interface{}{},
+		delimiter: defaultDelimiter,
 	}
 }
 
 // Query is the base abstraction for sql queries
 type Query struct {
-	clauses  []string
-	bindings []interface{}
+	clauses   []string
+	bindings  []interface{}
+	delimiter string
+}
+
+func (q *Query) SetDelimiter(delimiter string) {
+	q.delimiter = delimiter
 }
 
 // AddClause appends a new clause to current query
@@ -34,4 +47,13 @@ func (q *Query) Clauses() []string {
 // Bindings returns all bindings of current query
 func (q *Query) Bindings() []interface{} {
 	return q.bindings
+}
+
+// SQL returns the query struct sql statement
+func (q *Query) SQL() string {
+	if len(q.clauses) > 0 {
+		return fmt.Sprintf("%s;", strings.Join(q.clauses, q.delimiter))
+	}
+
+	return ""
 }
