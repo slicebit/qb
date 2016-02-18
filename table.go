@@ -103,13 +103,13 @@ func (t *Table) Constraints() []Constraint {
 
 func (t *Table) Insert(kv map[string]interface{}) (*Query, error) {
 
-	keys := make([]string, len(kv))
-	vals := make([]interface{}, len(kv))
+	keys := []string{}
+	values := []interface{}{}
 
 	for k, v := range kv {
 		keys = append(keys, k)
-		vals = append(vals, v)
+		values = append(values, v)
 	}
 
-	return t.builder.Insert(t.name, keys...).Values(vals...).Build()
+	return t.builder.Insert(t.name, keys...).Values(values...).Build()
 }
