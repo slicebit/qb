@@ -51,10 +51,7 @@ func (t *Table) SQL() string {
 		constraints = append(constraints, v.Name)
 	}
 
-	query, err := t.builder.CreateTable(t.name, cols, constraints).Build()
-	if err != nil {
-		return ""
-	}
+	query, _ := t.builder.CreateTable(t.name, cols, constraints).Build()
 
 	return query.SQL()
 }
