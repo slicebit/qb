@@ -1,6 +1,11 @@
 package qb
 
-import "database/sql"
+import (
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
+)
 
 // NewEngine generates a new engine and returns it as an engine pointer
 func NewEngine(driver string, dsn string) (*Engine, error) {
@@ -32,7 +37,7 @@ func (e *Engine) Exec(query *Query) (sql.Result, error) {
 		return nil, err
 	}
 
-	res, err := stmt.Exec(query.Bindings())
+	res, err := stmt.Exec(query.Bindings()...)
 	if err != nil {
 		return nil, err
 	}
