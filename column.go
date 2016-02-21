@@ -30,7 +30,7 @@ func (c *Column) SQL() string {
 	}
 
 	colPieces := []string{
-		fmt.Sprintf("`%s`", c.Name),
+		fmt.Sprintf("%s", c.Name),
 		c.Type.SQL(),
 	}
 
