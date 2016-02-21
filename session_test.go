@@ -7,7 +7,7 @@ import (
 
 func TestSession(t *testing.T) {
 
-	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
+	engine, err := NewEngine("postgres", "user=root dbname=qb_test")
 
 	assert.Equal(t, err, nil)
 
