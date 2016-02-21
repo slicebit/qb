@@ -38,6 +38,7 @@ func (m *MetaData) AddTable(table *Table) {
 	m.tables = append(m.tables, table)
 }
 
+// Table returns the metadata registered table object. It returns nil if table is not found
 func (m *MetaData) Table(name string) *Table {
 
 	if m.engine.Driver() != "postgres" {
