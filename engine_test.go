@@ -28,7 +28,7 @@ func TestEngineExec(t *testing.T) {
 
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
 
-	query, err := NewBuilder().Insert("user", "full_name").Values("Aras Can Akin").Build()
+	query, err := NewBuilder(engine.Driver()).Insert("user", "full_name").Values("Aras Can Akin").Build()
 	fmt.Println(query)
 	assert.Equal(t, err, nil)
 
