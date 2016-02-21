@@ -6,12 +6,12 @@ import (
 )
 
 // NewTable generates a new table pointer given table name, column and table constraints
-func NewTable(name string, columns []Column, constraints []Constraint) *Table {
+func NewTable(driver string, name string, columns []Column, constraints []Constraint) *Table {
 	return &Table{
 		name:        name,
 		columns:     columns,
 		constraints: constraints,
-		builder:     NewBuilder(),
+		builder:     NewBuilder(driver),
 		primaryCols: []string{},
 		refs:        []ref{},
 	}
@@ -25,6 +25,10 @@ type Table struct {
 	builder     *Builder
 	primaryCols []string
 	refs        []ref
+}
+
+func (t *Table) Name() string {
+	return t.name
 }
 
 // SQL generates create table syntax of table

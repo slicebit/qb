@@ -8,6 +8,7 @@ import (
 func TestTable(t *testing.T) {
 
 	table := NewTable(
+		"mysql",
 		"user",
 		[]Column{
 			NewColumn(
@@ -86,6 +87,7 @@ func TestTable(t *testing.T) {
 func TestTableInsert(t *testing.T) {
 
 	table := NewTable(
+		"mysql",
 		"user",
 		[]Column{
 			NewColumn("id", BigInt(), []Constraint{}),
@@ -96,7 +98,7 @@ func TestTableInsert(t *testing.T) {
 		})
 
 	kv := map[string]interface{}{
-		"id": 1,
+		"id":        1,
 		"full_name": "Aras Can Akin",
 	}
 	query, _ := table.Insert(kv)
