@@ -2,8 +2,6 @@ package qb
 
 import (
 	"strings"
-	//	"fmt"
-	"errors"
 	"fmt"
 )
 
