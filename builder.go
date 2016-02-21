@@ -73,9 +73,8 @@ func (b *Builder) placeholder() string {
 	if b.driver == "postgres" {
 		b.bindingIndex++
 		return fmt.Sprintf("$%d", b.bindingIndex)
-	} else {
-		return "?"
 	}
+	return "?"
 }
 
 func (b *Builder) placeholders(values ...interface{}) []string {
