@@ -23,6 +23,7 @@ type Query struct {
 	delimiter string
 }
 
+// SetDelimiter sets the delimiter of query
 func (q *Query) SetDelimiter(delimiter string) {
 	q.delimiter = delimiter
 }
