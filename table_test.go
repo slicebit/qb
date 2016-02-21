@@ -12,22 +12,22 @@ func TestTable(t *testing.T) {
 		"user",
 		[]Column{
 			NewColumn(
-				"id",
+				"`id`",
 				BigInt(),
 				[]Constraint{},
 			),
 			NewColumn(
-				"profile_id",
+				"`profile_id`",
 				BigInt(),
 				[]Constraint{},
 			),
 			NewColumn(
-				"facebook_id",
+				"`facebook_id`",
 				BigInt(),
 				[]Constraint{},
 			),
 			NewColumn(
-				"email",
+				"`email`",
 				VarChar(512),
 				[]Constraint{
 					Constraint{"UNIQUE"},
@@ -35,21 +35,21 @@ func TestTable(t *testing.T) {
 				},
 			),
 			NewColumn(
-				"bio",
+				"`bio`",
 				Text(),
 				[]Constraint{
 					NotNull(),
 				},
 			),
 			NewColumn(
-				"gender",
+				"`gender`",
 				Char(16),
 				[]Constraint{
 					Default("female"),
 				},
 			),
 			NewColumn(
-				"birth_date",
+				"`birth_date`",
 				Char(16),
 				[]Constraint{
 					NotNull(),
