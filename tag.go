@@ -34,7 +34,7 @@ func ParseTag(rawTag string) (*Tag, error) {
 	for _, t := range tags {
 		tagKeyVal := strings.Split(t, ":")
 		if len(tagKeyVal) != 2 {
-			return nil, errors.New(fmt.Sprintf("Invalid tag key length, tag: %v", tag))
+			return nil, fmt.Errorf("Invalid tag key length, tag: %v", tag)
 		}
 
 		if tagKeyVal[0] == "type" {
