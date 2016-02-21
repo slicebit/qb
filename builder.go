@@ -7,24 +7,29 @@ import (
 )
 
 // NewBuilder generates a new builder object
-func NewBuilder() *Builder {
+func NewBuilder(driver string) *Builder {
 	return &Builder{
-		prettyMode: true,
-		query:      NewQuery(),
-		errors:     []error{},
+		prettyMode:   true,
+		query:        NewQuery(),
+		errors:       []error{},
+		driver:       driver,
+		bindingIndex: 0,
 	}
 }
 
 // Builder is a subset of dialect could be used for common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
-	prettyMode bool
-	query      *Query
-	errors     []error
+	prettyMode   bool
+	query        *Query
+	errors       []error
+	driver       string
+	bindingIndex int
 }
 
 // Reset clears query bindings and its errors
 func (b *Builder) Reset() {
+	b.bindingIndex = 0
 	b.query = NewQuery()
 	b.errors = []error{}
 }
@@ -44,7 +49,7 @@ func (b *Builder) Build() (*Query, error) {
 	}
 
 	query := b.query
-	b.query = NewQuery()
+	b.Reset()
 
 	return query, nil
 }
@@ -64,12 +69,21 @@ func (b *Builder) Errors() []error {
 	return b.errors
 }
 
-func (b *Builder) questionMarks(values ...interface{}) []string {
-	questionMarks := make([]string, len(values))
-	for k := range values {
-		questionMarks[k] = "?"
+func (b *Builder) placeholder() string {
+	if b.driver == "postgres" {
+		b.bindingIndex++
+		return fmt.Sprintf("$%d", b.bindingIndex)
+	} else {
+		return "?"
 	}
-	return questionMarks
+}
+
+func (b *Builder) placeholders(values ...interface{}) []string {
+	placeholders := make([]string, len(values))
+	for k := range values {
+		placeholders[k] = b.placeholder()
+	}
+	return placeholders
 }
 
 // Insert generates an "insert into %s(%s)" statement
@@ -82,7 +96,7 @@ func (b *Builder) Insert(table string, columns ...string) *Builder {
 // Values generates "values(%s)" statement and add bindings for each value
 func (b *Builder) Values(values ...interface{}) *Builder {
 	b.query.AddBinding(values...)
-	clause := fmt.Sprintf("VALUES (%s)", strings.Join(b.questionMarks(values...), ", "))
+	clause := fmt.Sprintf("VALUES (%s)", strings.Join(b.placeholders(values...), ", "))
 	b.query.AddClause(clause)
 	return b
 }
@@ -94,11 +108,11 @@ func (b *Builder) Update(table string) *Builder {
 	return b
 }
 
-// Set generates "set a = ?" statement for each key a and add bindings for map value
+// Set generates "set a = placeholder" statement for each key a and add bindings for map value
 func (b *Builder) Set(m map[string]interface{}) *Builder {
 	updates := []string{}
 	for k, v := range m {
-		updates = append(updates, fmt.Sprintf("%s = ?", k))
+		updates = append(updates, fmt.Sprintf("%s = %s", k, b.placeholder()))
 		b.query.AddBinding(v)
 	}
 	clause := fmt.Sprintf("SET %s", strings.Join(updates, ", "))
@@ -218,49 +232,49 @@ func (b *Builder) Max(column string) string {
 // NotIn function generates "%s not in (%s)" for key and adds bindings for each value
 func (b *Builder) NotIn(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
-	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(b.questionMarks(values...), ","))
+	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(b.placeholders(values...), ","))
 }
 
 // In function generates "%s in (%s)" for key and adds bindings for each value
 func (b *Builder) In(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
-	return fmt.Sprintf("%s IN (%s)", key, strings.Join(b.questionMarks(values...), ","))
+	return fmt.Sprintf("%s IN (%s)", key, strings.Join(b.placeholders(values...), ","))
 }
 
-// NotEq function generates "%s != ?" for key and adds binding for value
+// NotEq function generates "%s != placeholder" for key and adds binding for value
 func (b *Builder) NotEq(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s != ?", key)
+	return fmt.Sprintf("%s != %s", key, b.placeholder())
 }
 
-// Eq function generates "%s = ?" for key and adds binding for value
+// Eq function generates "%s = placeholder" for key and adds binding for value
 func (b *Builder) Eq(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s = ?", key)
+	return fmt.Sprintf("%s = %s", key, b.placeholder())
 }
 
-// Gt function generates "%s > ?" for key and adds binding for value
+// Gt function generates "%s > placeholder" for key and adds binding for value
 func (b *Builder) Gt(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s > ?", key)
+	return fmt.Sprintf("%s > %s", key, b.placeholder())
 }
 
-// Gte function generates "%s >= ?" for key and adds binding for value
+// Gte function generates "%s >= placeholder" for key and adds binding for value
 func (b *Builder) Gte(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s >= ?", key)
+	return fmt.Sprintf("%s >= %s", key, b.placeholder())
 }
 
-// St function generates "%s < ?" for key and adds binding for value
+// St function generates "%s < placeholder" for key and adds binding for value
 func (b *Builder) St(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s < ?", key)
+	return fmt.Sprintf("%s < %s", key, b.placeholder())
 }
 
-// Ste function generates "%s <= ?" for key and adds binding for value
+// Ste function generates "%s <= placeholder" for key and adds binding for value
 func (b *Builder) Ste(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s <= ?", key)
+	return fmt.Sprintf("%s <= %s", key, b.placeholder())
 }
 
 // And function generates " AND " between any number of expressions

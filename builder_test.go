@@ -12,7 +12,7 @@ var b *Builder
 
 func TestBuilderInit(t *testing.T) {
 
-	b = NewBuilder()
+	b = NewBuilder("mysql")
 
 	query, _ := b.
 		Select("id").
