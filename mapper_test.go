@@ -10,7 +10,7 @@ import (
 
 type UnknownType struct{}
 
-type User struct {
+type MapperTestUser struct {
 	ID          string `qb:"constraints:primary_key"`
 	FacebookID  int64  `qb:"constraints:ref(facebook.id)"`
 	ProfileID   int64  `qb:"constraints:ref(profile.id)"`
@@ -32,14 +32,14 @@ func TestMapper(t *testing.T) {
 
 	mapper := NewMapper("mysql")
 
-	userTable, err := mapper.Convert(User{})
+	userTable, err := mapper.Convert(MapperTestUser{})
 
 	assert.Nil(t, err)
 	fmt.Println(userTable.SQL())
 	//	fmt.Println(userScoreTable.SQL())
 }
 
-type UserErr struct {
+type MapperTestUserErr struct {
 	ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
 	Email string `qb:"wrongtag:"`
 }
@@ -48,7 +48,7 @@ func TestMapperError(t *testing.T) {
 
 	mapper := NewMapper("postgres")
 
-	userErrTable, err := mapper.Convert(UserErr{})
+	userErrTable, err := mapper.Convert(MapperTestUserErr{})
 
 	assert.NotNil(t, err)
 	assert.Empty(t, userErrTable)
