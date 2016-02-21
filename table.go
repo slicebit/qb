@@ -27,6 +27,7 @@ type Table struct {
 	refs        []ref
 }
 
+// Name returns the table name
 func (t *Table) Name() string {
 	return t.name
 }
@@ -105,6 +106,7 @@ func (t *Table) Constraints() []Constraint {
 	return t.constraints
 }
 
+// Insert creates an insert statement for the table name
 func (t *Table) Insert(kv map[string]interface{}) (*Query, error) {
 
 	keys := []string{}
