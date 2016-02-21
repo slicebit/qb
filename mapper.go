@@ -72,12 +72,15 @@ func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
 	modelName := snaker.CamelToSnake(structs.Name(model))
+	if m.driver != "postgres" {
+		modelName = fmt.Sprintf("`%s`", modelName)
+	}
 
 	table := &Table{
 		name:        modelName,
 		columns:     []Column{},
 		constraints: []Constraint{},
-		builder:     NewBuilder(),
+		builder:     NewBuilder(m.driver),
 	}
 
 	fmt.Printf("model name: %s\n\n", modelName)
@@ -88,6 +91,9 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 	for _, f := range structs.Fields(model) {
 
 		colName := snaker.CamelToSnake(f.Name())
+		if m.driver != "postgres" {
+			colName = fmt.Sprintf("`%s`", colName)
+		}
 		colType := fmt.Sprintf("%T", f.Value())
 
 		rawTag = f.Tag(tagPrefix)
