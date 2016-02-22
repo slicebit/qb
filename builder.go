@@ -1,7 +1,6 @@
 package qb
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -11,7 +10,6 @@ func NewBuilder(driver string) *Builder {
 	return &Builder{
 		prettyMode:   true,
 		query:        NewQuery(),
-		errors:       []error{},
 		driver:       driver,
 		bindingIndex: 0,
 	}
@@ -22,7 +20,7 @@ func NewBuilder(driver string) *Builder {
 type Builder struct {
 	prettyMode   bool
 	query        *Query
-	errors       []error
+	//errors       []error
 	driver       string
 	bindingIndex int
 }
@@ -31,42 +29,14 @@ type Builder struct {
 func (b *Builder) Reset() {
 	b.bindingIndex = 0
 	b.query = NewQuery()
-	b.errors = []error{}
 }
 
 // Build generates sql query and bindings from clauses and bindings.
 // The query clauses and returns the sql and bindings
-func (b *Builder) Build() (*Query, error) {
-
-	if b.HasError() {
-		errs := []string{}
-		for _, err := range b.errors {
-			errs = append(errs, err.Error())
-		}
-		err := errors.New(strings.Join(errs, "\n"))
-		b.errors = []error{}
-		return NewQuery(), err
-	}
-
+func (b *Builder) Build() *Query {
 	query := b.query
 	b.Reset()
-
-	return query, nil
-}
-
-// AddError appends a new error to builder
-func (b *Builder) AddError(err error) {
-	b.errors = append(b.errors, err)
-}
-
-// HasError returns if the builder has any syntax or build errors
-func (b *Builder) HasError() bool {
-	return len(b.errors) > 0
-}
-
-// Errors returns builder errors as an error slice
-func (b *Builder) Errors() []error {
-	return b.errors
+	return query
 }
 
 func (b *Builder) placeholder() string {

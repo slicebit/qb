@@ -1,10 +1,10 @@
 package qb
 
 import (
-	"errors"
+	//"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"strings"
+	//"strings"
 	"testing"
 )
 
@@ -14,7 +14,7 @@ func TestBuilderInit(t *testing.T) {
 
 	b = NewBuilder("mysql")
 
-	query, _ := b.
+	query := b.
 		Select("id").
 		From("user").
 		Build()
@@ -23,25 +23,9 @@ func TestBuilderInit(t *testing.T) {
 	b.Reset()
 }
 
-func TestBuilderError(t *testing.T) {
-
-	b.AddError(errors.New("Syntax Error"))
-	assert.Equal(t, b.Errors(), []error{errors.New("Syntax Error")})
-	assert.Equal(t, b.HasError(), true)
-
-	query, err := b.
-		Select("id").
-		From("user").
-		Build()
-
-	assert.Equal(t, query.SQL(), "")
-	assert.Equal(t, err, errors.New(strings.Join([]string{"Syntax Error"}, "\n")))
-	b.Reset()
-}
-
 func TestBuilderSelectSimple(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email", "name").
 		From("user").
 		Build()
@@ -51,7 +35,7 @@ func TestBuilderSelectSimple(t *testing.T) {
 
 func TestBuilderSelectSingleCondition(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email", "name").
 		From("user").
 		Where("id = $1", 5).
@@ -63,7 +47,7 @@ func TestBuilderSelectSingleCondition(t *testing.T) {
 
 func TestBuilderSelectOrderByMultiConditionWithAnd(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email", "name").
 		From("user").
 		Where(b.And("email = $1", "name = $2"), "a@b.c", "Aras Can Akin").
@@ -77,7 +61,7 @@ func TestBuilderSelectOrderByMultiConditionWithAnd(t *testing.T) {
 
 func TestBuilderSelectMultiConditionWithOr(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email", "name").
 		From("user").
 		Where(b.Or("email = $1", "name = $2"), "a@b.c", "Aras Can Akin").
@@ -91,7 +75,7 @@ func TestBuilderSelectMultiConditionWithOr(t *testing.T) {
 
 func TestBuilderSelectAvgGroupByHaving(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select(b.Avg("price")).
 		From("products").
 		GroupBy("category").
@@ -103,7 +87,7 @@ func TestBuilderSelectAvgGroupByHaving(t *testing.T) {
 
 func TestBuilderSelectSumCount(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select(b.Sum("price"), b.Count("id")).
 		From("products").
 		Build()
@@ -113,7 +97,7 @@ func TestBuilderSelectSumCount(t *testing.T) {
 
 func TestBuilderSelectMinMax(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select(b.Min("price"), b.Max("price")).
 		From("products").
 		Build()
@@ -123,7 +107,7 @@ func TestBuilderSelectMinMax(t *testing.T) {
 
 func TestBuilderSelectEqNeq(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email", "name").
 		From("user").
 		Where(b.And(
@@ -137,7 +121,7 @@ func TestBuilderSelectEqNeq(t *testing.T) {
 
 func TestBuilderSelectInNotIn(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email", "name").
 		From("user").
 		Where(b.And(
@@ -152,7 +136,7 @@ func TestBuilderSelectInNotIn(t *testing.T) {
 
 func TestBuilderSelectGtGteStSte(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "age", "avg").
 		From("goqb.user").
 		Where(b.And(
@@ -168,7 +152,7 @@ func TestBuilderSelectGtGteStSte(t *testing.T) {
 
 func TestBuilderBasicInsert(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Insert("user", "name", "email", "password").
 		Values("Aras Can Akin", "a@b.c", "p4ssw0rd").
 		Build()
@@ -195,7 +179,7 @@ func TestBuilderBasicInsert(t *testing.T) {
 
 func TestBuilderBasicUpdate(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Update("user").
 		Set(
 		map[string]interface{}{
@@ -211,7 +195,7 @@ func TestBuilderBasicUpdate(t *testing.T) {
 
 func TestBuilderDelete(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Delete("user").
 		Where("id = ?", 5).
 		Build()
@@ -222,7 +206,7 @@ func TestBuilderDelete(t *testing.T) {
 
 func TestBuilderInnerJoin(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "name", "email").
 		From("user").
 		InnerJoin("email", "user.id = email.id").
@@ -235,7 +219,7 @@ func TestBuilderInnerJoin(t *testing.T) {
 
 func TestBuilderLeftJoin(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "name").
 		From("user").
 		LeftOuterJoin("email", "user.id = email.id").
@@ -248,7 +232,7 @@ func TestBuilderLeftJoin(t *testing.T) {
 
 func TestBuilderRightJoin(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "email_address").
 		From("user").
 		RightOuterJoin("email", "user.id = email.id").
@@ -261,7 +245,7 @@ func TestBuilderRightJoin(t *testing.T) {
 
 func TestBuilderFullOuterJoin(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "name", "email").
 		From("user").
 		FullOuterJoin("email", "user.id = email.id").
@@ -275,7 +259,7 @@ func TestBuilderFullOuterJoin(t *testing.T) {
 
 func TestBuilderCrossJoin(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		Select("id", "name", "email").
 		From("user").
 		CrossJoin("email").
@@ -288,7 +272,7 @@ func TestBuilderCrossJoin(t *testing.T) {
 
 func TestBuilderCreateTable(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		CreateTable("user",
 		[]string{
 			"id UUID PRIMARY KEY",
@@ -315,7 +299,7 @@ func TestBuilderCreateTable(t *testing.T) {
 
 func TestBuilderAlterTableAddColumn(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		AlterTable("user").
 		Add("name", "TEXT").
 		Build()
@@ -325,7 +309,7 @@ func TestBuilderAlterTableAddColumn(t *testing.T) {
 
 func TestBuilderAlterTableDropColumn(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		AlterTable("user").
 		Drop("name").
 		Build()
@@ -335,7 +319,7 @@ func TestBuilderAlterTableDropColumn(t *testing.T) {
 
 func TestBuilderDropTable(t *testing.T) {
 
-	query, _ := b.
+	query := b.
 		DropTable("user").
 		Build()
 
