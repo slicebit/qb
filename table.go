@@ -46,7 +46,6 @@ func (t *Table) SQL() string {
 
 	// build primary key constraints using primaryCols
 	if len(t.primaryCols) > 0 {
-		//t.primaryCols = t.sanitizeAll(t.primaryCols)
 		constraints = append(constraints, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(t.primaryCols, ", ")))
 	}
 
