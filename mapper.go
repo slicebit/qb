@@ -72,15 +72,13 @@ func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
 	modelName := snaker.CamelToSnake(structs.Name(model))
-	if m.driver != "postgres" {
-		modelName = fmt.Sprintf("`%s`", modelName)
-	}
 
 	table := &Table{
 		name:        modelName,
 		columns:     []Column{},
 		constraints: []Constraint{},
 		builder:     NewBuilder(m.driver),
+		driver:      m.driver,
 	}
 
 	fmt.Printf("model name: %s\n\n", modelName)
@@ -91,9 +89,6 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 	for _, f := range structs.Fields(model) {
 
 		colName := snaker.CamelToSnake(f.Name())
-		if m.driver != "postgres" {
-			colName = fmt.Sprintf("`%s`", colName)
-		}
 		colType := fmt.Sprintf("%T", f.Value())
 
 		rawTag = f.Tag(tagPrefix)
@@ -118,11 +113,23 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		for _, v := range tag.Constraints {
 			if v == "null" {
 				constraint = Null()
-			} else if v == "notnull" {
+			} else if v == "notnull" || v == "not_null" {
 				constraint = NotNull()
 			} else if v == "unique" {
 				constraint = Constraint{
 					Name: "UNIQUE",
+				}
+			} else if v == "auto_increment" || v == "autoincrement" {
+				if m.driver == "mysql" {
+					constraint = Constraint{
+						Name: "AUTO_INCREMENT",
+					}
+				} else if m.driver == "postgres" {
+					constraint = Constraint{
+						Name: "AUTOINCREMENT",
+					}
+				} else {
+					continue
 				}
 			} else if strings.Contains(v, "default") {
 				constraint = Default(m.extractValue(v))
