@@ -14,6 +14,7 @@ func NewTable(driver string, name string, columns []Column, constraints []Constr
 		builder:     NewBuilder(driver),
 		primaryCols: []string{},
 		refs:        []ref{},
+		driver:      driver,
 	}
 }
 
@@ -25,6 +26,7 @@ type Table struct {
 	builder     *Builder
 	primaryCols []string
 	refs        []ref
+	driver      string
 }
 
 // Name returns the table name
@@ -44,19 +46,20 @@ func (t *Table) SQL() string {
 
 	// build primary key constraints using primaryCols
 	if len(t.primaryCols) > 0 {
-		constraints = append(constraints, fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(t.primaryCols, ", ")))
+		//t.primaryCols = t.sanitizeAll(t.primaryCols)
+		constraints = append(constraints, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(t.primaryCols, ", ")))
 	}
 
 	// build foreign key constraints using refCols
 	for _, ref := range t.refs {
-		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY(%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), ref.refTable, strings.Join(ref.refCols, ", ")))
+		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), ref.refTable, strings.Join(ref.refCols, ", ")))
 	}
 
 	for _, v := range t.constraints {
 		constraints = append(constraints, v.Name)
 	}
 
-	query, _ := t.builder.CreateTable(t.name, cols, constraints).Build()
+	query := t.builder.CreateTable(t.name, cols, constraints).Build()
 
 	return query.SQL()
 }
@@ -88,8 +91,8 @@ func (t *Table) AddRef(col string, refTable string, refCol string) {
 	if len(t.refs) > 0 {
 		for k, ref := range t.refs {
 			if refTable == ref.refTable {
-				t.refs[k].cols = append(t.refs[k].cols, fmt.Sprintf("`%s`", col))
-				t.refs[k].refCols = append(t.refs[k].refCols, fmt.Sprintf("`%s`", refCol))
+				t.refs[k].cols = append(t.refs[k].cols, fmt.Sprintf("%s", col))
+				t.refs[k].refCols = append(t.refs[k].refCols, fmt.Sprintf("%s", refCol))
 				return
 			}
 		}
@@ -107,7 +110,7 @@ func (t *Table) Constraints() []Constraint {
 }
 
 // Insert creates an insert statement for the table name
-func (t *Table) Insert(kv map[string]interface{}) (*Query, error) {
+func (t *Table) Insert(kv map[string]interface{}) *Query {
 
 	keys := []string{}
 	values := []interface{}{}
