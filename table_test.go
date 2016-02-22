@@ -12,22 +12,22 @@ func TestTable(t *testing.T) {
 		"user",
 		[]Column{
 			NewColumn(
-				"`id`",
+				"id",
 				BigInt(),
 				[]Constraint{},
 			),
 			NewColumn(
-				"`profile_id`",
+				"profile_id",
 				BigInt(),
 				[]Constraint{},
 			),
 			NewColumn(
-				"`facebook_id`",
+				"facebook_id",
 				BigInt(),
 				[]Constraint{},
 			),
 			NewColumn(
-				"`email`",
+				"email",
 				VarChar(512),
 				[]Constraint{
 					Constraint{"UNIQUE"},
@@ -35,21 +35,21 @@ func TestTable(t *testing.T) {
 				},
 			),
 			NewColumn(
-				"`bio`",
+				"bio",
 				Text(),
 				[]Constraint{
 					NotNull(),
 				},
 			),
 			NewColumn(
-				"`gender`",
+				"gender",
 				Char(16),
 				[]Constraint{
 					Default("female"),
 				},
 			),
 			NewColumn(
-				"`birth_date`",
+				"birth_date",
 				Char(16),
 				[]Constraint{
 					NotNull(),
@@ -65,13 +65,13 @@ func TestTable(t *testing.T) {
 	table.AddConstraint(Foreign("facebook_id", "user_facebook", "id"))
 
 	q := "CREATE TABLE user(\n" +
-		"\t`id` BIGINT,\n" +
-		"\t`profile_id` BIGINT,\n" +
-		"\t`facebook_id` BIGINT,\n" +
-		"\t`email` VARCHAR(512) UNIQUE NOT NULL,\n" +
-		"\t`bio` TEXT NOT NULL,\n" +
-		"\t`gender` CHAR(16) DEFAULT 'female',\n" +
-		"\t`birth_date` CHAR(16) NOT NULL,\n" +
+		"\tid BIGINT,\n" +
+		"\tprofile_id BIGINT,\n" +
+		"\tfacebook_id BIGINT,\n" +
+		"\temail VARCHAR(512) UNIQUE NOT NULL,\n" +
+		"\tbio TEXT NOT NULL,\n" +
+		"\tgender CHAR(16) DEFAULT 'female',\n" +
+		"\tbirth_date CHAR(16) NOT NULL,\n" +
 		"\tPRIMARY KEY(id),\n" +
 		"\tFOREIGN KEY (profile_id) REFERENCES profile(id),\n" +
 		"\tFOREIGN KEY (facebook_id) REFERENCES user_facebook(id)\n);"
@@ -101,7 +101,7 @@ func TestTableInsert(t *testing.T) {
 		"id":        1,
 		"full_name": "Aras Can Akin",
 	}
-	query, _ := table.Insert(kv)
+	query := table.Insert(kv)
 
 	assert.Equal(t, query.SQL(), "INSERT INTO user(id, full_name)\nVALUES (?, ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{1, "Aras Can Akin"})
