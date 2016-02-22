@@ -1,7 +1,6 @@
 package qb
 
 import (
-	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -28,8 +27,7 @@ func TestEngineExec(t *testing.T) {
 
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
 
-	query, err := NewBuilder(engine.Driver()).Insert("user", "full_name").Values("Aras Can Akin").Build()
-	fmt.Println(query)
+	query := NewBuilder(engine.Driver()).Insert("user", "full_name").Values("Aras Can Akin").Build()
 	assert.Equal(t, err, nil)
 
 	res, err := engine.Exec(query)
