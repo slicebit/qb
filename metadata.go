@@ -2,7 +2,6 @@ package qb
 
 import (
 	"fmt"
-	"strings"
 )
 
 // NewMetaData creates a new MetaData object and returns
@@ -64,23 +63,31 @@ func (m *MetaData) Tables() []*Table {
 // CreateAll creates all the tables added to metadata
 func (m *MetaData) CreateAll() error {
 
-	sqls := []string{}
-	for _, t := range m.tables {
-		sqls = append(sqls, t.SQL())
+	tx, err := m.engine.DB().Begin()
+	if err != nil {
+		return err
 	}
 
-	_, err := m.engine.DB().Exec(strings.Join(sqls, "\n"))
+	for _, t := range m.tables {
+		tx.Exec(t.SQL())
+	}
+
+	err = tx.Commit()
 	return err
 }
 
 // DropAll drops all the tables which is added to metadata
 func (m *MetaData) DropAll() error {
 
-	sqls := []string{}
-	for i := len(m.tables) - 1; i >= 0; i-- {
-		sqls = append(sqls, fmt.Sprintf("DROP TABLE %s;", m.tables[i].Name()))
+	tx, err := m.engine.DB().Begin()
+	if err != nil {
+		return nil
 	}
 
-	_, err := m.engine.DB().Exec(strings.Join(sqls, "\n"))
+	for i := len(m.tables) - 1; i >= 0; i-- {
+		tx.Exec(fmt.Sprintf("DROP TABLE %s;", m.tables[i].Name()))
+	}
+
+	err = tx.Commit()
 	return err
 }
