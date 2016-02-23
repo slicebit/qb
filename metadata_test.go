@@ -48,3 +48,19 @@ func TestMetadataAddTable(t *testing.T) {
 
 	assert.Equal(t, metadata.Tables(), []*Table{table})
 }
+
+func TestMetadataTable(t *testing.T) {
+	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
+	metadata := NewMetaData(engine)
+
+	assert.Nil(t, metadata.Table("invalid-table"))
+}
+
+func TestMetadataFailCreateDropAll(t *testing.T) {
+	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
+	metadata := NewMetaData(engine)
+	metadata.Engine().DB().Close()
+
+	assert.NotNil(t, metadata.CreateAll())
+	assert.NotNil(t, metadata.DropAll())
+}
