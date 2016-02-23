@@ -124,7 +124,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 					constraint = Constraint{
 						Name: "AUTO_INCREMENT",
 					}
-				} else if m.driver == "postgres" {
+				} else if m.driver == "sqlite" {
 					constraint = Constraint{
 						Name: "AUTOINCREMENT",
 					}
