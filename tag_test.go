@@ -19,6 +19,6 @@ func TestTag(t *testing.T) {
 	assert.Equal(t, tagEmpty, &Tag{[]string{}, ""})
 
 	tagInvalidKeyLength, err := ParseTag("type::")
-	assert.Equal(t, tagInvalidKeyLength, (*Tag)(nil))
-	assert.NotEqual(t, err, nil)
+	assert.Nil(t, tagInvalidKeyLength)
+	assert.NotNil(t, err)
 }
