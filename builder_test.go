@@ -161,22 +161,6 @@ func TestBuilderBasicInsert(t *testing.T) {
 	assert.Equal(t, query.Bindings(), []interface{}{"Aras Can Akin", "a@b.c", "p4ssw0rd"})
 }
 
-//func TestBasicUpsert(t *testing.T) {
-//
-//	assert := assert.New(t)
-//
-//	query, bindings := builder.
-//		Insert("user", "name", "email").
-//		Values("Aras Can Akin", "aacanakin@gmail.com").
-//		UpdateOnDuplicate(map[string]interface{}{
-//		"count": 2,
-//	}).Build()
-//
-//	assert.Equal(query, "INSERT INTO user(name, email) VALUES (?, ?) ON DUPLICATE KEY UPDATE count = ?;")
-//	assert.Equal(bindings, []interface{}{"Aras Can Akin", "aacanakin@gmail.com", 2})
-//
-//}
-
 func TestBuilderBasicUpdate(t *testing.T) {
 
 	query := b.
