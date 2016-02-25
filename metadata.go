@@ -81,7 +81,7 @@ func (m *MetaData) DropAll() error {
 
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	for i := len(m.tables) - 1; i >= 0; i-- {
