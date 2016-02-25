@@ -28,6 +28,10 @@ type MapperTestUser struct {
 	Unknown     UnknownType
 }
 
+type MapperTestSqliteAutoIncrementUser struct {
+	ID int64 `qb:"constraints:auto_increment"`
+}
+
 func TestMapper(t *testing.T) {
 
 	mapper := NewMapper("mysql")
@@ -37,6 +41,16 @@ func TestMapper(t *testing.T) {
 	assert.Nil(t, err)
 	fmt.Println(userTable.SQL())
 	//	fmt.Println(userScoreTable.SQL())
+}
+
+func TestMapperSqliteAutoIncrement(t *testing.T) {
+
+	mapper := NewMapper("sqlite")
+	sqliteAutoIncrementUserTable, err := mapper.Convert(MapperTestSqliteAutoIncrementUser{})
+
+	assert.Nil(t, err)
+	fmt.Println(sqliteAutoIncrementUserTable.SQL())
+
 }
 
 type MapperTestUserErr struct {
