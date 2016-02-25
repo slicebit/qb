@@ -8,7 +8,7 @@ import (
 )
 
 type postgresUser struct {
-	ID       int64  `qb:"type:bigserial; constraints:primary_key"`
+	ID       int64  `qb:"type:bigserial; constraints:primary_key,auto_increment"`
 	Email    string `qb:"constraints:unique,notnull"`
 	FullName string `qb:"constraints:notnull"`
 	Password string `qb:"constraints:notnull"`
