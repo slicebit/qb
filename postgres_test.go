@@ -75,6 +75,16 @@ func TestPostgresInsertFail(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestPostgresInsertTypeFail(t *testing.T) {
+
+	ins := postgresMetadata.Table("postgres_user").Insert(map[string]interface{}{
+		"email": 5,
+	})
+
+	_, err := postgresMetadata.Engine().Exec(ins)
+	assert.NotNil(t, err)
+}
+
 func TestPostgresDropTables(t *testing.T) {
 	defer postgresMetadata.Engine().DB().Close()
 	err := postgresMetadata.DropAll()
