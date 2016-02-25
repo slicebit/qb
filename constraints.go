@@ -5,13 +5,6 @@ import (
 	"strings"
 )
 
-// PrimaryKey is the builtin constraints that should be used with tag
-// type User struct {
-//		Id int
-//		PrimaryKey `qbit:"id"`
-// }
-type PrimaryKey Constraint
-
 // ForeignKey is the builtin constraint that should be used with tag
 type ForeignKey Constraint
 
