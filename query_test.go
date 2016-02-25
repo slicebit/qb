@@ -8,9 +8,9 @@ import (
 func TestQuery(t *testing.T) {
 
 	query := NewQuery()
+
 	query.AddClause("SELECT name")
 	query.AddClause("FROM user")
-
 	query.AddClause("WHERE id = ?")
 	query.AddBinding(5)
 

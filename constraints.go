@@ -5,9 +5,6 @@ import (
 	"strings"
 )
 
-// ForeignKey is the builtin constraint that should be used with tag
-type ForeignKey Constraint
-
 // CompositeUnique is the builtin multiple unique constraint that should be used with tag
 type CompositeUnique Constraint
 

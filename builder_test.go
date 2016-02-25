@@ -1,10 +1,8 @@
 package qb
 
 import (
-	//"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	//"strings"
 	"testing"
 )
 
