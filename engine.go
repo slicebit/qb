@@ -50,6 +50,11 @@ func (e *Engine) QueryRow(query *Query) *sql.Row {
 	return e.db.QueryRow(query.SQL(), query.Bindings()...)
 }
 
+// Query wraps *sql.DB.Query()
+func (e *Engine) Query(query *Query) (*sql.Rows, error) {
+	return e.db.Query(query.SQL(), query.Bindings()...)
+}
+
 // DB returns sql.DB of wrapped engine connection
 func (e *Engine) DB() *sql.DB {
 	return e.db
