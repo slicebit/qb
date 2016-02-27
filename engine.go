@@ -45,6 +45,11 @@ func (e *Engine) Exec(query *Query) (sql.Result, error) {
 	return res, nil
 }
 
+// QueryRow wraps *sql.DB.QueryRow()
+func (e *Engine) QueryRow(query *Query) *sql.Row {
+	return e.db.QueryRow(query.SQL(), query.Bindings()...)
+}
+
 // DB returns sql.DB of wrapped engine connection
 func (e *Engine) DB() *sql.DB {
 	return e.db
