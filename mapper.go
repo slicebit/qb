@@ -100,7 +100,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		fmt.Printf("field constraints: %v\n", constraints)
 
 		// clean trailing spaces of tag
-		rawTag = strings.Replace(f.Tag(tagPrefix), " ", "", 1)
+		rawTag = strings.Replace(f.Tag(tagPrefix), " ", "", -1)
 
 		// parse tag
 		tag, err := ParseTag(rawTag)
