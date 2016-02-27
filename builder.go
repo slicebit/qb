@@ -140,6 +140,7 @@ func (b *Builder) FullOuterJoin(table string, expressions ...string) *Builder {
 
 // Where generates "where %s" for the expression and adds bindings for each value
 func (b *Builder) Where(expression string, bindings ...interface{}) *Builder {
+	expression = strings.Replace(expression, "?", b.placeholder(), -1)
 	b.query.AddClause(fmt.Sprintf("WHERE %s", expression))
 	b.query.AddBinding(bindings...)
 	return b
