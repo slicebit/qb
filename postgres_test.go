@@ -1,92 +1,107 @@
 package qb
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
-type postgresUser struct {
-	ID       int64  `qb:"type:bigserial; constraints:primary_key,auto_increment"`
-	Email    string `qb:"constraints:unique,notnull"`
+type pUser struct {
+	ID       string `qb:"type:uuid; constraints:primary_key, auto_increment"`
+	Email    string `qb:"constraints:unique, notnull"`
 	FullName string `qb:"constraints:notnull"`
 	Password string `qb:"constraints:notnull"`
 	Bio      string `qb:"type:text; constraints:null"`
 }
 
-type postgresSession struct {
-	SessionID int64     `qb:"constraints:primary_key"`
-	UserID    int64     `qb:"constraints:ref(postgres_user.id)"`
+type pSession struct {
+	SessionID int64     `qb:"type:bigserial; constraints:primary_key"`
+	UserID    string    `qb:"type:uuid; constraints:ref(p_user.id)"`
+	AuthToken string    `qb:"type:uuid; constraints:notnull, unique"`
 	CreatedAt time.Time `qb:"constraints:notnull"`
 	ExpiresAt time.Time `qb:"constraints:notnull"`
 }
 
-var postgresMetadata *MetaData
+var pMetadata *MetaData
 
 func TestPostgresSetup(t *testing.T) {
-	postgresEngine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	pEngine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	assert.Nil(t, err)
-	assert.Nil(t, postgresEngine.Ping())
-	assert.NotNil(t, postgresEngine)
-	postgresMetadata = NewMetaData(postgresEngine)
+	assert.Nil(t, pEngine.Ping())
+	assert.NotNil(t, pEngine)
+	pMetadata = NewMetaData(pEngine)
 }
 
 func TestPostgresCreateTables(t *testing.T) {
-	postgresMetadata.Add(postgresUser{})
-	postgresMetadata.Add(postgresSession{})
-	err := postgresMetadata.CreateAll()
+	pMetadata.Add(pUser{})
+	pMetadata.Add(pSession{})
+	err := pMetadata.CreateAll()
 	assert.Nil(t, err)
 }
 
 func TestPostgresInsertSampleData(t *testing.T) {
 
-	jn := postgresMetadata.Table("postgres_user").Insert(map[string]interface{}{
+	insUser := pMetadata.Table("p_user").Insert(map[string]interface{}{
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
 		"password":  "jack-nicholson",
 		"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
 	})
 
-	mb := postgresMetadata.Table("postgres_user").Insert(map[string]interface{}{
-		"email":     "marlon@brando.com",
-		"full_name": "Marlon Brando",
-		"password":  "marlon-brando",
-		"bio":       "Marlon Brando is widely considered the greatest movie actor of all time, rivaled only by the more theatrically oriented Laurence Olivier in terms of esteem.",
+	_, err := pMetadata.Engine().Exec(insUser)
+	assert.Nil(t, err)
+
+	insSession := pMetadata.Table("p_session").Insert(map[string]interface{}{
+		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
+		"created_at": time.Now(),
+		"expires_at": time.Now().Add(24 * time.Hour),
 	})
 
-	_, err := postgresMetadata.Engine().Exec(jn)
-	assert.Nil(t, err)
+	_, err = pMetadata.Engine().Exec(insSession)
 
-	fmt.Println(mb.SQL())
-	fmt.Println(mb.Bindings())
-
-	_, err = postgresMetadata.Engine().Exec(mb)
 	assert.Nil(t, err)
+}
+
+func TestPostgresSelectUser(t *testing.T) {
+
+	query := NewBuilder(pMetadata.Engine().Driver()).Select("id", "email", "full_name", "bio").
+		From("p_user").
+		Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		Build()
+
+	var user pUser
+	pMetadata.Engine().QueryRow(query).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
+
+	assert.Equal(t, user.ID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
+	assert.Equal(t, user.Email, "jack@nicholson.com")
+	assert.Equal(t, user.FullName, "Jack Nicholson")
+	assert.Equal(t, user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
 }
 
 func TestPostgresInsertFail(t *testing.T) {
 
-	ins := postgresMetadata.Table("postgres_user").Insert(map[string]interface{}{
+	ins := pMetadata.Table("p_user").Insert(map[string]interface{}{
 		"invalid_column": "invalid_value",
 	})
 
-	_, err := postgresMetadata.Engine().Exec(ins)
+	_, err := pMetadata.Engine().Exec(ins)
 	assert.NotNil(t, err)
 }
 
 func TestPostgresInsertTypeFail(t *testing.T) {
 
-	ins := postgresMetadata.Table("postgres_user").Insert(map[string]interface{}{
+	ins := pMetadata.Table("p_user").Insert(map[string]interface{}{
 		"email": 5,
 	})
 
-	_, err := postgresMetadata.Engine().Exec(ins)
+	_, err := pMetadata.Engine().Exec(ins)
 	assert.NotNil(t, err)
 }
 
 func TestPostgresDropTables(t *testing.T) {
-	defer postgresMetadata.Engine().DB().Close()
-	err := postgresMetadata.DropAll()
+	defer pMetadata.Engine().DB().Close()
+	err := pMetadata.DropAll()
 	assert.Nil(t, err)
 }
