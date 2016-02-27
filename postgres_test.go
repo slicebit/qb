@@ -15,7 +15,7 @@ type pUser struct {
 }
 
 type pSession struct {
-	SessionID int64     `qb:"type:bigserial; constraints:primary_key"`
+	ID        int64     `qb:"type:bigserial; constraints:primary_key"`
 	UserID    string    `qb:"type:uuid; constraints:ref(p_user.id)"`
 	AuthToken string    `qb:"type:uuid; constraints:notnull, unique"`
 	CreatedAt time.Time `qb:"constraints:notnull"`
@@ -78,6 +78,36 @@ func TestPostgresSelectUser(t *testing.T) {
 	assert.Equal(t, user.Email, "jack@nicholson.com")
 	assert.Equal(t, user.FullName, "Jack Nicholson")
 	assert.Equal(t, user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
+}
+
+func TestPostgresSelectSessions(t *testing.T) {
+
+	query := NewBuilder(pMetadata.Engine().Driver()).
+		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
+		From("p_user u").
+		InnerJoin("p_session s", "u.id = s.user_id").
+		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		Build()
+
+	rows, err := pMetadata.Engine().Query(query)
+	assert.Nil(t, err)
+	if err != nil {
+		defer rows.Close()
+	}
+
+	sessions := []pSession{}
+
+	for rows.Next() {
+		var session pSession
+		rows.Scan(&session.ID, &session.AuthToken, &session.CreatedAt, &session.ExpiresAt)
+		assert.Equal(t, session.ID, int64(1))
+		assert.NotNil(t, session.CreatedAt)
+		assert.NotNil(t, session.ExpiresAt)
+		sessions = append(sessions, session)
+	}
+
+	assert.Equal(t, len(sessions), 1)
+
 }
 
 func TestPostgresInsertFail(t *testing.T) {
