@@ -107,7 +107,30 @@ func TestPostgresSelectSessions(t *testing.T) {
 	}
 
 	assert.Equal(t, len(sessions), 1)
+}
 
+func TestPostgresUpdateSession(t *testing.T) {
+
+	query := NewBuilder(pMetadata.Engine().Driver()).
+		Update("p_session").
+		Set(
+		map[string]interface{}{
+			"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
+		}).
+		Where("id = ?", 1).Build()
+
+	_, err := pMetadata.Engine().Exec(query)
+	assert.Nil(t, err)
+}
+
+func TestPostgresDeleteSession(t *testing.T) {
+	query := NewBuilder(pMetadata.Engine().Driver()).
+		Delete("p_session").
+		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
+		Build()
+
+	_, err := pMetadata.Engine().Exec(query)
+	assert.Nil(t, err)
 }
 
 func TestPostgresInsertFail(t *testing.T) {
