@@ -77,11 +77,11 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		name:        modelName,
 		columns:     []Column{},
 		constraints: []Constraint{},
-		builder:     NewBuilder(m.driver),
+		dialect:     NewDialect(m.driver),
 		driver:      m.driver,
 	}
 
-	fmt.Printf("model name: %s\n\n", modelName)
+	//fmt.Printf("model name: %s\n\n", modelName)
 
 	var col Column
 	var rawTag string
@@ -94,10 +94,10 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		rawTag = f.Tag(tagPrefix)
 
 		constraints := []Constraint{}
-		fmt.Printf("field name: %s\n", colName)
-		fmt.Printf("field raw tag: %s\n", rawTag)
-		fmt.Printf("field type name: %T\n", f.Value())
-		fmt.Printf("field constraints: %v\n", constraints)
+		//fmt.Printf("field name: %s\n", colName)
+		//fmt.Printf("field raw tag: %s\n", rawTag)
+		//fmt.Printf("field type name: %T\n", f.Value())
+		//fmt.Printf("field constraints: %v\n", constraints)
 
 		// clean trailing spaces of tag
 		rawTag = strings.Replace(f.Tag(tagPrefix), " ", "", -1)
@@ -146,8 +146,8 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 			constraints = append(constraints, constraint)
 		}
 
-		fmt.Printf("field tag.Type: %s\n", tag.Type)
-		fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
+		//fmt.Printf("field tag.Type: %s\n", tag.Type)
+		//fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
 
 		col = Column{
 			Name:        colName,
@@ -157,7 +157,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
 		table.AddColumn(col)
 
-		fmt.Println()
+		//fmt.Println()
 	}
 
 	return table, nil

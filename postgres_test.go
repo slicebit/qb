@@ -66,10 +66,11 @@ func TestPostgresInsertSampleData(t *testing.T) {
 
 func TestPostgresSelectUser(t *testing.T) {
 
-	query := NewBuilder(pMetadata.Engine().Driver()).Select("id", "email", "full_name", "bio").
+	query := NewDialect(pMetadata.Engine().Driver()).
+		Select("id", "email", "full_name", "bio").
 		From("p_user").
 		Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Build()
+		Query()
 
 	var user pUser
 	pMetadata.Engine().QueryRow(query).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
@@ -82,12 +83,12 @@ func TestPostgresSelectUser(t *testing.T) {
 
 func TestPostgresSelectSessions(t *testing.T) {
 
-	query := NewBuilder(pMetadata.Engine().Driver()).
+	query := NewDialect(pMetadata.Engine().Driver()).
 		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
 		From("p_user u").
 		InnerJoin("p_session s", "u.id = s.user_id").
 		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Build()
+		Query()
 
 	rows, err := pMetadata.Engine().Query(query)
 	assert.Nil(t, err)
@@ -111,23 +112,23 @@ func TestPostgresSelectSessions(t *testing.T) {
 
 func TestPostgresUpdateSession(t *testing.T) {
 
-	query := NewBuilder(pMetadata.Engine().Driver()).
+	query := NewDialect(pMetadata.Engine().Driver()).
 		Update("p_session").
 		Set(
 		map[string]interface{}{
 			"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
 		}).
-		Where("id = ?", 1).Build()
+		Where("id = ?", 1).Query()
 
 	_, err := pMetadata.Engine().Exec(query)
 	assert.Nil(t, err)
 }
 
 func TestPostgresDeleteSession(t *testing.T) {
-	query := NewBuilder(pMetadata.Engine().Driver()).
+	query := NewDialect(pMetadata.Engine().Driver()).
 		Delete("p_session").
 		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
-		Build()
+		Query()
 
 	_, err := pMetadata.Engine().Exec(query)
 	assert.Nil(t, err)
@@ -153,8 +154,8 @@ func TestPostgresInsertTypeFail(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestPostgresDropTables(t *testing.T) {
-	defer pMetadata.Engine().DB().Close()
-	err := pMetadata.DropAll()
-	assert.Nil(t, err)
-}
+//func TestPostgresDropTables(t *testing.T) {
+//	defer pMetadata.Engine().DB().Close()
+//	err := pMetadata.DropAll()
+//	assert.Nil(t, err)
+//}

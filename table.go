@@ -11,7 +11,7 @@ func NewTable(driver string, name string, columns []Column, constraints []Constr
 		name:        name,
 		columns:     columns,
 		constraints: constraints,
-		builder:     NewBuilder(driver),
+		dialect:     NewDialect(driver),
 		primaryCols: []string{},
 		refs:        []ref{},
 		driver:      driver,
@@ -23,7 +23,7 @@ type Table struct {
 	name        string
 	columns     []Column
 	constraints []Constraint
-	builder     *Builder
+	dialect     Dialect
 	primaryCols []string
 	refs        []ref
 	driver      string
@@ -58,7 +58,7 @@ func (t *Table) SQL() string {
 		constraints = append(constraints, v.Name)
 	}
 
-	query := t.builder.CreateTable(t.name, cols, constraints).Build()
+	query := t.dialect.CreateTable(t.name, cols, constraints).Query()
 
 	return query.SQL()
 }
@@ -121,5 +121,5 @@ func (t *Table) Insert(kv map[string]interface{}) *Query {
 
 	// TODO: Validate column name
 
-	return t.builder.Insert(t.name, keys...).Values(values...).Build()
+	return t.dialect.Insert(t.name, keys...).Values(values...).Query()
 }
