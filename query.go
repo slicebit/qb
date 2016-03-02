@@ -10,8 +10,8 @@ const defaultDelimiter = "\n"
 // NewQuery creates a new query and returns its pointer
 func NewQuery() *Query {
 	return &Query{
-		clauses:  []string{},
-		bindings: []interface{}{},
+		clauses:   []string{},
+		bindings:  []interface{}{},
 		delimiter: defaultDelimiter,
 	}
 }
