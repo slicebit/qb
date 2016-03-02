@@ -77,8 +77,6 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		name:        modelName,
 		columns:     []Column{},
 		constraints: []Constraint{},
-		dialect:     NewDialect(m.driver),
-		driver:      m.driver,
 	}
 
 	//fmt.Printf("model name: %s\n\n", modelName)

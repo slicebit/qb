@@ -6,15 +6,13 @@ import (
 )
 
 // NewTable generates a new table pointer given table name, column and table constraints
-func NewTable(driver string, name string, columns []Column, constraints []Constraint) *Table {
+func NewTable(name string, columns []Column, constraints []Constraint) *Table {
 	return &Table{
 		name:        name,
 		columns:     columns,
 		constraints: constraints,
-		dialect:     NewDialect(driver),
 		primaryCols: []string{},
 		refs:        []ref{},
-		driver:      driver,
 	}
 }
 
@@ -23,10 +21,8 @@ type Table struct {
 	name        string
 	columns     []Column
 	constraints []Constraint
-	dialect     Dialect
 	primaryCols []string
 	refs        []ref
-	driver      string
 }
 
 // Name returns the table name
@@ -35,11 +31,13 @@ func (t *Table) Name() string {
 }
 
 // SQL generates create table syntax of table
-func (t *Table) SQL() string {
+func (t *Table) SQL(driver string) string {
+
+	dialect := NewDialect(driver)
 
 	cols := []string{}
 	for _, v := range t.columns {
-		cols = append(cols, v.SQL())
+		cols = append(cols, v.SQL(driver))
 	}
 
 	constraints := []string{}
@@ -58,7 +56,7 @@ func (t *Table) SQL() string {
 		constraints = append(constraints, v.Name)
 	}
 
-	query := t.dialect.CreateTable(t.name, cols, constraints).Query()
+	query := dialect.CreateTable(t.name, cols, constraints).Query()
 
 	return query.SQL()
 }
@@ -109,17 +107,17 @@ func (t *Table) Constraints() []Constraint {
 }
 
 // Insert creates an insert statement for the table name
-func (t *Table) Insert(kv map[string]interface{}) *Query {
-
-	keys := []string{}
-	values := []interface{}{}
-
-	for k, v := range kv {
-		keys = append(keys, k)
-		values = append(values, v)
-	}
-
-	// TODO: Validate column name
-
-	return t.dialect.Insert(t.name, keys...).Values(values...).Query()
-}
+//func (t *Table) Insert(kv map[string]interface{}) *Query {
+//
+//	keys := []string{}
+//	values := []interface{}{}
+//
+//	for k, v := range kv {
+//		keys = append(keys, k)
+//		values = append(values, v)
+//	}
+//
+//	// TODO: Validate column name
+//
+//	return t.dialect.Insert(t.name, keys...).Values(values...).Query()
+//}
