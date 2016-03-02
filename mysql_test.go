@@ -157,6 +157,6 @@ func (suite *MysqlTestSuite) TestMysql() {
 	err = suite.metadata.DropAll()
 }
 
-func TestMysqlsTestSuite(t *testing.T) {
+func TestMysqlTestSuite(t *testing.T) {
 	suite.Run(t, new(MysqlTestSuite))
 }
