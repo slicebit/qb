@@ -22,7 +22,7 @@ type Column struct {
 }
 
 // SQL returns column as an sql statement
-func (c *Column) SQL() string {
+func (c *Column) SQL(driver string) string {
 
 	constraints := []string{}
 	for _, v := range c.Constraints {
@@ -32,6 +32,12 @@ func (c *Column) SQL() string {
 	colPieces := []string{
 		fmt.Sprintf("%s", c.Name),
 		c.Type.SQL(),
+	}
+
+	if driver == "postgres" {
+		colPieces[0] = fmt.Sprintf("\"%s\"", colPieces[0])
+	} else {
+		colPieces[0] = fmt.Sprintf("`%s`", colPieces[0])
 	}
 
 	if len(constraints) > 0 {
