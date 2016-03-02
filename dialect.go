@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// NewBuilder generates a new builder object
+// NewDialect generates a new dialect object
 func NewDialect(driver string) *Dialect {
 	return &Dialect{
 		driver:       driver,
@@ -44,7 +44,7 @@ func (d *Dialect) Reset() {
 	d.bindingIndex = 0
 }
 
-// Build generates sql query and bindings from clauses and bindings.
+// Query returns the active query and resets the query.
 // The query clauses and returns the sql and bindings
 func (d *Dialect) Query() *Query {
 	query := d.query
