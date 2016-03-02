@@ -2,8 +2,10 @@ package qb
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+	"fmt"
 )
 
 type pUser struct {
@@ -22,76 +24,78 @@ type pSession struct {
 	ExpiresAt time.Time `qb:"constraints:notnull"`
 }
 
-var pMetadata *MetaData
-
-func TestPostgresSetup(t *testing.T) {
-	pEngine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
-	assert.Nil(t, err)
-	assert.Nil(t, pEngine.Ping())
-	assert.NotNil(t, pEngine)
-	pMetadata = NewMetaData(pEngine)
+type PostgresTestSuite struct {
+	suite.Suite
+	metadata *MetaData
+	dialect  *Dialect
 }
 
-func TestPostgresCreateTables(t *testing.T) {
-	pMetadata.Add(pUser{})
-	pMetadata.Add(pSession{})
-	err := pMetadata.CreateAll()
-	assert.Nil(t, err)
+func (suite *PostgresTestSuite) SetupTest() {
+	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), engine)
+	suite.dialect = NewDialect(engine.Driver())
+	suite.metadata = NewMetaData(engine)
 }
 
-func TestPostgresInsertSampleData(t *testing.T) {
+func (suite *PostgresTestSuite) TestPostgres() {
 
-	insUser := pMetadata.Table("p_user").Insert(map[string]interface{}{
-		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-		"email":     "jack@nicholson.com",
-		"full_name": "Jack Nicholson",
-		"password":  "jack-nicholson",
-		"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
-	})
+	var err error
 
-	_, err := pMetadata.Engine().Exec(insUser)
-	assert.Nil(t, err)
+	// create tables
+	suite.metadata.Add(pUser{})
+	suite.metadata.Add(pSession{})
+	err = suite.metadata.CreateAll()
+	assert.Nil(suite.T(), err)
 
-	insSession := pMetadata.Table("p_session").Insert(map[string]interface{}{
-		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
-		"created_at": time.Now(),
-		"expires_at": time.Now().Add(24 * time.Hour),
-	})
+	// insert user
+	insUser := suite.dialect.
+		Insert("p_user", "id", "email", "full_name", "password", "bio").
+		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "jack@nicholson.com", "Jack Nicholson", "jack-nicholson", "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.").
+		Query()
 
-	_, err = pMetadata.Engine().Exec(insSession)
+	fmt.Println(insUser.SQL())
+	fmt.Println(insUser.Bindings())
+	_, err = suite.metadata.Engine().Exec(insUser)
+	assert.Nil(suite.T(), err)
 
-	assert.Nil(t, err)
-}
+	// insert session
+	insSession := suite.dialect.
+		Insert("p_session", "user_id", "auth_token", "created_at", "expires_at").
+		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "e4968197-6137-47a4-ba79-690d8c552248", time.Now(), time.Now().Add(24*time.Hour)).
+		Query()
 
-func TestPostgresSelectUser(t *testing.T) {
+	_, err = suite.metadata.Engine().Exec(insSession)
 
-	query := NewDialect(pMetadata.Engine().Driver()).
+	fmt.Println(insSession.SQL())
+	fmt.Println(insSession.Bindings())
+	assert.Nil(suite.T(), err)
+
+	// select user
+	selUser := suite.dialect.
 		Select("id", "email", "full_name", "bio").
 		From("p_user").
 		Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
 		Query()
 
 	var user pUser
-	pMetadata.Engine().QueryRow(query).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
+	suite.metadata.Engine().QueryRow(selUser).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
 
-	assert.Equal(t, user.ID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
-	assert.Equal(t, user.Email, "jack@nicholson.com")
-	assert.Equal(t, user.FullName, "Jack Nicholson")
-	assert.Equal(t, user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
-}
+	assert.Equal(suite.T(), user.ID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
+	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
+	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
+	assert.Equal(suite.T(), user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
 
-func TestPostgresSelectSessions(t *testing.T) {
-
-	query := NewDialect(pMetadata.Engine().Driver()).
+	// select sessions
+	selSessions := suite.dialect.
 		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
 		From("p_user u").
 		InnerJoin("p_session s", "u.id = s.user_id").
 		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
 		Query()
 
-	rows, err := pMetadata.Engine().Query(query)
-	assert.Nil(t, err)
+	rows, err := suite.metadata.Engine().Query(selSessions)
+	assert.Nil(suite.T(), err)
 	if err != nil {
 		defer rows.Close()
 	}
@@ -101,61 +105,58 @@ func TestPostgresSelectSessions(t *testing.T) {
 	for rows.Next() {
 		var session pSession
 		rows.Scan(&session.ID, &session.AuthToken, &session.CreatedAt, &session.ExpiresAt)
-		assert.Equal(t, session.ID, int64(1))
-		assert.NotNil(t, session.CreatedAt)
-		assert.NotNil(t, session.ExpiresAt)
+		assert.Equal(suite.T(), session.ID, int64(1))
+		assert.NotNil(suite.T(), session.CreatedAt)
+		assert.NotNil(suite.T(), session.ExpiresAt)
 		sessions = append(sessions, session)
 	}
 
-	assert.Equal(t, len(sessions), 1)
-}
+	assert.Equal(suite.T(), len(sessions), 1)
 
-func TestPostgresUpdateSession(t *testing.T) {
-
-	query := NewDialect(pMetadata.Engine().Driver()).
+	// update session
+	query := suite.dialect.
 		Update("p_session").
 		Set(
-		map[string]interface{}{
-			"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
-		}).
+			map[string]interface{}{
+				"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
+			},
+		).
 		Where("id = ?", 1).Query()
 
-	_, err := pMetadata.Engine().Exec(query)
-	assert.Nil(t, err)
-}
+	_, err = suite.metadata.Engine().Exec(query)
+	assert.Nil(suite.T(), err)
 
-func TestPostgresDeleteSession(t *testing.T) {
-	query := NewDialect(pMetadata.Engine().Driver()).
+	// delete session
+	delSession := suite.dialect.
 		Delete("p_session").
 		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
 		Query()
 
-	_, err := pMetadata.Engine().Exec(query)
-	assert.Nil(t, err)
+	_, err = suite.metadata.Engine().Exec(delSession)
+	assert.Nil(suite.T(), err)
+
+	// insert failure
+	insFail := suite.dialect.
+		Insert("p_user", "invalid_column").
+		Values("invalid_value").
+		Query()
+
+	_, err = suite.metadata.Engine().Exec(insFail)
+	assert.NotNil(suite.T(), err)
+
+	// insert type failure
+	insTypeFail := suite.dialect.
+		Insert("p_user", "email").
+		Values(5).
+		Query()
+
+	_, err = suite.metadata.Engine().Exec(insTypeFail)
+	assert.NotNil(suite.T(), err)
+
+	// drop tables
+	err = suite.metadata.DropAll()
 }
 
-func TestPostgresInsertFail(t *testing.T) {
-
-	ins := pMetadata.Table("p_user").Insert(map[string]interface{}{
-		"invalid_column": "invalid_value",
-	})
-
-	_, err := pMetadata.Engine().Exec(ins)
-	assert.NotNil(t, err)
+func TestPostgresTestSuite(t *testing.T) {
+	suite.Run(t, new(PostgresTestSuite))
 }
-
-func TestPostgresInsertTypeFail(t *testing.T) {
-
-	ins := pMetadata.Table("p_user").Insert(map[string]interface{}{
-		"email": 5,
-	})
-
-	_, err := pMetadata.Engine().Exec(ins)
-	assert.NotNil(t, err)
-}
-
-//func TestPostgresDropTables(t *testing.T) {
-//	defer pMetadata.Engine().DB().Close()
-//	err := pMetadata.DropAll()
-//	assert.Nil(t, err)
-//}
