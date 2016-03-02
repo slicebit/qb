@@ -30,7 +30,6 @@ func (m *MetaData) Engine() *Engine {
 func (m *MetaData) Add(model interface{}) {
 
 	table, err := m.mapper.Convert(model)
-	fmt.Println(table.SQL())
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +68,11 @@ func (m *MetaData) CreateAll() error {
 	}
 
 	for _, t := range m.tables {
-		tx.Exec(t.SQL())
+		fmt.Println(t.SQL(m.engine.Driver()))
+		_, err = tx.Exec(t.SQL(m.engine.Driver()))
+		if err != nil {
+			return err
+		}
 	}
 
 	err = tx.Commit()
@@ -79,13 +82,19 @@ func (m *MetaData) CreateAll() error {
 // DropAll drops all the tables which is added to metadata
 func (m *MetaData) DropAll() error {
 
+	dialect := NewDialect(m.engine.Driver())
+
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
 		return err
 	}
 
 	for i := len(m.tables) - 1; i >= 0; i-- {
-		tx.Exec(fmt.Sprintf("DROP TABLE %s;", m.tables[i].Name()))
+		drop := dialect.DropTable(m.tables[i].Name()).Query()
+		_, err = tx.Exec(drop.SQL())
+		if err != nil {
+			return err
+		}
 	}
 
 	err = tx.Commit()

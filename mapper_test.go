@@ -39,7 +39,7 @@ func TestMapper(t *testing.T) {
 	userTable, err := mapper.Convert(MapperTestUser{})
 
 	assert.Nil(t, err)
-	fmt.Println(userTable.SQL())
+	fmt.Println(userTable.SQL(mapper.driver))
 	//	fmt.Println(userScoreTable.SQL())
 }
 
@@ -49,7 +49,7 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 	sqliteAutoIncrementUserTable, err := mapper.Convert(MapperTestSqliteAutoIncrementUser{})
 
 	assert.Nil(t, err)
-	fmt.Println(sqliteAutoIncrementUserTable.SQL())
+	fmt.Println(sqliteAutoIncrementUserTable.SQL(mapper.driver))
 
 }
 

@@ -36,7 +36,6 @@ func TestMetadataAddTable(t *testing.T) {
 	metadata := NewMetaData(engine)
 
 	table := NewTable(
-		engine.Driver(),
 		"user",
 		[]Column{
 			NewColumn("id", BigInt(), []Constraint{}),
