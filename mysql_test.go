@@ -1,7 +1,6 @@
 package qb
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -36,47 +35,5 @@ func TestMysqlCreateTables(t *testing.T) {
 	mMetadata.Add(mUser{})
 	mMetadata.Add(mSession{})
 	err := mMetadata.CreateAll()
-	assert.Nil(t, err)
-}
-
-func TestMysqlInsertSampleData(t *testing.T) {
-
-	jn := mMetadata.Table("m_user").Insert(map[string]interface{}{
-		"email":     "jack@nicholson.com",
-		"full_name": "Jack Nicholson",
-		"password":  "jack-nicholson",
-		"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
-	})
-
-	mb := mMetadata.Table("m_user").Insert(map[string]interface{}{
-		"email":     "marlon@brando.com",
-		"full_name": "Marlon Brando",
-		"password":  "marlon-brando",
-		"bio":       "Marlon Brando is widely considered the greatest movie actor of all time, rivaled only by the more theatrically oriented Laurence Olivier in terms of esteem.",
-	})
-
-	_, err := mMetadata.Engine().Exec(jn)
-	assert.Nil(t, err)
-
-	fmt.Println(mb.SQL())
-	fmt.Println(mb.Bindings())
-
-	_, err = mMetadata.Engine().Exec(mb)
-	assert.Nil(t, err)
-}
-
-func TestMysqlInsertFail(t *testing.T) {
-
-	ins := mMetadata.Table("m_user").Insert(map[string]interface{}{
-		"invalid_column": "invalid_value",
-	})
-
-	_, err := mMetadata.Engine().Exec(ins)
-	assert.NotNil(t, err)
-}
-
-func TestMysqlDropTables(t *testing.T) {
-	defer mMetadata.Engine().DB().Close()
-	err := mMetadata.DropAll()
 	assert.Nil(t, err)
 }
