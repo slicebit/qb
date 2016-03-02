@@ -5,322 +5,266 @@ import (
 	"strings"
 )
 
-// Dialect is the abstraction of set of any expression api functions
-type Dialect interface {
-	Query() *Query
-
-	// clauses
-	Insert(table string, columns ...string) *commonDialect
-	Values(values ...interface{}) *commonDialect
-	Update(table string) *commonDialect
-	Set(params map[string]interface{}) *commonDialect
-	Delete(table string) *commonDialect
-	Select(columns ...string) *commonDialect
-	From(tables ...string) *commonDialect
-	InnerJoin(table string, expressions ...string) *commonDialect
-	CrossJoin(table string) *commonDialect
-	LeftOuterJoin(table string, expressions ...string) *commonDialect
-	RightOuterJoin(table string, expressions ...string) *commonDialect
-	FullOuterJoin(table string, expressions ...string) *commonDialect
-	Where(expression string, bindings ...interface{}) *commonDialect
-	OrderBy(expressions ...string) *commonDialect
-	GroupBy(columns ...string) *commonDialect
-	Having(expressions ...string) *commonDialect
-	Limit(offset int, count int) *commonDialect
-
-	// aggregates
-	Avg(column string) string
-	Count(column string) string
-	Sum(column string) string
-	Min(column string) string
-	Max(column string) string
-
-	// comparators
-	In(key string, values ...interface{}) string
-	NotIn(key string, values ...interface{}) string
-	Eq(key string, value interface{}) string
-	NotEq(key string, value interface{}) string
-	Gt(key string, value interface{}) string
-	Gte(key string, value interface{}) string
-	St(key string, value interface{}) string
-	Ste(key string, value interface{}) string
-	And(expressions ...string) string
-	Or(expressions ...string) string
-
-	// table crudders
-	CreateTable(table string, fields []string, constraints []string) *commonDialect
-	AlterTable(table string) *commonDialect
-	Add(colName string, colType string) *commonDialect
-	Drop(colName string) *commonDialect
-	DropTable(table string) *commonDialect
-}
-
 // NewBuilder generates a new builder object
-func NewDialect(driver string) Dialect {
-	switch driver {
-	case "sqlite":
-		return SqliteDialect{
-			&commonDialect{query: NewQuery()},
-		}
-
-	case "mysql":
-		return MysqlDialect{
-			&commonDialect{query: NewQuery()},
-		}
-	case "postgres":
-		return PostgresDialect{
-			&commonDialect{query: NewQuery()},
-			0,
-		}
-	default:
-		panic(fmt.Errorf("Unsupported Driver: %s", driver))
+func NewDialect(driver string) *Dialect {
+	return &Dialect{
+		driver:       driver,
+		query:        NewQuery(),
+		bindingIndex: 0,
 	}
 }
 
-// Builder is a subset of dialect could be used for common sql queries
+// Dialect is a subset of dialect could be used for common sql queries
 // it has all the common functions except multiple statements & table crudders
-type commonDialect struct {
-	query *Query
+type Dialect struct {
+	driver       string
+	query        *Query
+	bindingIndex int
 }
 
-// Reset clears query bindings and its errors
-func (cd *commonDialect) Reset() {
-	cd.query = NewQuery()
-}
-
-// Build generates sql query and bindings from clauses and bindings.
-// The query clauses and returns the sql and bindings
-func (cd *commonDialect) Query() *Query {
-	query := cd.query
-	cd.Reset()
-	return query
-}
-
-func (cd *commonDialect) placeholder() string {
+func (d *Dialect) placeholder() string {
+	if d.driver == "postgres" {
+		d.bindingIndex++
+		return fmt.Sprintf("$%d", d.bindingIndex)
+	}
 	return "?"
 }
 
-func (cd *commonDialect) placeholders(values ...interface{}) []string {
+func (d *Dialect) placeholders(values ...interface{}) []string {
 	placeholders := make([]string, len(values))
 	for k := range values {
-		placeholders[k] = cd.placeholder()
+		placeholders[k] = d.placeholder()
 	}
 	return placeholders
 }
 
+// Reset clears query bindings and its errors
+func (d *Dialect) Reset() {
+	d.query = NewQuery()
+	d.bindingIndex = 0
+}
+
+// Build generates sql query and bindings from clauses and bindings.
+// The query clauses and returns the sql and bindings
+func (d *Dialect) Query() *Query {
+	query := d.query
+	d.Reset()
+	return query
+}
+
 // Insert generates an "insert into %s(%s)" statement
-func (cd *commonDialect) Insert(table string, columns ...string) *commonDialect {
+func (d *Dialect) Insert(table string, columns ...string) *Dialect {
 	clause := fmt.Sprintf("INSERT INTO %s(%s)", table, strings.Join(columns, ", "))
-	cd.query.AddClause(clause)
-	return cd
+	d.query.AddClause(clause)
+	return d
 }
 
 // Values generates "values(%s)" statement and add bindings for each value
-func (cd *commonDialect) Values(values ...interface{}) *commonDialect {
-	cd.query.AddBinding(values...)
-	clause := fmt.Sprintf("VALUES (%s)", strings.Join(cd.placeholders(values...), ", "))
-	cd.query.AddClause(clause)
-	return cd
+func (d *Dialect) Values(values ...interface{}) *Dialect {
+	d.query.AddBinding(values...)
+	clause := fmt.Sprintf("VALUES (%s)", strings.Join(d.placeholders(values...), ", "))
+	d.query.AddClause(clause)
+	return d
 }
 
 // Update generates "update %s" statement
-func (cd *commonDialect) Update(table string) *commonDialect {
+func (d *Dialect) Update(table string) *Dialect {
 	clause := fmt.Sprintf("UPDATE %s", table)
-	cd.query.AddClause(clause)
-	return cd
+	d.query.AddClause(clause)
+	return d
 }
 
 // Set generates "set a = placeholder" statement for each key a and add bindings for map value
-func (cd *commonDialect) Set(m map[string]interface{}) *commonDialect {
+func (d *Dialect) Set(m map[string]interface{}) *Dialect {
 	updates := []string{}
 	for k, v := range m {
-		updates = append(updates, fmt.Sprintf("%s = %s", k, cd.placeholder()))
-		cd.query.AddBinding(v)
+		updates = append(updates, fmt.Sprintf("%s = %s", k, d.placeholder()))
+		d.query.AddBinding(v)
 	}
 	clause := fmt.Sprintf("SET %s", strings.Join(updates, ", "))
-	cd.query.AddClause(clause)
-	return cd
+	d.query.AddClause(clause)
+	return d
 }
 
 // Delete generates "delete" statement
-func (cd *commonDialect) Delete(table string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("DELETE FROM %s", table))
-	return cd
+func (d *Dialect) Delete(table string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("DELETE FROM %s", table))
+	return d
 }
 
 // Select generates "select %s" statement
-func (cd *commonDialect) Select(columns ...string) *commonDialect {
+func (d *Dialect) Select(columns ...string) *Dialect {
 	clause := fmt.Sprintf("SELECT %s", strings.Join(columns, ", "))
-	cd.query.AddClause(clause)
-	return cd
+	d.query.AddClause(clause)
+	return d
 }
 
 // From generates "from %s" statement for each table name
-func (cd *commonDialect) From(tables ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("FROM %s", strings.Join(tables, ", ")))
-	return cd
+func (d *Dialect) From(tables ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("FROM %s", strings.Join(tables, ", ")))
+	return d
 }
 
 // InnerJoin generates "inner join %s on %s" statement for each expression
-func (cd *commonDialect) InnerJoin(table string, expressions ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("INNER JOIN %s ON %s", table, strings.Join(expressions, " ")))
-	return cd
+func (d *Dialect) InnerJoin(table string, expressions ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("INNER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	return d
 }
 
 // CrossJoin generates "cross join %s" statement for table
-func (cd *commonDialect) CrossJoin(table string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("CROSS JOIN %s", table))
-	return cd
+func (d *Dialect) CrossJoin(table string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("CROSS JOIN %s", table))
+	return d
 }
 
 // LeftOuterJoin generates "left outer join %s on %s" statement for each expression
-func (cd *commonDialect) LeftOuterJoin(table string, expressions ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("LEFT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
-	return cd
+func (d *Dialect) LeftOuterJoin(table string, expressions ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("LEFT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	return d
 }
 
 // RightOuterJoin generates "right outer join %s on %s" statement for each expression
-func (cd *commonDialect) RightOuterJoin(table string, expressions ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("RIGHT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
-	return cd
+func (d *Dialect) RightOuterJoin(table string, expressions ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("RIGHT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	return d
 }
 
 // FullOuterJoin generates "full outer join %s on %s" for each expression
-func (cd *commonDialect) FullOuterJoin(table string, expressions ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("FULL OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
-	return cd
+func (d *Dialect) FullOuterJoin(table string, expressions ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("FULL OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	return d
 }
 
 // Where generates "where %s" for the expression and adds bindings for each value
-func (cd *commonDialect) Where(expression string, bindings ...interface{}) *commonDialect {
-	expression = strings.Replace(expression, "?", cd.placeholder(), -1)
-	cd.query.AddClause(fmt.Sprintf("WHERE %s", expression))
-	cd.query.AddBinding(bindings...)
-	return cd
+func (d *Dialect) Where(expression string, bindings ...interface{}) *Dialect {
+	expression = strings.Replace(expression, "?", d.placeholder(), -1)
+	d.query.AddClause(fmt.Sprintf("WHERE %s", expression))
+	d.query.AddBinding(bindings...)
+	return d
 }
 
 // OrderBy generates "order by %s" for each expression
-func (cd *commonDialect) OrderBy(expressions ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("ORDER BY %s", strings.Join(expressions, ", ")))
-	return cd
+func (d *Dialect) OrderBy(expressions ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("ORDER BY %s", strings.Join(expressions, ", ")))
+	return d
 }
 
 // GroupBy generates "group by %s" for each column
-func (cd *commonDialect) GroupBy(columns ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("GROUP BY %s", strings.Join(columns, ", ")))
-	return cd
+func (d *Dialect) GroupBy(columns ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("GROUP BY %s", strings.Join(columns, ", ")))
+	return d
 }
 
 // Having generates "having %s" for each expression
-func (cd *commonDialect) Having(expressions ...string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("HAVING %s", strings.Join(expressions, ", ")))
-	return cd
+func (d *Dialect) Having(expressions ...string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("HAVING %s", strings.Join(expressions, ", ")))
+	return d
 }
 
 // Limit generates limit %d offset %d for offset and count
-func (cd *commonDialect) Limit(offset int, count int) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("LIMIT %d OFFSET %d", count, offset))
-	return cd
+func (d *Dialect) Limit(offset int, count int) *Dialect {
+	d.query.AddClause(fmt.Sprintf("LIMIT %d OFFSET %d", count, offset))
+	return d
 }
 
 // aggregates
 
 // Avg function generates "avg(%s)" statement for column
-func (cd *commonDialect) Avg(column string) string {
+func (d *Dialect) Avg(column string) string {
 	return fmt.Sprintf("AVG(%s)", column)
 }
 
 // Count function generates "count(%s)" statement for column
-func (cd *commonDialect) Count(column string) string {
+func (d *Dialect) Count(column string) string {
 	return fmt.Sprintf("COUNT(%s)", column)
 }
 
 // Sum function generates "sum(%s)" statement for column
-func (cd *commonDialect) Sum(column string) string {
+func (d *Dialect) Sum(column string) string {
 	return fmt.Sprintf("SUM(%s)", column)
 }
 
 // Min function generates "min(%s)" statement for column
-func (cd *commonDialect) Min(column string) string {
+func (d *Dialect) Min(column string) string {
 	return fmt.Sprintf("MIN(%s)", column)
 }
 
 // Max function generates "max(%s)" statement for column
-func (cd *commonDialect) Max(column string) string {
+func (d *Dialect) Max(column string) string {
 	return fmt.Sprintf("MAX(%s)", column)
 }
 
 // expressions
 
 // NotIn function generates "%s not in (%s)" for key and adds bindings for each value
-func (cd *commonDialect) NotIn(key string, values ...interface{}) string {
-	cd.query.AddBinding(values...)
-	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(cd.placeholders(values...), ","))
+func (d *Dialect) NotIn(key string, values ...interface{}) string {
+	d.query.AddBinding(values...)
+	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(d.placeholders(values...), ","))
 }
 
 // In function generates "%s in (%s)" for key and adds bindings for each value
-func (cd *commonDialect) In(key string, values ...interface{}) string {
-	cd.query.AddBinding(values...)
-	return fmt.Sprintf("%s IN (%s)", key, strings.Join(cd.placeholders(values...), ","))
+func (d *Dialect) In(key string, values ...interface{}) string {
+	d.query.AddBinding(values...)
+	return fmt.Sprintf("%s IN (%s)", key, strings.Join(d.placeholders(values...), ","))
 }
 
 // NotEq function generates "%s != placeholder" for key and adds binding for value
-func (cd *commonDialect) NotEq(key string, value interface{}) string {
-	cd.query.AddBinding(value)
-	return fmt.Sprintf("%s != %s", key, cd.placeholder())
+func (d *Dialect) NotEq(key string, value interface{}) string {
+	d.query.AddBinding(value)
+	return fmt.Sprintf("%s != %s", key, d.placeholder())
 }
 
 // Eq function generates "%s = placeholder" for key and adds binding for value
-func (cd *commonDialect) Eq(key string, value interface{}) string {
-	cd.query.AddBinding(value)
-	return fmt.Sprintf("%s = %s", key, cd.placeholder())
+func (d *Dialect) Eq(key string, value interface{}) string {
+	d.query.AddBinding(value)
+	return fmt.Sprintf("%s = %s", key, d.placeholder())
 }
 
 // Gt function generates "%s > placeholder" for key and adds binding for value
-func (cd *commonDialect) Gt(key string, value interface{}) string {
-	cd.query.AddBinding(value)
-	return fmt.Sprintf("%s > %s", key, cd.placeholder())
+func (d *Dialect) Gt(key string, value interface{}) string {
+	d.query.AddBinding(value)
+	return fmt.Sprintf("%s > %s", key, d.placeholder())
 }
 
 // Gte function generates "%s >= placeholder" for key and adds binding for value
-func (cd *commonDialect) Gte(key string, value interface{}) string {
-	cd.query.AddBinding(value)
-	return fmt.Sprintf("%s >= %s", key, cd.placeholder())
+func (d *Dialect) Gte(key string, value interface{}) string {
+	d.query.AddBinding(value)
+	return fmt.Sprintf("%s >= %s", key, d.placeholder())
 }
 
 // St function generates "%s < placeholder" for key and adds binding for value
-func (cd *commonDialect) St(key string, value interface{}) string {
-	cd.query.AddBinding(value)
-	return fmt.Sprintf("%s < %s", key, cd.placeholder())
+func (d *Dialect) St(key string, value interface{}) string {
+	d.query.AddBinding(value)
+	return fmt.Sprintf("%s < %s", key, d.placeholder())
 }
 
 // Ste function generates "%s <= placeholder" for key and adds binding for value
-func (cd *commonDialect) Ste(key string, value interface{}) string {
-	cd.query.AddBinding(value)
-	return fmt.Sprintf("%s <= %s", key, cd.placeholder())
+func (d *Dialect) Ste(key string, value interface{}) string {
+	d.query.AddBinding(value)
+	return fmt.Sprintf("%s <= %s", key, d.placeholder())
 }
 
 // And function generates " AND " between any number of expressions
-func (cd *commonDialect) And(expressions ...string) string {
+func (d *Dialect) And(expressions ...string) string {
 	return fmt.Sprintf("(%s)", strings.Join(expressions, " AND "))
 }
 
 // Or function generates " OR " between any number of expressions
-func (cd *commonDialect) Or(expressions ...string) string {
+func (d *Dialect) Or(expressions ...string) string {
 	return strings.Join(expressions, " OR ")
 }
 
 // CreateTable generates generic CREATE TABLE statement
-func (cd *commonDialect) CreateTable(table string, fields []string, constraints []string) *commonDialect {
+func (d *Dialect) CreateTable(table string, fields []string, constraints []string) *Dialect {
 
-	cd.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", table))
+	d.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", table))
 
 	for k, f := range fields {
 		clause := fmt.Sprintf("\t%s", f)
 		if len(fields)-1 > k || len(constraints) > 0 {
 			clause += ","
 		}
-		cd.query.AddClause(clause)
+		d.query.AddClause(clause)
 	}
 
 	for k, c := range constraints {
@@ -328,54 +272,33 @@ func (cd *commonDialect) CreateTable(table string, fields []string, constraints 
 		if len(constraints)-1 > k {
 			constraint += ","
 		}
-		cd.query.AddClause(fmt.Sprintf("%s", constraint))
+		d.query.AddClause(fmt.Sprintf("%s", constraint))
 	}
 
-	cd.query.AddClause(")")
-	return cd
+	d.query.AddClause(")")
+	return d
 }
 
 // AlterTable generates generic ALTER TABLE statement
-func (cd *commonDialect) AlterTable(table string) *commonDialect {
-
-	cd.query.AddClause(fmt.Sprintf("ALTER TABLE %s", table))
-	return cd
+func (d *Dialect) AlterTable(table string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("ALTER TABLE %s", table))
+	return d
 }
 
 // DropTable generates generic DROP TABLE statement
-func (cd *commonDialect) DropTable(table string) *commonDialect {
-
-	cd.query.AddClause(fmt.Sprintf("DROP TABLE %s", table))
-	return cd
+func (d *Dialect) DropTable(table string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("DROP TABLE %s", table))
+	return d
 }
 
 // Add generates generic ADD COLUMN statement
-func (cd *commonDialect) Add(colName string, colType string) *commonDialect {
-
-	cd.query.AddClause(fmt.Sprintf("ADD %s %s", colName, colType))
-	return cd
+func (d *Dialect) Add(colName string, colType string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("ADD %s %s", colName, colType))
+	return d
 }
 
 // Drop generates generic DROP COLUMN statement
-func (cd *commonDialect) Drop(colName string) *commonDialect {
-	cd.query.AddClause(fmt.Sprintf("DROP %s", colName))
-	return cd
-}
-
-type SqliteDialect struct {
-	*commonDialect
-}
-
-type MysqlDialect struct {
-	*commonDialect
-}
-
-type PostgresDialect struct {
-	*commonDialect
-	bindingIndex int
-}
-
-func (pd *PostgresDialect) placeholder() string {
-	pd.bindingIndex++
-	return fmt.Sprintf("$%d", pd.bindingIndex)
+func (d *Dialect) Drop(colName string) *Dialect {
+	d.query.AddClause(fmt.Sprintf("DROP %s", colName))
+	return d
 }
