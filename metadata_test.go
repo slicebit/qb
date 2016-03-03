@@ -36,6 +36,7 @@ func TestMetadataAddTable(t *testing.T) {
 	metadata := NewMetaData(engine)
 
 	table := NewTable(
+		"mysql",
 		"user",
 		[]Column{
 			NewColumn("id", BigInt(), []Constraint{}),
