@@ -24,16 +24,22 @@ type pSession struct {
 	ExpiresAt time.Time `qb:"constraints:notnull"`
 }
 
+type pFailModel struct {
+	ID int64 `qb:"type:notype"`
+}
+
 type PostgresTestSuite struct {
 	suite.Suite
 	metadata *MetaData
 	dialect  *Dialect
+	engine *Engine
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
 	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
+	suite.engine = engine
 	suite.dialect = NewDialect(engine.Driver())
 	suite.metadata = NewMetaData(engine)
 }
@@ -155,6 +161,13 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// drop tables
 	err = suite.metadata.DropAll()
+
+	// metadata create all fail
+	metadata := NewMetaData(suite.engine)
+	metadata.Add(pFailModel{})
+
+	assert.NotNil(suite.T(), metadata.CreateAll())
+	assert.NotNil(suite.T(), metadata.DropAll())
 }
 
 func TestPostgresTestSuite(t *testing.T) {
