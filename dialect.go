@@ -22,7 +22,7 @@ type Dialect struct {
 	bindingIndex int
 }
 
-func (d *Dialect) placeholder() string {
+func (d *Dialect) Placeholder() string {
 	if d.driver == "postgres" {
 		d.bindingIndex++
 		return fmt.Sprintf("$%d", d.bindingIndex)
@@ -30,10 +30,10 @@ func (d *Dialect) placeholder() string {
 	return "?"
 }
 
-func (d *Dialect) placeholders(values ...interface{}) []string {
+func (d *Dialect) Placeholders(values ...interface{}) []string {
 	placeholders := make([]string, len(values))
 	for k := range values {
-		placeholders[k] = d.placeholder()
+		placeholders[k] = d.Placeholder()
 	}
 	return placeholders
 }
@@ -62,7 +62,7 @@ func (d *Dialect) Insert(table string, columns ...string) *Dialect {
 // Values generates "values(%s)" statement and add bindings for each value
 func (d *Dialect) Values(values ...interface{}) *Dialect {
 	d.query.AddBinding(values...)
-	clause := fmt.Sprintf("VALUES (%s)", strings.Join(d.placeholders(values...), ", "))
+	clause := fmt.Sprintf("VALUES (%s)", strings.Join(d.Placeholders(values...), ", "))
 	d.query.AddClause(clause)
 	return d
 }
@@ -78,7 +78,7 @@ func (d *Dialect) Update(table string) *Dialect {
 func (d *Dialect) Set(m map[string]interface{}) *Dialect {
 	updates := []string{}
 	for k, v := range m {
-		updates = append(updates, fmt.Sprintf("%s = %s", k, d.placeholder()))
+		updates = append(updates, fmt.Sprintf("%s = %s", k, d.Placeholder()))
 		d.query.AddBinding(v)
 	}
 	clause := fmt.Sprintf("SET %s", strings.Join(updates, ", "))
@@ -137,7 +137,7 @@ func (d *Dialect) FullOuterJoin(table string, expressions ...string) *Dialect {
 
 // Where generates "where %s" for the expression and adds bindings for each value
 func (d *Dialect) Where(expression string, bindings ...interface{}) *Dialect {
-	expression = strings.Replace(expression, "?", d.placeholder(), -1)
+	expression = strings.Replace(expression, "?", d.Placeholder(), -1)
 	d.query.AddClause(fmt.Sprintf("WHERE %s", expression))
 	d.query.AddBinding(bindings...)
 	return d
@@ -199,49 +199,49 @@ func (d *Dialect) Max(column string) string {
 // NotIn function generates "%s not in (%s)" for key and adds bindings for each value
 func (d *Dialect) NotIn(key string, values ...interface{}) string {
 	d.query.AddBinding(values...)
-	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(d.placeholders(values...), ","))
+	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(d.Placeholders(values...), ","))
 }
 
 // In function generates "%s in (%s)" for key and adds bindings for each value
 func (d *Dialect) In(key string, values ...interface{}) string {
 	d.query.AddBinding(values...)
-	return fmt.Sprintf("%s IN (%s)", key, strings.Join(d.placeholders(values...), ","))
+	return fmt.Sprintf("%s IN (%s)", key, strings.Join(d.Placeholders(values...), ","))
 }
 
 // NotEq function generates "%s != placeholder" for key and adds binding for value
 func (d *Dialect) NotEq(key string, value interface{}) string {
 	d.query.AddBinding(value)
-	return fmt.Sprintf("%s != %s", key, d.placeholder())
+	return fmt.Sprintf("%s != %s", key, d.Placeholder())
 }
 
 // Eq function generates "%s = placeholder" for key and adds binding for value
 func (d *Dialect) Eq(key string, value interface{}) string {
 	d.query.AddBinding(value)
-	return fmt.Sprintf("%s = %s", key, d.placeholder())
+	return fmt.Sprintf("%s = %s", key, d.Placeholder())
 }
 
 // Gt function generates "%s > placeholder" for key and adds binding for value
 func (d *Dialect) Gt(key string, value interface{}) string {
 	d.query.AddBinding(value)
-	return fmt.Sprintf("%s > %s", key, d.placeholder())
+	return fmt.Sprintf("%s > %s", key, d.Placeholder())
 }
 
 // Gte function generates "%s >= placeholder" for key and adds binding for value
 func (d *Dialect) Gte(key string, value interface{}) string {
 	d.query.AddBinding(value)
-	return fmt.Sprintf("%s >= %s", key, d.placeholder())
+	return fmt.Sprintf("%s >= %s", key, d.Placeholder())
 }
 
 // St function generates "%s < placeholder" for key and adds binding for value
 func (d *Dialect) St(key string, value interface{}) string {
 	d.query.AddBinding(value)
-	return fmt.Sprintf("%s < %s", key, d.placeholder())
+	return fmt.Sprintf("%s < %s", key, d.Placeholder())
 }
 
 // Ste function generates "%s <= placeholder" for key and adds binding for value
 func (d *Dialect) Ste(key string, value interface{}) string {
 	d.query.AddBinding(value)
-	return fmt.Sprintf("%s <= %s", key, d.placeholder())
+	return fmt.Sprintf("%s <= %s", key, d.Placeholder())
 }
 
 // And function generates " AND " between any number of expressions
