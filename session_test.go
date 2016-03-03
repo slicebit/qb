@@ -12,4 +12,7 @@ func TestSession(t *testing.T) {
 	assert.Equal(t, err, nil)
 	assert.NotNil(t, engine)
 
+	session := NewSession(engine)
+
+	assert.NotNil(t, session)
 }

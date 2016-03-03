@@ -1,11 +1,12 @@
 package qb
 
 import (
+	"fmt"
+	"github.com/nu7hatch/gouuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
-	"fmt"
 )
 
 type pUser struct {
@@ -32,7 +33,8 @@ type PostgresTestSuite struct {
 	suite.Suite
 	metadata *MetaData
 	dialect  *Dialect
-	engine *Engine
+	engine   *Engine
+	session  *Session
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
@@ -42,6 +44,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 	suite.engine = engine
 	suite.dialect = NewDialect(engine.Driver())
 	suite.metadata = NewMetaData(engine)
+	suite.session = NewSession(engine)
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {
@@ -51,10 +54,11 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// create tables
 	suite.metadata.Add(pUser{})
 	suite.metadata.Add(pSession{})
+
 	err = suite.metadata.CreateAll()
 	assert.Nil(suite.T(), err)
 
-	// insert user
+	// insert user using dialect
 	insUser := suite.dialect.
 		Insert("p_user", "id", "email", "full_name", "password", "bio").
 		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "jack@nicholson.com", "Jack Nicholson", "jack-nicholson", "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.").
@@ -65,7 +69,21 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	_, err = suite.metadata.Engine().Exec(insUser)
 	assert.Nil(suite.T(), err)
 
-	// insert session
+	// insert user using session
+	ddlId, _ := uuid.NewV4()
+	ddl := pUser{
+		ID:       ddlId.String(),
+		Email:    "daniel@day-lewis.com",
+		FullName: "Daniel Day-Lewis",
+		Password: "ddl",
+		Bio:      "Born in London, England, Daniel Michael Blake Day-Lewis is the second child of Cecil Day-Lewis (A.K.A. Nicholas Blake) (Poet Laureate of England) and his second wife, Jill Balcon. His maternal grandfather was Sir Michael Balcon, an important figure in the history of British cinema and head of the famous Ealing Studios.",
+	}
+
+	suite.session.AddAll(ddl)
+	err = suite.session.Commit()
+	assert.Nil(suite.T(), err)
+
+	// insert session using dialect
 	insSession := suite.dialect.
 		Insert("p_session", "user_id", "auth_token", "created_at", "expires_at").
 		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "e4968197-6137-47a4-ba79-690d8c552248", time.Now(), time.Now().Add(24*time.Hour)).
@@ -161,6 +179,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// drop tables
 	err = suite.metadata.DropAll()
+	assert.Nil(suite.T(), err)
 
 	// metadata create all fail
 	metadata := NewMetaData(suite.engine)
