@@ -10,8 +10,6 @@ func TestSession(t *testing.T) {
 	engine, err := NewEngine("postgres", "user=root dbname=qb_test")
 
 	assert.Equal(t, err, nil)
+	assert.NotNil(t, engine)
 
-	session := NewSession(engine)
-
-	assert.Equal(t, session.Engine(), engine)
 }
