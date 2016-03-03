@@ -34,11 +34,12 @@ func (c *Column) SQL(driver string) string {
 		c.Type.SQL(),
 	}
 
-	if driver == "postgres" {
-		colPieces[0] = fmt.Sprintf("\"%s\"", colPieces[0])
-	} else {
-		colPieces[0] = fmt.Sprintf("`%s`", colPieces[0])
-	}
+	// TODO: Find a way to properly do `` and "" for columns
+	//if driver == "postgres" {
+	//	colPieces[0] = fmt.Sprintf("\"%s\"", colPieces[0])
+	//} else {
+	//	colPieces[0] = fmt.Sprintf("`%s`", colPieces[0])
+	//}
 
 	if len(constraints) > 0 {
 		colPieces = append(colPieces, strings.Join(constraints, " "))
