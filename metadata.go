@@ -68,8 +68,8 @@ func (m *MetaData) CreateAll() error {
 	}
 
 	for _, t := range m.tables {
-		fmt.Println(t.SQL(m.engine.Driver()))
-		_, err = tx.Exec(t.SQL(m.engine.Driver()))
+		fmt.Println(t.SQL())
+		_, err = tx.Exec(t.SQL())
 		if err != nil {
 			return err
 		}
