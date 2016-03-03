@@ -81,3 +81,16 @@ func TestMapperInvalidConstraint(t *testing.T) {
 	assert.Nil(t, invalidConstraintTable)
 	assert.NotNil(t, err)
 }
+
+func TestMapperUtilFuncs(t *testing.T) {
+
+	mapper := NewMapper("mysql")
+
+	assert.Equal(t, mapper.ColName("CreatedAt"), "created_at")
+
+	kv := mapper.ConvertStructToMap(MapperTestUserErr{})
+	assert.Equal(t, kv, map[string]interface{}{
+		"ID": "",
+		"Email": "",
+	})
+}

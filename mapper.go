@@ -34,6 +34,21 @@ func (m *Mapper) extractValue(value string) string {
 	return ""
 }
 
+// ConvertMap converts a model struct to a map
+func (m *Mapper) ConvertStructToMap(model interface{}) map[string]interface{} {
+	return structs.Map(model)
+}
+
+// ModelName returns the table name of model
+func (m *Mapper) ModelName(model interface{}) string {
+	return snaker.CamelToSnake(structs.Name(model))
+}
+
+// ColName returns the column name of model
+func (m *Mapper) ColName(col string) string {
+	return snaker.CamelToSnake(col)
+}
+
 // ConvertType returns the type mapping of column.
 // If tagType is, then colType would automatically be resolved.
 // If tagType is not "", then automatic type resolving would be overridden by tagType
@@ -71,7 +86,7 @@ func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 // Convert parses struct and converts it to a new table
 func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
-	modelName := snaker.CamelToSnake(structs.Name(model))
+	modelName := m.ModelName(model)
 
 	table := &Table{
 		name:        modelName,
