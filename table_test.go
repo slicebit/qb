@@ -107,3 +107,47 @@ func TestTableInsert(t *testing.T) {
 	assert.Equal(t, query.SQL(), "INSERT INTO user(id, full_name)\nVALUES (?, ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{1, "Aras Can Akin"})
 }
+
+func TestTableUpdate(t *testing.T) {
+
+	table := NewTable(
+		"mysql",
+		"user",
+		[]Column{
+			NewColumn("id", BigInt(), []Constraint{}),
+			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
+		},
+		[]Constraint{
+			Primary("id"),
+		})
+
+	query := table.
+		Update(map[string]interface{}{"full_name": "Aras"}).
+		Where("id = ?", 1).
+		Query()
+
+	assert.Equal(t, query.SQL(), "UPDATE user\nSET full_name = ?\nWHERE id = ?;")
+	assert.Equal(t, query.Bindings(), []interface{}{"Aras", 1})
+}
+
+func TestTableDelete(t *testing.T) {
+
+	table := NewTable(
+		"mysql",
+		"user",
+		[]Column{
+			NewColumn("id", BigInt(), []Constraint{}),
+			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
+		},
+		[]Constraint{
+			Primary("id"),
+		})
+
+	query := table.
+		Delete().
+		Where("id = ?", 1).
+		Query()
+
+	assert.Equal(t, query.SQL(), "DELETE FROM user\nWHERE id = ?;")
+	assert.Equal(t, query.Bindings(), []interface{}{1})
+}

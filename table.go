@@ -111,8 +111,6 @@ func (t *Table) Constraints() []Constraint {
 // Insert creates an insert statement for the table name
 func (t *Table) Insert(kv map[string]interface{}) *Dialect {
 
-	dialect := NewDialect(t.driver)
-
 	keys := []string{}
 	values := []interface{}{}
 
@@ -122,6 +120,17 @@ func (t *Table) Insert(kv map[string]interface{}) *Dialect {
 	}
 
 	// TODO: Validate column name
-	dialect.Insert(t.name, keys...).Values(values...)
-	return dialect
+	return NewDialect(t.driver).Insert(t.name, keys...).Values(values...)
+}
+
+// Update creates an update statement for the table name
+func (t *Table) Update(kv map[string]interface{}) *Dialect {
+
+	return NewDialect(t.driver).Update(t.Name()).Set(kv)
+}
+
+// Delete creates a delete statement for the table name
+func (t *Table) Delete() *Dialect {
+
+	return NewDialect(t.driver).Delete(t.Name())
 }
