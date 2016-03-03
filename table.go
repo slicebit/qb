@@ -6,13 +6,14 @@ import (
 )
 
 // NewTable generates a new table pointer given table name, column and table constraints
-func NewTable(name string, columns []Column, constraints []Constraint) *Table {
+func NewTable(driver string, name string, columns []Column, constraints []Constraint) *Table {
 	return &Table{
 		name:        name,
 		columns:     columns,
 		constraints: constraints,
 		primaryCols: []string{},
 		refs:        []ref{},
+		driver:      driver,
 	}
 }
 
@@ -23,6 +24,7 @@ type Table struct {
 	constraints []Constraint
 	primaryCols []string
 	refs        []ref
+	driver      string
 }
 
 // Name returns the table name
@@ -31,13 +33,13 @@ func (t *Table) Name() string {
 }
 
 // SQL generates create table syntax of table
-func (t *Table) SQL(driver string) string {
+func (t *Table) SQL() string {
 
-	dialect := NewDialect(driver)
+	dialect := NewDialect(t.driver)
 
 	cols := []string{}
 	for _, v := range t.columns {
-		cols = append(cols, v.SQL(driver))
+		cols = append(cols, v.SQL(t.driver))
 	}
 
 	constraints := []string{}
@@ -107,17 +109,19 @@ func (t *Table) Constraints() []Constraint {
 }
 
 // Insert creates an insert statement for the table name
-//func (t *Table) Insert(kv map[string]interface{}) *Query {
-//
-//	keys := []string{}
-//	values := []interface{}{}
-//
-//	for k, v := range kv {
-//		keys = append(keys, k)
-//		values = append(values, v)
-//	}
-//
-//	// TODO: Validate column name
-//
-//	return t.dialect.Insert(t.name, keys...).Values(values...).Query()
-//}
+func (t *Table) Insert(kv map[string]interface{}) *Dialect {
+
+	dialect := NewDialect(t.driver)
+
+	keys := []string{}
+	values := []interface{}{}
+
+	for k, v := range kv {
+		keys = append(keys, k)
+		values = append(values, v)
+	}
+
+	// TODO: Validate column name
+	dialect.Insert(t.name, keys...).Values(values...)
+	return dialect
+}
