@@ -47,6 +47,8 @@ func TestMetadataAddTable(t *testing.T) {
 	metadata.AddTable(table)
 
 	assert.Equal(t, metadata.Tables(), []*Table{table})
+
+	assert.Equal(t, metadata.Table("user").Name(), "user")
 }
 
 func TestMetadataTable(t *testing.T) {
