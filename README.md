@@ -44,7 +44,7 @@ func main() {
 
     session.Metadata().Add(&User{}, &Session{})
     err = session.Metadata().CreateAll()
-    // Creates both tables
+    // Creates user table
 
     // insert user using session
     rdnId, _ := uuid.NewV4()
