@@ -44,7 +44,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 	suite.engine = engine
 	suite.dialect = NewDialect(engine.Driver())
 	suite.metadata = NewMetaData(engine)
-	suite.session = NewSession(engine)
+	suite.session = NewSession(suite.metadata)
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {
