@@ -5,7 +5,7 @@ Although the tests coverage are high, currently, it is not recommended to use it
 
 About qb
 --------
-qb is a database toolkit for easier db usage in go. It is inspired from python's most favorite orm sqlalchemy. qb is an orm as well as a query builder. It is
+qb is a database toolkit for easier db usage in go. It is inspired from python's most favorite orm sqlalchemy. qb is an orm as well as a query builder. It is quite modular in case of using just expression api and query building stuff.
 
 Features
 --------
