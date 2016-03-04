@@ -61,7 +61,9 @@ func (d *Dialect) Insert(table string, columns ...string) *Dialect {
 
 // Values generates "values(%s)" statement and add bindings for each value
 func (d *Dialect) Values(values ...interface{}) *Dialect {
-	d.query.AddBinding(values...)
+	for _, v := range values {
+		d.query.AddBinding(v)
+	}
 	clause := fmt.Sprintf("VALUES (%s)", strings.Join(d.Placeholders(values...), ", "))
 	d.query.AddClause(clause)
 	return d
