@@ -40,7 +40,7 @@ func main() {
     }
 
     metadata := qb.NewMetadata(engine)
-    session = qb.NewSession(metadata)
+    session := qb.NewSession(metadata)
 
     session.Metadata().Add(&User{}, &Session{})
     err = session.Metadata().CreateAll()
