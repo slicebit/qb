@@ -36,7 +36,17 @@ func (m *Mapper) extractValue(value string) string {
 
 // ConvertMap converts a model struct to a map
 func (m *Mapper) ConvertStructToMap(model interface{}) map[string]interface{} {
-	return structs.Map(model)
+
+	fields := structs.Fields(model)
+	kv := map[string]interface{}{}
+	for _, f := range fields {
+		if f.IsZero() {
+			continue
+		}
+
+		kv[f.Name()] = f.Value()
+	}
+	return kv
 }
 
 // ModelName returns the table name of model
@@ -88,12 +98,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
 	modelName := m.ModelName(model)
 
-	table := &Table{
-		name:        modelName,
-		columns:     []Column{},
-		constraints: []Constraint{},
-		driver: m.driver,
-	}
+	table := NewTable(m.driver, modelName, []Column{}, []Constraint{})
 
 	//fmt.Printf("model name: %s\n\n", modelName)
 
