@@ -131,6 +131,5 @@ func (t *Table) Update(kv map[string]interface{}) *Dialect {
 
 // Delete creates a delete statement for the table name
 func (t *Table) Delete() *Dialect {
-
 	return NewDialect(t.driver).Delete(t.Name())
 }
