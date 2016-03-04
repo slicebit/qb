@@ -6,11 +6,11 @@ import (
 )
 
 // NewSession generates a new Session given engine and returns session pointer
-func NewSession(engine *Engine) *Session {
+func NewSession(metadata *MetaData) *Session {
 	return &Session{
 		queries: []*Query{},
-		mapper:  NewMapper(engine.Driver()),
-		engine:  engine,
+		mapper:  NewMapper(metadata.Engine().Driver()),
+		metadata: metadata,
 	}
 }
 
@@ -18,14 +18,14 @@ func NewSession(engine *Engine) *Session {
 type Session struct {
 	queries []*Query
 	mapper  *Mapper
-	engine  *Engine
+	metadata *MetaData
 	tx      *sql.Tx
 }
 
 func (s *Session) add(query *Query) {
 	var err error
 	if s.tx == nil {
-		s.tx, err = s.engine.DB().Begin()
+		s.tx, err = s.metadata.Engine().DB().Begin()
 		if err != nil {
 			panic(err)
 		}
@@ -38,12 +38,7 @@ func (s *Session) Delete(model interface{}) {
 
 	kv := s.mapper.ConvertStructToMap(model)
 
-	t := NewTable(
-		s.engine.Driver(),
-		s.mapper.ModelName(model),
-		[]Column{}, []Constraint{},
-	)
-	d := t.Delete()
+	d := s.metadata.Table(s.mapper.ModelName(model)).Delete()
 
 	ands := []string{}
 	bindings := []interface{}{}
@@ -67,12 +62,7 @@ func (s *Session) Add(model interface{}) {
 		kv[s.mapper.ColName(k)] = v
 	}
 
-	t := NewTable(
-		s.engine.Driver(),
-		s.mapper.ModelName(model),
-		[]Column{}, []Constraint{},
-	)
-	query := t.Insert(kv).Query()
+	query := s.metadata.Table(s.mapper.ModelName(model)).Insert(kv).Query()
 	s.add(query)
 }
 
@@ -97,3 +87,5 @@ func (s *Session) Commit() error {
 
 	return s.tx.Commit()
 }
+
+// Select makers
