@@ -22,6 +22,9 @@ type Dialect struct {
 	bindingIndex int
 }
 
+// Placeholder generates a placeholder for binding.
+// If the driver is postgres generates "$i" where i is incremental integer
+// Otherwise it generates "?"
 func (d *Dialect) Placeholder() string {
 	if d.driver == "postgres" {
 		d.bindingIndex++
@@ -30,6 +33,7 @@ func (d *Dialect) Placeholder() string {
 	return "?"
 }
 
+// Placeholders generates multiple placeholders
 func (d *Dialect) Placeholders(values ...interface{}) []string {
 	placeholders := make([]string, len(values))
 	for k := range values {

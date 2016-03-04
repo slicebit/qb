@@ -74,9 +74,9 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Nil(suite.T(), err)
 
 	// insert user using table
-	ddlId, _ := uuid.NewV4()
+	ddlID, _ := uuid.NewV4()
 	insUserDDL := suite.metadata.Table("p_user").Insert(map[string]interface{}{
-		"id":        ddlId.String(),
+		"id":        ddlID.String(),
 		"email":     "daniel@day-lewis.com",
 		"full_name": "Daniel Day-Lewis",
 		"password":  "ddl",
@@ -86,9 +86,9 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Nil(suite.T(), err)
 
 	// insert user using session
-	rdnId, _ := uuid.NewV4()
+	rdnID, _ := uuid.NewV4()
 	rdn := pUser{
-		ID:       rdnId.String(),
+		ID:       rdnID.String(),
 		Email:    "robert@de-niro.com",
 		FullName: "Robert De Niro",
 		Password: "rdn",

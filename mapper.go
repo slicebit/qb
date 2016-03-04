@@ -34,7 +34,7 @@ func (m *Mapper) extractValue(value string) string {
 	return ""
 }
 
-// ConvertMap converts a model struct to a map
+// ConvertStructToMap converts a model struct to a map
 func (m *Mapper) ConvertStructToMap(model interface{}) map[string]interface{} {
 
 	fields := structs.Fields(model)
