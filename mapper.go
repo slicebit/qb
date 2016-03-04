@@ -92,6 +92,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		name:        modelName,
 		columns:     []Column{},
 		constraints: []Constraint{},
+		driver: m.driver,
 	}
 
 	//fmt.Printf("model name: %s\n\n", modelName)
@@ -101,7 +102,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 
 	for _, f := range structs.Fields(model) {
 
-		colName := snaker.CamelToSnake(f.Name())
+		colName := m.ColName(f.Name())
 		colType := fmt.Sprintf("%T", f.Value())
 
 		rawTag = f.Tag(tagPrefix)
