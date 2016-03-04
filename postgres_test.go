@@ -190,8 +190,8 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.NotNil(suite.T(), err)
 
 	// drop tables
-	//err = suite.metadata.DropAll()
-	//assert.Nil(suite.T(), err)
+	err = suite.metadata.DropAll()
+	assert.Nil(suite.T(), err)
 
 	// metadata create all fail
 	metadata := NewMetaData(suite.engine)
