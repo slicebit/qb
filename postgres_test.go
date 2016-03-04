@@ -58,28 +58,43 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.metadata.CreateAll()
 	assert.Nil(suite.T(), err)
 
+	fmt.Println()
+
 	// insert user using dialect
-	insUser := suite.dialect.
+	insUserJN := suite.dialect.
 		Insert("p_user", "id", "email", "full_name", "password", "bio").
 		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "jack@nicholson.com", "Jack Nicholson", "jack-nicholson", "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.").
 		Query()
 
-	fmt.Println(insUser.SQL())
-	fmt.Println(insUser.Bindings())
-	_, err = suite.metadata.Engine().Exec(insUser)
+	fmt.Println(insUserJN.SQL())
+	fmt.Println(insUserJN.Bindings())
+	fmt.Println()
+
+	_, err = suite.metadata.Engine().Exec(insUserJN)
+	assert.Nil(suite.T(), err)
+
+	// insert user using table
+	ddlId, _ := uuid.NewV4()
+	insUserDDL := suite.metadata.Table("p_user").Insert(map[string]interface{}{
+		"id":        ddlId.String(),
+		"email":     "daniel@day-lewis.com",
+		"full_name": "Daniel Day-Lewis",
+		"password":  "ddl",
+	}).Query()
+
+	_, err = suite.metadata.Engine().Exec(insUserDDL)
 	assert.Nil(suite.T(), err)
 
 	// insert user using session
-	ddlId, _ := uuid.NewV4()
-	ddl := pUser{
-		ID:       ddlId.String(),
-		Email:    "daniel@day-lewis.com",
-		FullName: "Daniel Day-Lewis",
-		Password: "ddl",
-		Bio:      "Born in London, England, Daniel Michael Blake Day-Lewis is the second child of Cecil Day-Lewis (A.K.A. Nicholas Blake) (Poet Laureate of England) and his second wife, Jill Balcon. His maternal grandfather was Sir Michael Balcon, an important figure in the history of British cinema and head of the famous Ealing Studios.",
+	rdnId, _ := uuid.NewV4()
+	rdn := pUser{
+		ID:       rdnId.String(),
+		Email:    "robert@de-niro.com",
+		FullName: "Robert De Niro",
+		Password: "rdn",
 	}
 
-	suite.session.AddAll(ddl)
+	suite.session.AddAll(rdn)
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
@@ -90,9 +105,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		Query()
 
 	_, err = suite.metadata.Engine().Exec(insSession)
-
-	fmt.Println(insSession.SQL())
-	fmt.Println(insSession.Bindings())
 	assert.Nil(suite.T(), err)
 
 	// select user
@@ -129,7 +141,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	for rows.Next() {
 		var session pSession
 		rows.Scan(&session.ID, &session.AuthToken, &session.CreatedAt, &session.ExpiresAt)
-		assert.Equal(suite.T(), session.ID, int64(1))
+		assert.True(suite.T(), session.ID > int64(1))
 		assert.NotNil(suite.T(), session.CreatedAt)
 		assert.NotNil(suite.T(), session.ExpiresAt)
 		sessions = append(sessions, session)
@@ -178,8 +190,8 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.NotNil(suite.T(), err)
 
 	// drop tables
-	err = suite.metadata.DropAll()
-	assert.Nil(suite.T(), err)
+	//err = suite.metadata.DropAll()
+	//assert.Nil(suite.T(), err)
 
 	// metadata create all fail
 	metadata := NewMetaData(suite.engine)
