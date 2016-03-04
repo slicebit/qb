@@ -62,14 +62,14 @@ func (s *Session) Add(model interface{}) {
 		kv[s.mapper.ColName(k)] = v
 	}
 
-	query := s.metadata.Table(s.mapper.ModelName(model)).Insert(kv).Query()
-	s.add(query)
+	q := s.metadata.Table(s.mapper.ModelName(model)).Insert(kv).Query()
+	s.add(q)
 }
 
 // AddAll adds multiple models an adds an insert statement to current queries
 func (s *Session) AddAll(models ...interface{}) {
-	for _, v := range models {
-		s.Add(v)
+	for _, m := range models {
+		s.Add(m)
 	}
 }
 
