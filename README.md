@@ -22,6 +22,7 @@ Quick Start - Session API
 ```go
 import (
     "github.com/aacanakin/qb"
+    "github.com/nu7hatch/gouuid"
 )
 
 type User struct {
