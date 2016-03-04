@@ -14,11 +14,51 @@ Features
 - Struct to table ddl mapper where initial table migrations can happen
 - Expression api which can be built almost any sql statements
 - Transactional session api that auto map structs to queries
+- Foreign Key definitions of structs using tags
+- Relationships (soon..)
 
 Quick Start - Session API
 -------------------------
 ```go
-// incoming...
+import (
+    "github.com/aacanakin/qb"
+)
+
+type User struct {
+	ID       string `qb:"type:uuid; constraints:primary_key"`
+	Email    string `qb:"constraints:unique, notnull"`
+	FullName string `qb:"constraints:notnull"`
+	Password string `qb:"constraints:notnull"`
+	Bio      string `qb:"type:text; constraints:null"`
+}
+
+func main() {
+    engine, err := qb.NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+
+    if err != nil {
+        panic(err)
+    }
+
+    metadata := qb.NewMetadata(engine)
+    session = qb.NewSession(metadata)
+
+    session.Metadata().Add(&User{}, &Session{})
+    err = session.Metadata().CreateAll()
+    // Creates both tables
+
+    // insert user using session
+    rdnId, _ := uuid.NewV4()
+	rdn := &User{
+		ID:       rdnId.String(),
+		Email:    "robert@de-niro.com",
+		FullName: "Robert De Niro",
+		Password: "rdn",
+	}
+
+    session.Add(rdn)
+    err = session.Commit()
+    // inserts Robert De Niro to users table
+}
 ```
 
 Quick Start - Expression API
