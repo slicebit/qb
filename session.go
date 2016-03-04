@@ -77,9 +77,7 @@ func (s *Session) AddAll(models ...interface{}) {
 func (s *Session) Commit() error {
 
 	for _, q := range s.queries {
-		fmt.Println(q.SQL())
-		fmt.Println(q.Bindings())
-		_, err := s.tx.Exec(q.SQL())
+		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
 		if err != nil {
 			return err
 		}
