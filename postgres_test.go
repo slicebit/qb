@@ -141,7 +141,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	for rows.Next() {
 		var session pSession
 		rows.Scan(&session.ID, &session.AuthToken, &session.CreatedAt, &session.ExpiresAt)
-		assert.True(suite.T(), session.ID > int64(1))
+		assert.True(suite.T(), session.ID >= int64(1))
 		assert.NotNil(suite.T(), session.CreatedAt)
 		assert.NotNil(suite.T(), session.ExpiresAt)
 		sessions = append(sessions, session)
