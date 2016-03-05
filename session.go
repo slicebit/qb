@@ -170,8 +170,6 @@ func (s *Session) Find(model interface{}) error {
 			rawModelMap[colNames[i]] = result[i]
 		}
 
-		fmt.Println("rawModelMap:", rawModelMap)
-
 		s.mapper.ToStruct(rawModelMap, model)
 		return nil
 	}
