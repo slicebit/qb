@@ -25,6 +25,7 @@ type Session struct {
 func (s *Session) add(query *Query) {
 	var err error
 	if s.tx == nil {
+		s.queries = []*Query{}
 		s.tx, err = s.metadata.Engine().DB().Begin()
 		if err != nil {
 			panic(err)
@@ -38,13 +39,29 @@ func (s *Session) Delete(model interface{}) {
 
 	kv := s.mapper.ConvertStructToMap(model)
 
-	d := s.metadata.Table(s.mapper.ModelName(model)).Delete()
+	tName := s.mapper.ModelName(model)
 
+	d := s.metadata.Table(tName).Delete()
 	ands := []string{}
 	bindings := []interface{}{}
-	for k, v := range kv {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), d.Placeholder()))
-		bindings = append(bindings, v)
+
+	pcols := s.metadata.Table(tName).PrimaryKey()
+
+	// if table has primary key
+	if len(pcols) > 0 {
+
+		for _, pk := range pcols {
+			// find
+			b := kv[pk]
+			ands = append(ands, fmt.Sprintf("%s = %s", pk, d.Placeholder()))
+			bindings = append(bindings, b)
+		}
+
+	} else {
+		for k, v := range kv {
+			ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), d.Placeholder()))
+			bindings = append(bindings, v)
+		}
 	}
 
 	del := d.Where(d.And(ands...), bindings...).Query()
@@ -83,7 +100,9 @@ func (s *Session) Commit() error {
 		}
 	}
 
-	return s.tx.Commit()
+	err := s.tx.Commit()
+	s.tx = nil
+	return err
 }
 
 // Select makers
