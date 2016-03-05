@@ -98,6 +98,12 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
+	// delete user using session api
+	suite.session.Delete(rdn)
+	err = suite.session.Commit()
+	fmt.Println(err)
+	assert.Nil(suite.T(), err)
+
 	// insert session using dialect
 	insSession := suite.dialect.
 		Insert("p_session", "user_id", "auth_token", "created_at", "expires_at").
