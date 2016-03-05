@@ -98,10 +98,22 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
+	// find user using session
+	usr := pUser{
+		ID: rdn.ID,
+	}
+	err = suite.session.Find(&usr)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), usr.Email, "robert@de-niro.com")
+	assert.Equal(suite.T(), usr.FullName, "Robert De Niro")
+	assert.Equal(suite.T(), usr.Password, "rdn")
+	fmt.Println("rdn:", rdn)
+
+	fmt.Println()
+
 	// delete user using session api
 	suite.session.Delete(rdn)
 	err = suite.session.Commit()
-	fmt.Println(err)
 	assert.Nil(suite.T(), err)
 
 	// insert session using dialect

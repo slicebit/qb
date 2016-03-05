@@ -36,7 +36,7 @@ func TestMapper(t *testing.T) {
 
 	mapper := NewMapper("mysql")
 
-	userTable, err := mapper.Convert(MapperTestUser{})
+	userTable, err := mapper.ToTable(MapperTestUser{})
 
 	assert.Nil(t, err)
 	fmt.Println(userTable.SQL())
@@ -46,7 +46,7 @@ func TestMapper(t *testing.T) {
 func TestMapperSqliteAutoIncrement(t *testing.T) {
 
 	mapper := NewMapper("sqlite")
-	sqliteAutoIncrementUserTable, err := mapper.Convert(MapperTestSqliteAutoIncrementUser{})
+	sqliteAutoIncrementUserTable, err := mapper.ToTable(MapperTestSqliteAutoIncrementUser{})
 
 	assert.Nil(t, err)
 	fmt.Println(sqliteAutoIncrementUserTable.SQL())
@@ -62,7 +62,7 @@ func TestMapperError(t *testing.T) {
 
 	mapper := NewMapper("postgres")
 
-	userErrTable, err := mapper.Convert(MapperTestUserErr{})
+	userErrTable, err := mapper.ToTable(MapperTestUserErr{})
 
 	assert.NotNil(t, err)
 	assert.Empty(t, userErrTable)
@@ -76,7 +76,7 @@ func TestMapperInvalidConstraint(t *testing.T) {
 
 	mapper := NewMapper("mysql")
 
-	invalidConstraintTable, err := mapper.Convert(InvalidConstraint{})
+	invalidConstraintTable, err := mapper.ToTable(InvalidConstraint{})
 
 	assert.Nil(t, invalidConstraintTable)
 	assert.NotNil(t, err)
@@ -88,7 +88,7 @@ func TestMapperUtilFuncs(t *testing.T) {
 
 	assert.Equal(t, mapper.ColName("CreatedAt"), "created_at")
 
-	kv := mapper.ConvertStructToMap(MapperTestUserErr{})
+	kv := mapper.ToMap(MapperTestUserErr{})
 	assert.Equal(t, kv, map[string]interface{}{
 		"ID": "",
 		"Email": "",

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/serenize/snaker"
+	"reflect"
 	"strings"
 )
 
@@ -34,8 +35,38 @@ func (m *Mapper) extractValue(value string) string {
 	return ""
 }
 
-// ConvertStructToMap converts a model struct to a map
-func (m *Mapper) ConvertStructToMap(model interface{}) map[string]interface{} {
+// ToStruct maps a map[string]interface{} into struct
+func (m *Mapper) ToStruct(data map[string]interface{}, result interface{}) {
+	t := reflect.ValueOf(result).Elem()
+	for k, v := range data {
+		if v != nil {
+			f := t.FieldByName(k)
+			if f.IsValid() {
+				if f.CanSet() {
+					f.Set(reflect.ValueOf(v))
+				}
+			}
+		}
+	}
+}
+
+// ToRawMap converts a model struct to map without changing the field names.
+func (m *Mapper) ToRawMap(model interface{}) map[string]interface{} {
+	fields := structs.Fields(model)
+	kv := map[string]interface{}{}
+	for _, f := range fields {
+		if f.IsZero() {
+			continue
+		}
+
+		kv[f.Name()] = f.Value()
+	}
+	return kv
+}
+
+// ToMap converts a model struct to a map. Uninitialized fields are ignored.
+// Fields are renamed using qb conventions
+func (m *Mapper) ToMap(model interface{}) map[string]interface{} {
 
 	fields := structs.Fields(model)
 	kv := map[string]interface{}{}
@@ -49,12 +80,12 @@ func (m *Mapper) ConvertStructToMap(model interface{}) map[string]interface{} {
 	return kv
 }
 
-// ModelName returns the table name of model
+// ModelName returns the sql table name of model
 func (m *Mapper) ModelName(model interface{}) string {
 	return snaker.CamelToSnake(structs.Name(model))
 }
 
-// ColName returns the column name of model
+// ColName returns the sql column name of model
 func (m *Mapper) ColName(col string) string {
 	return snaker.CamelToSnake(col)
 }
@@ -62,7 +93,7 @@ func (m *Mapper) ColName(col string) string {
 // ConvertType returns the type mapping of column.
 // If tagType is, then colType would automatically be resolved.
 // If tagType is not "", then automatic type resolving would be overridden by tagType
-func (m *Mapper) ConvertType(colType string, tagType string) *Type {
+func (m *Mapper) ToType(colType string, tagType string) *Type {
 
 	// convert tagType
 	if tagType != "" {
@@ -94,7 +125,7 @@ func (m *Mapper) ConvertType(colType string, tagType string) *Type {
 }
 
 // Convert parses struct and converts it to a new table
-func (m *Mapper) Convert(model interface{}) (*Table, error) {
+func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 
 	modelName := m.ModelName(model)
 
@@ -171,7 +202,7 @@ func (m *Mapper) Convert(model interface{}) (*Table, error) {
 		col = Column{
 			Name:        colName,
 			Constraints: constraints,
-			Type:        m.ConvertType(colType, tag.Type),
+			Type:        m.ToType(colType, tag.Type),
 		}
 
 		table.AddColumn(col)

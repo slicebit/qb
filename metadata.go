@@ -29,7 +29,7 @@ func (m *MetaData) Engine() *Engine {
 // Add retrieves the struct and converts it using mapper and appends to tables slice
 func (m *MetaData) Add(model interface{}) {
 
-	table, err := m.mapper.Convert(model)
+	table, err := m.mapper.ToTable(model)
 	if err != nil {
 		panic(err)
 	}
