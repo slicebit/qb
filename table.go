@@ -78,6 +78,11 @@ func (t *Table) AddPrimary(col string) {
 	t.primaryCols = append(t.primaryCols, col)
 }
 
+// PrimaryKey returns the primaryCols as a string array
+func (t *Table) PrimaryKey() []string {
+	return t.primaryCols
+}
+
 type ref struct {
 	cols     []string
 	refTable string
