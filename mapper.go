@@ -44,7 +44,7 @@ func (m *Mapper) ConvertStructToMap(model interface{}) map[string]interface{} {
 			continue
 		}
 
-		kv[f.Name()] = f.Value()
+		kv[m.ColName(f.Name())] = f.Value()
 	}
 	return kv
 }
