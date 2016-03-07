@@ -76,7 +76,7 @@ func (d *Dialect) Values(m map[string]interface{}) *Dialect {
 
 	d.query.AddClause(fmt.Sprintf("(%s)", strings.Join(keys, ", ")))
 
-	clause := fmt.Sprintf("VALUES\n(%s)", strings.Join(d.Placeholders(values...), ", "))
+	clause := fmt.Sprintf("VALUES (%s)", strings.Join(d.Placeholders(values...), ", "))
 	d.query.AddClause(clause)
 	return d
 }

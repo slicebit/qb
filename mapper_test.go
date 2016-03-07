@@ -89,8 +89,5 @@ func TestMapperUtilFuncs(t *testing.T) {
 	assert.Equal(t, mapper.ColName("CreatedAt"), "created_at")
 
 	kv := mapper.ToMap(MapperTestUserErr{})
-	assert.Equal(t, kv, map[string]interface{}{
-		"ID": "",
-		"Email": "",
-	})
+	assert.Equal(t, kv, map[string]interface{}{})
 }

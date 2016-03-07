@@ -52,16 +52,7 @@ func (m *Mapper) ToStruct(data map[string]interface{}, result interface{}) {
 
 // ToRawMap converts a model struct to map without changing the field names.
 func (m *Mapper) ToRawMap(model interface{}) map[string]interface{} {
-	fields := structs.Fields(model)
-	kv := map[string]interface{}{}
-	for _, f := range fields {
-		if f.IsZero() {
-			continue
-		}
-
-		kv[f.Name()] = f.Value()
-	}
-	return kv
+	return structs.Map(model)
 }
 
 // ToMap converts a model struct to a map. Uninitialized fields are ignored.

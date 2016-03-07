@@ -69,6 +69,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 		map[string]interface{}{
 			"id":         "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			"user_id":    "e4968197-6137-47a4-ba79-690d8c552248",
+			"auth_token": "75dc92f2-730a-436a-9db6-629aa644c198",
 			"created_at": time.Now(),
 			"expires_at": time.Now().Add(24 * time.Hour),
 		}).Query()

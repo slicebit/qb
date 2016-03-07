@@ -181,7 +181,7 @@ func TestBuilderBasicInsert(t *testing.T) {
 			"password": "p4ssw0rd"}).
 		Query()
 
-	assert.Equal(t, query.SQL(), "INSERT INTO user\n(name, email, password)\nVALUES\n(?, ?, ?);")
+	assert.Equal(t, query.SQL(), "INSERT INTO user\n(name, email, password)\nVALUES (?, ?, ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{"Aras Can Akin", "a@b.c", "p4ssw0rd"})
 }
 

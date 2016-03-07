@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/fatih/structs"
 )
 
 // NewSession generates a new Session given engine and returns session pointer
@@ -113,7 +112,7 @@ func (s *Session) Find(model interface{}) error {
 
 	tName := s.mapper.ModelName(model)
 
-	rawModelMap := structs.Map(model)
+	rawModelMap := s.mapper.ToRawMap(model)
 	modelMap := s.mapper.ToMap(model)
 
 	colNames := []string{}

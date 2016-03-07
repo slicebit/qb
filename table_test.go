@@ -104,7 +104,7 @@ func TestTableInsert(t *testing.T) {
 
 	query := table.Insert(kv).Query()
 
-	assert.Equal(t, query.SQL(), "INSERT INTO user(id, full_name)\nVALUES (?, ?);")
+	assert.Equal(t, query.SQL(), "INSERT INTO user\n(id, full_name)\nVALUES (?, ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{1, "Aras Can Akin"})
 }
 
