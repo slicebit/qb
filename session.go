@@ -12,6 +12,7 @@ func NewSession(metadata *MetaData) *Session {
 		queries:  []*Query{},
 		mapper:   NewMapper(metadata.Engine().Driver()),
 		metadata: metadata,
+		dialect:  NewDialect(metadata.Engine().Driver()),
 	}
 }
 
@@ -21,6 +22,7 @@ type Session struct {
 	mapper   *Mapper
 	metadata *MetaData
 	tx       *sql.Tx
+	dialect  *Dialect
 }
 
 func (s *Session) add(query *Query) {
@@ -142,31 +144,38 @@ func (s *Session) Find(model interface{}) error {
 		return err
 	}
 
-	rawResult := make([][]byte, len(cols))
-	result := make([]interface{}, len(cols))
-
-	dest := make([]interface{}, len(cols)) // A temporary interface{} slice
-	for i, _ := range rawResult {
-		dest[i] = &rawResult[i] // Put pointers to each string in the interface slice
-	}
+	values := make([]interface{}, len(cols))
+	valuePtrs := make([]interface{}, len(cols))
 
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(dest...)
+
+		for i, _ := range cols {
+			valuePtrs[i] = &values[i]
+		}
+
+		err = rows.Scan(valuePtrs...)
 		if err != nil {
 			return err
 		}
 
-		for i, raw := range rawResult {
-			if raw == nil {
-				result[i] = nil
-			} else {
-				result[i] = string(raw)
-			}
-		}
+		for i, _ := range cols {
 
-		for i := 0; i < len(colNames); i++ {
-			rawModelMap[colNames[i]] = result[i]
+			var v interface{}
+
+			val := values[i]
+
+			b, ok := val.([]byte)
+
+			if ok {
+				v = string(b)
+			} else {
+				v = val
+			}
+
+			//fmt.Println(col, v)
+
+			rawModelMap[colNames[i]] = v
 		}
 
 		s.mapper.ToStruct(rawModelMap, model)
@@ -174,4 +183,35 @@ func (s *Session) Find(model interface{}) error {
 	}
 
 	return errors.New("Record not found")
+}
+
+// TODO: Finish these implementations
+// Query starts a select dialect given the model properties
+func (s *Session) Query(model interface{}) *Session {
+	return s
+}
+
+// FilterBy builds where statements given the conditions as map[string]interface{}
+func (s *Session) FilterBy(m map[string]interface{}) *Session {
+	return s
+}
+
+// Filter build complex filter statements such as gt, gte, st, ste, in, avg, count, etc.
+func (s *Session) Filter() *Session {
+	return s
+}
+
+// Join performs a join with another struct given model an optionally given explicit conditions
+func (s *Session) Join(model interface{}, exConditions ...interface{}) *Session {
+	return s
+}
+
+// First returns the first record mapped as a model
+func (s *Session) First(model interface{}) error {
+	return nil
+}
+
+// All returns all the records mapped as a model slice
+func (s *Session) All(models []interface{}) error {
+	return nil
 }

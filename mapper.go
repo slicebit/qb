@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/serenize/snaker"
-	"reflect"
+	"github.com/mitchellh/mapstructure"
 	"strings"
 )
 
 const tagPrefix = "qb"
 
-// NewMapper instantiates a new mapper object and returns it as a mapper pointer
+// NewMapper creates a new mapper struct and returns it as a mapper pointer
 func NewMapper(driver string) *Mapper {
 	return &Mapper{
 		driver: driver,
@@ -36,18 +36,8 @@ func (m *Mapper) extractValue(value string) string {
 }
 
 // ToStruct maps a map[string]interface{} into struct
-func (m *Mapper) ToStruct(data map[string]interface{}, result interface{}) {
-	t := reflect.ValueOf(result).Elem()
-	for k, v := range data {
-		if v != nil {
-			f := t.FieldByName(k)
-			if f.IsValid() {
-				if f.CanSet() {
-					f.Set(reflect.ValueOf(v))
-				}
-			}
-		}
-	}
+func (m *Mapper) ToStruct(data map[string]interface{}, result interface{}) error {
+	return mapstructure.Decode(data, result)
 }
 
 // ToRawMap converts a model struct to map without changing the field names.

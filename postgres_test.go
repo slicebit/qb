@@ -15,6 +15,7 @@ type pUser struct {
 	FullName string `qb:"constraints:notnull"`
 	Password string `qb:"constraints:notnull"`
 	Bio      string `qb:"type:text; constraints:null"`
+	Oscars   int    `qb:"constraints:default(0)"`
 }
 
 type pSession struct {
@@ -98,6 +99,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		Email:    "robert@de-niro.com",
 		FullName: "Robert De Niro",
 		Password: "rdn",
+		Oscars:   3,
 	}
 
 	suite.session.AddAll(rdn)
@@ -113,7 +115,8 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Equal(suite.T(), usr.Email, "robert@de-niro.com")
 	assert.Equal(suite.T(), usr.FullName, "Robert De Niro")
 	assert.Equal(suite.T(), usr.Password, "rdn")
-	fmt.Println("rdn:", rdn)
+	assert.Equal(suite.T(), usr.Oscars, 3)
+	fmt.Println("rdn:", usr)
 
 	fmt.Println()
 
