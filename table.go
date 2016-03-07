@@ -125,7 +125,7 @@ func (t *Table) Insert(kv map[string]interface{}) *Dialect {
 	}
 
 	// TODO: Validate column name
-	return NewDialect(t.driver).Insert(t.name, keys...).Values(values...)
+	return NewDialect(t.driver).Insert(t.name).Values(kv)
 }
 
 // Update creates an update statement for the table name

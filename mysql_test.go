@@ -49,10 +49,14 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	// insert user
-	insUser := suite.dialect.
-		Insert("m_user", "id", "email", "full_name", "password", "bio").
-		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "jack@nicholson.com", "Jack Nicholson", "jack-nicholson", "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.").
-		Query()
+	insUser := suite.dialect.Insert("m_user").
+		Values(map[string]interface{}{
+			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+			"email":     "jack@nicholson.com",
+			"full_name": "Jack Nicholson",
+			"password":  "jack-nicholson",
+			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
+		}).Query()
 
 	fmt.Println(insUser.SQL())
 	fmt.Println(insUser.Bindings())
@@ -60,10 +64,12 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	// insert session
-	insSession := suite.dialect.
-		Insert("m_session", "user_id", "auth_token", "created_at", "expires_at").
-		Values("b6f8bfe3-a830-441a-a097-1777e6bfae95", "e4968197-6137-47a4-ba79-690d8c552248", time.Now(), time.Now().Add(24*time.Hour)).
-		Query()
+	insSession := suite.dialect.Insert("m_session").Values(map[string]interface{}{
+		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
+		"created_at": time.Now(),
+		"expires_at": time.Now().Add(24 * time.Hour),
+	}).Query()
 
 	_, err = suite.metadata.Engine().Exec(insSession)
 
@@ -137,8 +143,8 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	// insert failure
 	insFail := suite.dialect.
-		Insert("m_user", "invalid_column").
-		Values("invalid_value").
+		Insert("m_user").
+		Values(map[string]interface{}{"invalid_column": "invalid_value"}).
 		Query()
 
 	_, err = suite.metadata.Engine().Exec(insFail)

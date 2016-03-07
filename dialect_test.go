@@ -121,8 +121,8 @@ func TestBuilderSelectEqNeq(t *testing.T) {
 		Select("id", "email", "name").
 		From("user").
 		Where(d.And(
-		d.Eq("email", "a@b.c"),
-		d.NotEq("name", "Aras Can Akin"))).
+			d.Eq("email", "a@b.c"),
+			d.NotEq("name", "Aras Can Akin"))).
 		Query()
 
 	assert.Equal(t, query.SQL(), "SELECT id, email, name\nFROM user\nWHERE (email = ? AND name != ?);")
@@ -137,9 +137,9 @@ func TestBuilderSelectInNotIn(t *testing.T) {
 		Select("id", "email", "name").
 		From("user").
 		Where(d.And(
-		d.In("name", "Aras Can Akin"),
-		d.NotIn("email", "a@b.c"),
-	)).Query()
+			d.In("name", "Aras Can Akin"),
+			d.NotIn("email", "a@b.c"),
+		)).Query()
 
 	assert.Equal(t, query.SQL(), "SELECT id, email, name\nFROM user\nWHERE (name IN (?) AND email NOT IN (?));")
 	assert.Equal(t, query.Bindings(), []interface{}{"Aras Can Akin", "a@b.c"})
@@ -154,11 +154,11 @@ func TestBuilderSelectGtGteStSte(t *testing.T) {
 		Select("id", "age", "avg").
 		From("goqb.user").
 		Where(d.And(
-		d.St("age", 35),
-		d.Gt("age", 18),
-		d.Ste("avg", 4.0),
-		d.Gte("avg", 2.8),
-	)).Query()
+			d.St("age", 35),
+			d.Gt("age", 18),
+			d.Ste("avg", 4.0),
+			d.Gte("avg", 2.8),
+		)).Query()
 
 	assert.Equal(t, query.SQL(), "SELECT id, age, avg\nFROM goqb.user\nWHERE (age < ? AND age > ? AND avg <= ? AND avg >= ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{35, 18, 4.0, 2.8})
@@ -168,12 +168,20 @@ func TestBuilderBasicInsert(t *testing.T) {
 
 	d := NewDialect("mysql")
 
+	//query := d.
+	//	Insert("user", "name", "email", "password").
+	//	Values("Aras Can Akin", "a@b.c", "p4ssw0rd").
+	//	Query()
+
 	query := d.
-		Insert("user", "name", "email", "password").
-		Values("Aras Can Akin", "a@b.c", "p4ssw0rd").
+		Insert("user").
+		Values(map[string]interface{}{
+			"name":     "Aras Can Akin",
+			"email":    "a@b.c",
+			"password": "p4ssw0rd"}).
 		Query()
 
-	assert.Equal(t, query.SQL(), "INSERT INTO user(name, email, password)\nVALUES (?, ?, ?);")
+	assert.Equal(t, query.SQL(), "INSERT INTO user\n(name, email, password)\nVALUES\n(?, ?, ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{"Aras Can Akin", "a@b.c", "p4ssw0rd"})
 }
 
@@ -184,10 +192,10 @@ func TestBuilderBasicUpdate(t *testing.T) {
 	query := d.
 		Update("user").
 		Set(
-		map[string]interface{}{
-			"email": "a@b.c",
-			"name":  "Aras",
-		}).
+			map[string]interface{}{
+				"email": "a@b.c",
+				"name":  "Aras",
+			}).
 		Where("id = ?", 5).
 		Query()
 
@@ -290,17 +298,17 @@ func TestBuilderCreateTable(t *testing.T) {
 
 	query := d.
 		CreateTable("user",
-		[]string{
-			"id UUID PRIMARY KEY",
-			"email CHAR(255) NOT NULL",
-			"name VARCHAR(255) NOT NULL",
-			"username VARCHAR(255) NOT NULL",
-		},
-		[]string{
-			Constraint{"UNIQUE(email, name)"}.Name,
-			Constraint{"UNIQUE(username)"}.Name,
-		},
-	).Query()
+			[]string{
+				"id UUID PRIMARY KEY",
+				"email CHAR(255) NOT NULL",
+				"name VARCHAR(255) NOT NULL",
+				"username VARCHAR(255) NOT NULL",
+			},
+			[]string{
+				Constraint{"UNIQUE(email, name)"}.Name,
+				Constraint{"UNIQUE(username)"}.Name,
+			},
+		).Query()
 
 	qct := `CREATE TABLE user(
 	id UUID PRIMARY KEY,

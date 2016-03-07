@@ -57,18 +57,26 @@ func (d *Dialect) Query() *Query {
 }
 
 // Insert generates an "insert into %s(%s)" statement
-func (d *Dialect) Insert(table string, columns ...string) *Dialect {
-	clause := fmt.Sprintf("INSERT INTO %s(%s)", table, strings.Join(columns, ", "))
+func (d *Dialect) Insert(table string) *Dialect {
+	clause := fmt.Sprintf("INSERT INTO %s", table)
 	d.query.AddClause(clause)
 	return d
 }
 
 // Values generates "values(%s)" statement and add bindings for each value
-func (d *Dialect) Values(values ...interface{}) *Dialect {
-	for _, v := range values {
+func (d *Dialect) Values(m map[string]interface{}) *Dialect {
+
+	keys := []string{}
+	values := []interface{}{}
+	for k, v := range m {
+		keys = append(keys, k)
+		values = append(values, v)
 		d.query.AddBinding(v)
 	}
-	clause := fmt.Sprintf("VALUES (%s)", strings.Join(d.Placeholders(values...), ", "))
+
+	d.query.AddClause(fmt.Sprintf("(%s)", strings.Join(keys, ", ")))
+
+	clause := fmt.Sprintf("VALUES\n(%s)", strings.Join(d.Placeholders(values...), ", "))
 	d.query.AddClause(clause)
 	return d
 }
