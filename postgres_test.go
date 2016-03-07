@@ -110,7 +110,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	usr := pUser{
 		ID: rdn.ID,
 	}
-	err = suite.session.Find(&usr)
+	err = suite.session.Find(&usr).First(&usr)
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), usr.Email, "robert@de-niro.com")
 	assert.Equal(suite.T(), usr.FullName, "Robert De Niro")
