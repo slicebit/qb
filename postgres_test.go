@@ -125,21 +125,8 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// find users using session
 	findUsers := []pUser{}
-	err = suite.session.Find(&pUser{}).All(findUsers)
+	err = suite.session.Find(&pUser{}).All(&findUsers)
 	fmt.Println(findUsers)
-
-	// find user using filter by
-	//findAp := pUser{}
-	//err = suite.session.Query(pUser{}).FilterBy(
-	//	map[interface{}]interface{}{
-	//		findAp.ID: apId.String(),
-	//	},
-	//).First(&findAp)
-
-	//assert.Nil(suite.T(), err)
-	//assert.Equal(suite.T(), findAp.Email, "al@pacino.com")
-	//assert.Equal(suite.T(), findAp.FullName, "Al Pacino")
-	//assert.Equal(suite.T(), findAp.Oscars, 1)
 
 	// delete user using session api
 	suite.session.Delete(rdn)
