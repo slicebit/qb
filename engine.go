@@ -3,6 +3,7 @@ package qb
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -10,7 +11,7 @@ import (
 // NewEngine generates a new engine and returns it as an engine pointer
 func NewEngine(driver string, dsn string) (*Engine, error) {
 
-	conn, err := sql.Open(driver, dsn)
+	conn, err := sqlx.Open(driver, dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +27,7 @@ func NewEngine(driver string, dsn string) (*Engine, error) {
 type Engine struct {
 	driver string
 	dsn    string
-	db     *sql.DB
+	db     *sqlx.DB
 }
 
 // Exec executes insert & update type queries and returns sql.Result and error
@@ -55,8 +56,23 @@ func (e *Engine) Query(query *Query) (*sql.Rows, error) {
 	return e.db.Query(query.SQL(), query.Bindings()...)
 }
 
+// Get maps the single row to a model
+func (e *Engine) Get(query *Query, model interface{}) error {
+	return e.db.Get(model, query.SQL(), query.Bindings()...)
+}
+
+// Select maps multiple rows to a model array
+func (e *Engine) Select(query *Query, model interface{}) error {
+	return e.db.Select(model, query.SQL(), query.Bindings()...)
+}
+
+// Queryx wraps sqlx's Queryx
+func (e *Engine) Queryx(query *Query) (*sqlx.Rows, error) {
+	return e.db.Queryx(query.SQL(), query.Bindings()...)
+}
+
 // DB returns sql.DB of wrapped engine connection
-func (e *Engine) DB() *sql.DB {
+func (e *Engine) DB() *sqlx.DB {
 	return e.db
 }
 
