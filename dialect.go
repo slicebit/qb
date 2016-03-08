@@ -151,6 +151,9 @@ func (d *Dialect) FullOuterJoin(table string, expressions ...string) *Dialect {
 
 // Where generates "where %s" for the expression and adds bindings for each value
 func (d *Dialect) Where(expression string, bindings ...interface{}) *Dialect {
+	if expression == "" {
+		return d
+	}
 	expression = strings.Replace(expression, "?", d.Placeholder(), -1)
 	d.query.AddClause(fmt.Sprintf("WHERE %s", expression))
 	d.query.AddBinding(bindings...)
@@ -261,7 +264,7 @@ func (d *Dialect) Ste(key string, value interface{}) string {
 // And function generates " AND " between any number of expressions
 func (d *Dialect) And(expressions ...string) string {
 	if len(expressions) == 0 {
-		return "1"
+		return ""
 	} else if len(expressions) == 1 {
 		return expressions[0]
 	}
