@@ -10,20 +10,19 @@ import (
 )
 
 type pUser struct {
-	ID       string `qb:"type:uuid; constraints:primary_key, auto_increment"`
-	Email    string `qb:"constraints:unique, notnull"`
-	FullName string `qb:"constraints:notnull"`
-	Password string `qb:"constraints:notnull"`
-	Bio      string `qb:"type:text; constraints:null"`
-	Oscars   int    `qb:"constraints:default(0)"`
+	ID       string  `qb:"type:uuid; constraints:primary_key, auto_increment" db:"id"`
+	Email    string  `qb:"constraints:unique, notnull" db:"email"`
+	FullName string  `qb:"constraints:notnull" db:"full_name"`
+	Bio      *string `qb:"type:text; constraints:null" db:"bio"`
+	Oscars   int     `qb:"constraints:default(0)" db:"oscars"`
 }
 
 type pSession struct {
-	ID        int64     `qb:"type:bigserial; constraints:primary_key"`
-	UserID    string    `qb:"type:uuid; constraints:ref(p_user.id)"`
-	AuthToken string    `qb:"type:uuid; constraints:notnull, unique"`
-	CreatedAt time.Time `qb:"constraints:notnull"`
-	ExpiresAt time.Time `qb:"constraints:notnull"`
+	ID        int64     `qb:"type:bigserial; constraints:primary_key" db:"id"`
+	UserID    string    `qb:"type:uuid; constraints:ref(p_user.id)" db:"user_id"`
+	AuthToken string    `qb:"type:uuid; constraints:notnull, unique" db:"auth_token"`
+	CreatedAt time.Time `qb:"constraints:notnull" db:"created_at"`
+	ExpiresAt time.Time `qb:"constraints:notnull" db:"expires_at"`
 }
 
 type pFailModel struct {
@@ -68,7 +67,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			"email":     "jack@nicholson.com",
 			"full_name": "Jack Nicholson",
-			"password":  "jack-nicholson",
 			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
 		}).Query()
 
@@ -86,7 +84,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 			"id":        ddlID.String(),
 			"email":     "daniel@day-lewis.com",
 			"full_name": "Daniel Day-Lewis",
-			"password":  "ddl",
 		}).Query()
 
 	_, err = suite.metadata.Engine().Exec(insUserDDL)
@@ -98,27 +95,51 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		ID:       rdnID.String(),
 		Email:    "robert@de-niro.com",
 		FullName: "Robert De Niro",
-		Password: "rdn",
 		Oscars:   3,
 	}
 
-	suite.session.AddAll(rdn)
+	apId, _ := uuid.NewV4()
+	ap := pUser{
+		ID:       apId.String(),
+		Email:    "al@pacino.com",
+		FullName: "Al Pacino",
+		Oscars:   1,
+	}
+
+	suite.session.AddAll(rdn, ap)
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
 	// find user using session
-	usr := pUser{
+	findRdn := pUser{
 		ID: rdn.ID,
 	}
-	err = suite.session.Find(&usr).First(&usr)
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), usr.Email, "robert@de-niro.com")
-	assert.Equal(suite.T(), usr.FullName, "Robert De Niro")
-	assert.Equal(suite.T(), usr.Password, "rdn")
-	assert.Equal(suite.T(), usr.Oscars, 3)
-	fmt.Println("rdn:", usr)
 
-	fmt.Println()
+	err = suite.session.Find(&findRdn).First(&findRdn)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), findRdn.Email, "robert@de-niro.com")
+	assert.Equal(suite.T(), findRdn.FullName, "Robert De Niro")
+	assert.Equal(suite.T(), findRdn.Oscars, 3)
+
+	fmt.Println(findRdn)
+
+	// find users using session
+	findUsers := []pUser{}
+	err = suite.session.Find(&pUser{}).All(findUsers)
+	fmt.Println(findUsers)
+
+	// find user using filter by
+	//findAp := pUser{}
+	//err = suite.session.Query(pUser{}).FilterBy(
+	//	map[interface{}]interface{}{
+	//		findAp.ID: apId.String(),
+	//	},
+	//).First(&findAp)
+
+	//assert.Nil(suite.T(), err)
+	//assert.Equal(suite.T(), findAp.Email, "al@pacino.com")
+	//assert.Equal(suite.T(), findAp.FullName, "Al Pacino")
+	//assert.Equal(suite.T(), findAp.Oscars, 1)
 
 	// delete user using session api
 	suite.session.Delete(rdn)
@@ -150,7 +171,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Equal(suite.T(), user.ID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
 	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
-	assert.Equal(suite.T(), user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
 
 	// select sessions
 	selSessions := suite.dialect.
