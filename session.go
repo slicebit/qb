@@ -2,9 +2,9 @@ package qb
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"sort"
+	"github.com/fatih/structs"
 )
 
 // NewSession generates a new Session given engine and returns session pointer
@@ -126,7 +126,6 @@ func (s *Session) Find(model interface{}) *Session {
 	sort.Strings(sqlColNames)
 
 	s.dialect = NewDialect(s.metadata.Engine().Driver())
-
 	s.dialect.Select(sqlColNames...).From(tName)
 
 	ands := []string{}
@@ -144,11 +143,33 @@ func (s *Session) Find(model interface{}) *Session {
 // TODO: Finish these implementations
 // Query starts a select dialect given the model properties
 func (s *Session) Query(model interface{}) *Session {
+
+	tName := s.mapper.ModelName(model)
+	rModelMap := s.mapper.ToRawMap(model)
+
+	sqlColNames := []string{}
+	for k, _ := range rModelMap {
+		sqlColNames = append(sqlColNames, s.mapper.ColName(k))
+	}
+
+	sort.Strings(sqlColNames)
+
+	s.dialect = NewDialect(s.metadata.Engine().Driver())
+	s.dialect.Select(sqlColNames...).From(tName)
 	return s
 }
 
 // FilterBy builds where statements given the conditions as map[string]interface{}
-func (s *Session) FilterBy(m map[string]interface{}) *Session {
+func (s *Session) FilterBy(m map[interface{}]interface{}) *Session {
+
+	ands := []string{}
+	bindings := []interface{}{}
+	for k, v := range m {
+		fmt.Println(structs.Name(k))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(structs.Name(k)), s.dialect.Placeholder()))
+		bindings = append(bindings, v)
+	}
+	s.dialect.Where(s.dialect.And(ands...), bindings...)
 	return s
 }
 
@@ -165,68 +186,14 @@ func (s *Session) Join(model interface{}, exConditions ...interface{}) *Session 
 // First returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
 func (s *Session) First(model interface{}) error {
-
-	colNames := []string{}
-	modelMap := s.mapper.ToRawMap(model)
-
-	for k, _ := range modelMap {
-		colNames = append(colNames, k)
-	}
-
-	sort.Strings(colNames)
-
 	query := s.dialect.Query()
-	rows, err := s.metadata.Engine().Query(query)
-	if err != nil {
-		return err
-	}
-
-	cols, err := rows.Columns()
-	if err != nil {
-		return err
-	}
-
-	values := make([]interface{}, len(cols))
-	valuePtrs := make([]interface{}, len(cols))
-
-	defer rows.Close()
-	for rows.Next() {
-
-		for i, _ := range cols {
-			valuePtrs[i] = &values[i]
-		}
-
-		err = rows.Scan(valuePtrs...)
-		if err != nil {
-			return err
-		}
-
-		for i, _ := range cols {
-
-			var v interface{}
-
-			val := values[i]
-
-			b, ok := val.([]byte)
-
-			if ok {
-				v = string(b)
-			} else {
-				v = val
-			}
-
-			modelMap[colNames[i]] = v
-		}
-
-		s.mapper.ToStruct(modelMap, model)
-		return nil
-	}
-
-	return errors.New("Record not found")
+	return s.metadata.Engine().Get(query, model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
-func (s *Session) All(models []interface{}) error {
-	return errors.New("Record not found")
+func (s *Session) All(models interface{}) error {
+	query := s.dialect.Query()
+	fmt.Println(query.SQL())
+	return s.metadata.Engine().Select(query, models)
 }
