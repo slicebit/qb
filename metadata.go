@@ -1,9 +1,5 @@
 package qb
 
-import (
-	"fmt"
-)
-
 // NewMetaData creates a new MetaData object and returns
 func NewMetaData(engine *Engine) *MetaData {
 
@@ -68,7 +64,6 @@ func (m *MetaData) CreateAll() error {
 	}
 
 	for _, t := range m.tables {
-		fmt.Println(t.SQL())
 		_, err = tx.Exec(t.SQL())
 		if err != nil {
 			return err
