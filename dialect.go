@@ -260,6 +260,11 @@ func (d *Dialect) Ste(key string, value interface{}) string {
 
 // And function generates " AND " between any number of expressions
 func (d *Dialect) And(expressions ...string) string {
+	if len(expressions) == 0 {
+		return "1"
+	} else if len(expressions) == 1 {
+		return expressions[0]
+	}
 	return fmt.Sprintf("(%s)", strings.Join(expressions, " AND "))
 }
 
