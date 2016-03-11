@@ -130,7 +130,6 @@ func (t *Table) Insert(kv map[string]interface{}) *Dialect {
 
 // Update creates an update statement for the table name
 func (t *Table) Update(kv map[string]interface{}) *Dialect {
-
 	return NewDialect(t.driver).Update(t.Name()).Set(kv)
 }
 
