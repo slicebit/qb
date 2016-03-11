@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-type UnknownType struct{}
+type unknownType struct{}
 
-type MapperTestUser struct {
+type mapperTestUser struct {
 	ID          string `qb:"constraints:primary_key"`
 	FacebookID  int64  `qb:"constraints:ref(facebook.id)"`
 	ProfileID   int64  `qb:"constraints:ref(profile.id)"`
@@ -25,7 +25,7 @@ type MapperTestUser struct {
 	Level       int
 	Money       float32
 	Score       float64
-	Unknown     UnknownType
+	Unknown     unknownType
 }
 
 type MapperTestSqliteAutoIncrementUser struct {
@@ -36,11 +36,10 @@ func TestMapper(t *testing.T) {
 
 	mapper := NewMapper("mysql")
 
-	userTable, err := mapper.ToTable(MapperTestUser{})
+	userTable, err := mapper.ToTable(mapperTestUser{})
 
 	assert.Nil(t, err)
 	fmt.Println(userTable.SQL())
-	//	fmt.Println(userScoreTable.SQL())
 }
 
 func TestMapperSqliteAutoIncrement(t *testing.T) {
