@@ -12,7 +12,7 @@ func NewSession(metadata *MetaData) *Session {
 		queries:  []*Query{},
 		mapper:   NewMapper(metadata.Engine().Driver()),
 		metadata: metadata,
-		Builder: NewBuilder(metadata.engine.Driver()),
+		builder: NewBuilder(metadata.engine.Driver()),
 	}
 }
 
@@ -22,7 +22,7 @@ type Session struct {
 	mapper   *Mapper
 	metadata *MetaData
 	tx       *sql.Tx
-	*Builder
+	builder  *Builder
 }
 
 func (s *Session) add(query *Query) {
@@ -120,8 +120,8 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sort.Strings(sqlColNames)
 
-	s.Builder = NewBuilder(s.metadata.Engine().Driver())
-	s.Builder.Select(sqlColNames...).From(tName)
+	s.builder = NewBuilder(s.metadata.Engine().Driver())
+	s.builder.Select(sqlColNames...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)
 
@@ -129,24 +129,176 @@ func (s *Session) Find(model interface{}) *Session {
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.Builder.Placeholder()))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Placeholder()))
 		bindings = append(bindings, v)
 	}
 
-	s.Builder.Where(s.Builder.And(ands...), bindings...)
+	s.builder.Where(s.builder.And(ands...), bindings...)
 	return s
 }
 
 // First returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
 func (s *Session) First(model interface{}) error {
-	query := s.Builder.Query()
+	query := s.builder.Query()
 	return s.metadata.Engine().Get(query, model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
 func (s *Session) All(models interface{}) error {
-	query := s.Builder.Query()
+	query := s.builder.Query()
 	return s.metadata.Engine().Select(query, models)
+}
+
+// builder overrides for session
+// Select generates "select %s" statement
+func (s *Session) Select(columns ...string) *Session {
+	s.builder.Select(columns...)
+	return s
+}
+
+// From generates "from %s" statement for each table name
+func (s *Session) From(tables ...string) *Session {
+	s.builder.From(tables...)
+	return s
+}
+
+// InnerJoin generates "inner join %s on %s" statement for each expression
+func (s *Session) InnerJoin(table string, expressions ...string) *Session {
+	s.builder.InnerJoin(table, expressions...)
+	return s
+}
+
+// CrossJoin generates "cross join %s" statement for table
+func (s *Session) CrossJoin(table string) *Session {
+	s.builder.CrossJoin(table)
+	return s
+}
+
+// LeftOuterJoin generates "left outer join %s on %s" statement for each expression
+func (s *Session) LeftOuterJoin(table string, expressions ...string) *Session {
+	s.builder.LeftOuterJoin(table, expressions...)
+	return s
+}
+
+// RightOuterJoin generates "right outer join %s on %s" statement for each expression
+func (s *Session) RightOuterJoin(table string, expressions ...string) *Session {
+	s.builder.RightOuterJoin(table, expressions...)
+	return s
+}
+
+// FullOuterJoin generates "full outer join %s on %s" for each expression
+func (s *Session) FullOuterJoin(table string, expressions ...string) *Session {
+	s.builder.FullOuterJoin(table, expressions...)
+	return s
+}
+
+// Where generates "where %s" for the expression and adds bindings for each value
+func (s *Session) Where(expression string, bindings ...interface{}) *Session {
+	s.builder.Where(expression, bindings...)
+	return s
+}
+
+// OrderBy generates "order by %s" for each expression
+func (s *Session) OrderBy(expressions ...string) *Session {
+	s.builder.OrderBy(expressions...)
+	return s
+}
+
+// GroupBy generates "group by %s" for each column
+func (s *Session) GroupBy(columns ...string) *Session {
+	s.builder.GroupBy(columns...)
+	return s
+}
+
+// Having generates "having %s" for each expression
+func (s *Session) Having(expressions ...string) *Session {
+	s.builder.Having(expressions...)
+	return s
+}
+
+// Limit generates limit %d offset %d for offset and count
+func (s *Session) Limit(offset int, count int) *Session {
+	s.builder.Limit(offset, count)
+	return s
+}
+
+// aggregates
+
+// Avg function generates "avg(%s)" statement for column
+func (s *Session) Avg(column string) string {
+	return s.builder.Avg(column)
+}
+
+// Count function generates "count(%s)" statement for column
+func (s *Session) Count(column string) string {
+	return s.builder.Count(column)
+}
+
+// Sum function generates "sum(%s)" statement for column
+func (s *Session) Sum(column string) string {
+	return s.builder.Sum(column)
+}
+
+// Min function generates "min(%s)" statement for column
+func (s *Session) Min(column string) string {
+	return s.builder.Min(column)
+}
+
+// Max function generates "max(%s)" statement for column
+func (s *Session) Max(column string) string {
+	return s.builder.Max(column)
+}
+
+// expressions
+
+// NotIn function generates "%s not in (%s)" for key and adds bindings for each value
+func (s *Session) NotIn(key string, values ...interface{}) string {
+	return s.builder.NotIn(key, values...)
+}
+
+// In function generates "%s in (%s)" for key and adds bindings for each value
+func (s *Session) In(key string, values ...interface{}) string {
+	return s.builder.In(key, values...)
+}
+
+// NotEq function generates "%s != placeholder" for key and adds binding for value
+func (s *Session) NotEq(key string, value interface{}) string {
+	return s.builder.NotEq(key, value)
+}
+
+// Eq function generates "%s = placeholder" for key and adds binding for value
+func (s *Session) Eq(key string, value interface{}) string {
+	return s.builder.Eq(key, value)
+}
+
+// Gt function generates "%s > placeholder" for key and adds binding for value
+func (s *Session) Gt(key string, value interface{}) string {
+	return s.builder.Gt(key, value)
+}
+
+// Gte function generates "%s >= placeholder" for key and adds binding for value
+func (s *Session) Gte(key string, value interface{}) string {
+	return s.builder.Gte(key, value)
+}
+
+// St function generates "%s < placeholder" for key and adds binding for value
+func (s *Session) St(key string, value interface{}) string {
+	return s.builder.St(key, value)
+}
+
+// Ste function generates "%s <= placeholder" for key and adds binding for value
+func (s *Session) Ste(key string, value interface{}) string {
+	return s.builder.Ste(key, value)
+}
+
+// And function generates " AND " between any number of expressions
+func (s *Session) And(expressions ...string) string {
+	return s.builder.And(expressions...)
+}
+
+// Or function generates " OR " between any number of expressions
+func (s *Session) Or(expressions ...string) string {
+	return s.builder.Or(expressions...)
 }
