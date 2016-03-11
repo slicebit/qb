@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/serenize/snaker"
 )
 
 // NewEngine generates a new engine and returns it as an engine pointer
@@ -15,6 +16,11 @@ func NewEngine(driver string, dsn string) (*Engine, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// set name mapper function
+	conn.MapperFunc(func(name string) string {
+		return snaker.CamelToSnake(name)
+	})
 
 	return &Engine{
 		driver: driver,
