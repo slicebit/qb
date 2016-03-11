@@ -10,26 +10,26 @@ import (
 )
 
 type pUser struct {
-	ID       string  `qb:"type:uuid; constraints:primary_key, auto_increment" db:"id"`
-	Email    string  `qb:"constraints:unique, notnull" db:"email"`
-	FullName string  `qb:"constraints:notnull" db:"full_name"`
-	Bio      *string `qb:"type:text; constraints:null" db:"bio"`
-	Oscars   int     `qb:"constraints:default(0)" db:"oscars"`
+	ID       string  `qb:"type:uuid; constraints:primary_key, auto_increment"`
+	Email    string  `qb:"constraints:unique, notnull"`
+	FullName string  `qb:"constraints:notnull"`
+	Bio      *string `qb:"type:text; constraints:null"`
+	Oscars   int     `qb:"constraints:default(0)"`
 }
 
 type pSession struct {
-	ID        int64     `qb:"type:bigserial; constraints:primary_key" db:"id"`
-	UserID    string    `qb:"type:uuid; constraints:ref(p_user.id)" db:"user_id"`
-	AuthToken string    `qb:"type:uuid; constraints:notnull, unique" db:"auth_token"`
-	CreatedAt time.Time `qb:"constraints:notnull" db:"created_at"`
-	ExpiresAt time.Time `qb:"constraints:notnull" db:"expires_at"`
+	ID        int64     `qb:"type:bigserial; constraints:primary_key"`
+	UserID    string    `qb:"type:uuid; constraints:ref(p_user.id)"`
+	AuthToken string    `qb:"type:uuid; constraints:notnull, unique"`
+	CreatedAt time.Time `qb:"constraints:notnull"`
+	ExpiresAt time.Time `qb:"constraints:notnull"`
 }
 
 type pFailModel struct {
 	ID int64 `qb:"type:notype"`
 }
 
-type PostgresTestSuite struct {
+type PostgresExpressionTestSuite struct {
 	suite.Suite
 	metadata *MetaData
 	dialect  *Dialect
@@ -37,7 +37,7 @@ type PostgresTestSuite struct {
 	session  *Session
 }
 
-func (suite *PostgresTestSuite) SetupTest() {
+func (suite *PostgresExpressionTestSuite) SetupTest() {
 	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
@@ -47,7 +47,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 	suite.session = NewSession(suite.metadata)
 }
 
-func (suite *PostgresTestSuite) TestPostgres() {
+func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 
 	var err error
 
@@ -62,7 +62,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// insert user using dialect
 	insUserJN := suite.dialect.
-		Insert("p_user").Values(
+	Insert("p_user").Values(
 		map[string]interface{}{
 			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			"email":     "jack@nicholson.com",
@@ -89,50 +89,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	_, err = suite.metadata.Engine().Exec(insUserDDL)
 	assert.Nil(suite.T(), err)
 
-	// insert user using session
-	rdnID, _ := uuid.NewV4()
-	rdn := pUser{
-		ID:       rdnID.String(),
-		Email:    "robert@de-niro.com",
-		FullName: "Robert De Niro",
-		Oscars:   3,
-	}
-
-	apId, _ := uuid.NewV4()
-	ap := pUser{
-		ID:       apId.String(),
-		Email:    "al@pacino.com",
-		FullName: "Al Pacino",
-		Oscars:   1,
-	}
-
-	suite.session.AddAll(rdn, ap)
-	err = suite.session.Commit()
-	assert.Nil(suite.T(), err)
-
-	// find user using session
-	findRdn := pUser{
-		ID: rdn.ID,
-	}
-
-	err = suite.session.Find(&findRdn).First(&findRdn)
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), findRdn.Email, "robert@de-niro.com")
-	assert.Equal(suite.T(), findRdn.FullName, "Robert De Niro")
-	assert.Equal(suite.T(), findRdn.Oscars, 3)
-
-	fmt.Println(findRdn)
-
-	// find users using session
-	findUsers := []pUser{}
-	err = suite.session.Find(&pUser{}).All(&findUsers)
-	fmt.Println(findUsers)
-
-	// delete user using session api
-	suite.session.Delete(rdn)
-	err = suite.session.Commit()
-	assert.Nil(suite.T(), err)
-
 	// insert session using dialect
 	insSession := suite.dialect.Insert("p_session").Values(
 		map[string]interface{}{
@@ -145,12 +101,12 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	_, err = suite.metadata.Engine().Exec(insSession)
 	assert.Nil(suite.T(), err)
 
-	// select user
+	// select user using dialect
 	selUser := suite.dialect.
-		Select("id", "email", "full_name", "bio").
-		From("p_user").
-		Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Query()
+	Select("id", "email", "full_name", "bio").
+	From("p_user").
+	Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+	Query()
 
 	var user pUser
 	suite.metadata.Engine().QueryRow(selUser).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
@@ -161,11 +117,11 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// select sessions
 	selSessions := suite.dialect.
-		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
-		From("p_user u").
-		InnerJoin("p_session s", "u.id = s.user_id").
-		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Query()
+	Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
+	From("p_user u").
+	InnerJoin("p_session s", "u.id = s.user_id").
+	Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+	Query()
 
 	rows, err := suite.metadata.Engine().Query(selSessions)
 	assert.Nil(suite.T(), err)
@@ -188,44 +144,44 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// update session
 	query := suite.dialect.
-		Update("p_session").
-		Set(
-			map[string]interface{}{
-				"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
-			},
-		).
-		Where("id = ?", 1).Query()
+	Update("p_session").
+	Set(
+		map[string]interface{}{
+			"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
+		},
+	).
+	Where("id = ?", 1).Query()
 
 	_, err = suite.metadata.Engine().Exec(query)
 	assert.Nil(suite.T(), err)
 
 	// delete session
 	delSession := suite.dialect.
-		Delete("p_session").
-		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
-		Query()
+	Delete("p_session").
+	Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
+	Query()
 
 	_, err = suite.metadata.Engine().Exec(delSession)
 	assert.Nil(suite.T(), err)
 
 	// insert failure
 	insFail := suite.dialect.
-		Insert("p_user").
-		Values(
-			map[string]interface{}{
-				"invalid_column": "invalid_value",
-			}).
-		Query()
+	Insert("p_user").
+	Values(
+		map[string]interface{}{
+			"invalid_column": "invalid_value",
+		}).
+	Query()
 
 	_, err = suite.metadata.Engine().Exec(insFail)
 	assert.NotNil(suite.T(), err)
 
 	// insert type failure
 	insTypeFail := suite.dialect.
-		Insert("p_user").
-		Values(map[string]interface{}{
-			"email": 5,
-		}).Query()
+	Insert("p_user").
+	Values(map[string]interface{}{
+		"email": 5,
+	}).Query()
 
 	_, err = suite.metadata.Engine().Exec(insTypeFail)
 	assert.NotNil(suite.T(), err)
@@ -242,6 +198,79 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.NotNil(suite.T(), metadata.DropAll())
 }
 
+type PostgresSessionTestSuite struct {
+	suite.Suite
+	metadata *MetaData
+	engine   *Engine
+	session  *Session
+}
+
+func (suite *PostgresSessionTestSuite) SetupTest() {
+	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), engine)
+	suite.engine = engine
+	suite.metadata = NewMetaData(engine)
+	suite.session = NewSession(suite.metadata)
+}
+
+func (suite *PostgresSessionTestSuite) TestPostgresSession() {
+
+	var err error
+
+	// create tables
+	suite.metadata.Add(pUser{})
+	suite.metadata.Add(pSession{})
+
+	err = suite.metadata.CreateAll()
+	assert.Nil(suite.T(), err)
+
+	// insert user using session
+	rdnID, _ := uuid.NewV4()
+	rdn := pUser{
+		ID:       rdnID.String(),
+		Email:    "robert@de-niro.com",
+		FullName: "Robert De Niro",
+		Oscars:   3,
+	}
+
+	apId, _ := uuid.NewV4()
+	ap := pUser{
+		ID:       apId.String(),
+		Email:    "al@pacino.com",
+		FullName: "Al Pacino",
+		Oscars:   1,
+	}
+
+	suite.session.AddAll(rdn, ap)
+	err = suite.session.Commit()
+	assert.Nil(suite.T(), err)
+
+	// find first user using session
+	var usr pUser
+
+	err = suite.session.Find(pUser{ID: rdnID.String()}).First(&usr)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), usr.Email, "robert@de-niro.com")
+	assert.Equal(suite.T(), usr.FullName, "Robert De Niro")
+	assert.Equal(suite.T(), usr.Oscars, 3)
+
+	fmt.Println(usr)
+
+	//// find filter by all using session
+	oneOscarUsers := []pUser{}
+	suite.session.Find(&pUser{Oscars:1}).All(&oneOscarUsers)
+
+	fmt.Println("One oscar users;")
+	fmt.Println(oneOscarUsers)
+
+	// delete user using session api
+	suite.session.Delete(rdn)
+	err = suite.session.Commit()
+	assert.Nil(suite.T(), err)
+}
+
 func TestPostgresTestSuite(t *testing.T) {
-	suite.Run(t, new(PostgresTestSuite))
+	suite.Run(t, new(PostgresExpressionTestSuite))
+	suite.Run(t, new(PostgresSessionTestSuite))
 }
