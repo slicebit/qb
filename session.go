@@ -165,7 +165,6 @@ func (s *Session) FilterBy(m map[interface{}]interface{}) *Session {
 	ands := []string{}
 	bindings := []interface{}{}
 	for k, v := range m {
-		fmt.Println(structs.Name(k))
 		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(structs.Name(k)), s.dialect.Placeholder()))
 		bindings = append(bindings, v)
 	}
