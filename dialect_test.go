@@ -8,7 +8,7 @@ import (
 
 func TestBuilderInit(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id").
@@ -20,7 +20,7 @@ func TestBuilderInit(t *testing.T) {
 
 func TestBuilderSelectSimple(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email", "name").
@@ -32,7 +32,7 @@ func TestBuilderSelectSimple(t *testing.T) {
 
 func TestBuilderSelectSingleCondition(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email", "name").
@@ -46,7 +46,7 @@ func TestBuilderSelectSingleCondition(t *testing.T) {
 
 func TestBuilderSelectOrderByMultiConditionWithAnd(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email", "name").
@@ -62,7 +62,7 @@ func TestBuilderSelectOrderByMultiConditionWithAnd(t *testing.T) {
 
 func TestBuilderSelectMultiConditionWithOr(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email", "name").
@@ -77,7 +77,7 @@ func TestBuilderSelectMultiConditionWithOr(t *testing.T) {
 
 func TestBuilderSelectAvgGroupByHaving(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select(d.Avg("price")).
@@ -91,7 +91,7 @@ func TestBuilderSelectAvgGroupByHaving(t *testing.T) {
 
 func TestBuilderSelectSumCount(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select(d.Sum("price"), d.Count("id")).
@@ -103,7 +103,7 @@ func TestBuilderSelectSumCount(t *testing.T) {
 
 func TestBuilderSelectMinMax(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select(d.Min("price"), d.Max("price")).
@@ -115,7 +115,7 @@ func TestBuilderSelectMinMax(t *testing.T) {
 
 func TestBuilderSelectEqNeq(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email", "name").
@@ -131,7 +131,7 @@ func TestBuilderSelectEqNeq(t *testing.T) {
 
 func TestBuilderSelectInNotIn(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email", "name").
@@ -148,7 +148,7 @@ func TestBuilderSelectInNotIn(t *testing.T) {
 
 func TestBuilderSelectGtGteStSte(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "age", "avg").
@@ -166,7 +166,7 @@ func TestBuilderSelectGtGteStSte(t *testing.T) {
 
 func TestBuilderBasicInsert(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	//query := d.
 	//	Insert("user", "name", "email", "password").
@@ -187,7 +187,7 @@ func TestBuilderBasicInsert(t *testing.T) {
 
 func TestBuilderBasicUpdate(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Update("user").
@@ -205,7 +205,7 @@ func TestBuilderBasicUpdate(t *testing.T) {
 
 func TestBuilderDelete(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Delete("user").
@@ -218,7 +218,7 @@ func TestBuilderDelete(t *testing.T) {
 
 func TestBuilderInnerJoin(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "name", "email").
@@ -233,7 +233,7 @@ func TestBuilderInnerJoin(t *testing.T) {
 
 func TestBuilderLeftJoin(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "name").
@@ -248,7 +248,7 @@ func TestBuilderLeftJoin(t *testing.T) {
 
 func TestBuilderRightJoin(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "email_address").
@@ -263,7 +263,7 @@ func TestBuilderRightJoin(t *testing.T) {
 
 func TestBuilderFullOuterJoin(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "name", "email").
@@ -279,7 +279,7 @@ func TestBuilderFullOuterJoin(t *testing.T) {
 
 func TestBuilderCrossJoin(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		Select("id", "name", "email").
@@ -294,7 +294,7 @@ func TestBuilderCrossJoin(t *testing.T) {
 
 func TestBuilderCreateTable(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		CreateTable("user",
@@ -323,7 +323,7 @@ func TestBuilderCreateTable(t *testing.T) {
 
 func TestBuilderAlterTableAddColumn(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		AlterTable("user").
@@ -335,7 +335,7 @@ func TestBuilderAlterTableAddColumn(t *testing.T) {
 
 func TestBuilderAlterTableDropColumn(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		AlterTable("user").
@@ -347,7 +347,7 @@ func TestBuilderAlterTableDropColumn(t *testing.T) {
 
 func TestBuilderDropTable(t *testing.T) {
 
-	d := NewDialect("mysql")
+	d := NewBuilder("mysql")
 
 	query := d.
 		DropTable("user").

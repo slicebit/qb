@@ -32,7 +32,7 @@ type pFailModel struct {
 type PostgresExpressionTestSuite struct {
 	suite.Suite
 	metadata *MetaData
-	dialect  *Dialect
+	dialect  *Builder
 	engine   *Engine
 	session  *Session
 }
@@ -42,7 +42,7 @@ func (suite *PostgresExpressionTestSuite) SetupTest() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
 	suite.engine = engine
-	suite.dialect = NewDialect(engine.Driver())
+	suite.dialect = NewBuilder(engine.Driver())
 	suite.metadata = NewMetaData(engine)
 	suite.session = NewSession(suite.metadata)
 }

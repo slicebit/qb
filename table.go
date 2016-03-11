@@ -35,7 +35,7 @@ func (t *Table) Name() string {
 // SQL generates create table syntax of table
 func (t *Table) SQL() string {
 
-	dialect := NewDialect(t.driver)
+	dialect := NewBuilder(t.driver)
 
 	cols := []string{}
 	for _, v := range t.columns {
@@ -114,7 +114,7 @@ func (t *Table) Constraints() []Constraint {
 }
 
 // Insert creates an insert statement for the table name
-func (t *Table) Insert(kv map[string]interface{}) *Dialect {
+func (t *Table) Insert(kv map[string]interface{}) *Builder {
 
 	keys := []string{}
 	values := []interface{}{}
@@ -125,15 +125,15 @@ func (t *Table) Insert(kv map[string]interface{}) *Dialect {
 	}
 
 	// TODO: Validate column name
-	return NewDialect(t.driver).Insert(t.name).Values(kv)
+	return NewBuilder(t.driver).Insert(t.name).Values(kv)
 }
 
 // Update creates an update statement for the table name
-func (t *Table) Update(kv map[string]interface{}) *Dialect {
-	return NewDialect(t.driver).Update(t.Name()).Set(kv)
+func (t *Table) Update(kv map[string]interface{}) *Builder {
+	return NewBuilder(t.driver).Update(t.Name()).Set(kv)
 }
 
 // Delete creates a delete statement for the table name
-func (t *Table) Delete() *Dialect {
-	return NewDialect(t.driver).Delete(t.Name())
+func (t *Table) Delete() *Builder {
+	return NewBuilder(t.driver).Delete(t.Name())
 }

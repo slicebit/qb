@@ -27,14 +27,14 @@ type mSession struct {
 type MysqlTestSuite struct {
 	suite.Suite
 	metadata *MetaData
-	dialect  *Dialect
+	dialect  *Builder
 }
 
 func (suite *MysqlTestSuite) SetupTest() {
 	engine, err := NewEngine("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
-	suite.dialect = NewDialect(engine.Driver())
+	suite.dialect = NewBuilder(engine.Driver())
 	suite.metadata = NewMetaData(engine)
 }
 

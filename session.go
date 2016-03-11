@@ -12,7 +12,7 @@ func NewSession(metadata *MetaData) *Session {
 		queries:  []*Query{},
 		mapper:   NewMapper(metadata.Engine().Driver()),
 		metadata: metadata,
-		Dialect: NewDialect(metadata.engine.Driver()),
+		Builder: NewBuilder(metadata.engine.Driver()),
 	}
 }
 
@@ -22,7 +22,7 @@ type Session struct {
 	mapper   *Mapper
 	metadata *MetaData
 	tx       *sql.Tx
-	*Dialect
+	*Builder
 }
 
 func (s *Session) add(query *Query) {
@@ -120,8 +120,8 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sort.Strings(sqlColNames)
 
-	s.Dialect = NewDialect(s.metadata.Engine().Driver())
-	s.Dialect.Select(sqlColNames...).From(tName)
+	s.Builder = NewBuilder(s.metadata.Engine().Driver())
+	s.Builder.Select(sqlColNames...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)
 
@@ -129,24 +129,24 @@ func (s *Session) Find(model interface{}) *Session {
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.Dialect.Placeholder()))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.Builder.Placeholder()))
 		bindings = append(bindings, v)
 	}
 
-	s.Dialect.Where(s.Dialect.And(ands...), bindings...)
+	s.Builder.Where(s.Builder.And(ands...), bindings...)
 	return s
 }
 
 // First returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
 func (s *Session) First(model interface{}) error {
-	query := s.Dialect.Query()
+	query := s.Builder.Query()
 	return s.metadata.Engine().Get(query, model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
 func (s *Session) All(models interface{}) error {
-	query := s.Dialect.Query()
+	query := s.Builder.Query()
 	return s.metadata.Engine().Select(query, models)
 }

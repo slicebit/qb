@@ -77,7 +77,7 @@ func (m *MetaData) CreateAll() error {
 // DropAll drops all the tables which is added to metadata
 func (m *MetaData) DropAll() error {
 
-	dialect := NewDialect(m.engine.Driver())
+	dialect := NewBuilder(m.engine.Driver())
 
 	tx, err := m.engine.DB().Begin()
 	if err != nil {

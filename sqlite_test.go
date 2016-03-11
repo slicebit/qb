@@ -27,7 +27,7 @@ type sSession struct {
 type SqliteTestSuite struct {
 	suite.Suite
 	metadata *MetaData
-	dialect  *Dialect
+	dialect  *Builder
 }
 
 func (suite *SqliteTestSuite) SetupTest() {
@@ -35,7 +35,7 @@ func (suite *SqliteTestSuite) SetupTest() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
 	engine.DB().Exec("CREATE DATABASE qb_test;")
-	suite.dialect = NewDialect(engine.Driver())
+	suite.dialect = NewBuilder(engine.Driver())
 	suite.metadata = NewMetaData(engine)
 }
 
