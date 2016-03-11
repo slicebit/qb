@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"sort"
-	"github.com/fatih/structs"
 )
 
 // NewSession generates a new Session given engine and returns session pointer
@@ -13,7 +12,7 @@ func NewSession(metadata *MetaData) *Session {
 		queries:  []*Query{},
 		mapper:   NewMapper(metadata.Engine().Driver()),
 		metadata: metadata,
-		dialect:  NewDialect(metadata.Engine().Driver()),
+		Dialect: NewDialect(metadata.engine.Driver()),
 	}
 }
 
@@ -23,7 +22,7 @@ type Session struct {
 	mapper   *Mapper
 	metadata *MetaData
 	tx       *sql.Tx
-	dialect  *Dialect
+	*Dialect
 }
 
 func (s *Session) add(query *Query) {
@@ -108,15 +107,11 @@ func (s *Session) Commit() error {
 	return err
 }
 
-// Select makers
-
-// Find returns a row given model properties.
+//// Find returns a row given model properties
 func (s *Session) Find(model interface{}) *Session {
 
 	tName := s.mapper.ModelName(model)
-
 	rModelMap := s.mapper.ToRawMap(model)
-	modelMap := s.mapper.ToMap(model)
 
 	sqlColNames := []string{}
 	for k, _ := range rModelMap {
@@ -125,74 +120,33 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sort.Strings(sqlColNames)
 
-	s.dialect = NewDialect(s.metadata.Engine().Driver())
-	s.dialect.Select(sqlColNames...).From(tName)
+	s.Dialect = NewDialect(s.metadata.Engine().Driver())
+	s.Dialect.Select(sqlColNames...).From(tName)
+
+	modelMap := s.mapper.ToMap(model)
 
 	ands := []string{}
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.dialect.Placeholder()))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.Dialect.Placeholder()))
 		bindings = append(bindings, v)
 	}
 
-	s.dialect.Where(s.dialect.And(ands...), bindings...)
-	return s
-}
-
-// TODO: Finish these implementations
-// Query starts a select dialect given the model properties
-func (s *Session) Query(model interface{}) *Session {
-
-	tName := s.mapper.ModelName(model)
-	rModelMap := s.mapper.ToRawMap(model)
-
-	sqlColNames := []string{}
-	for k, _ := range rModelMap {
-		sqlColNames = append(sqlColNames, s.mapper.ColName(k))
-	}
-
-	sort.Strings(sqlColNames)
-
-	s.dialect = NewDialect(s.metadata.Engine().Driver())
-	s.dialect.Select(sqlColNames...).From(tName)
-	return s
-}
-
-// FilterBy builds where statements given the conditions as map[string]interface{}
-func (s *Session) FilterBy(m map[interface{}]interface{}) *Session {
-
-	ands := []string{}
-	bindings := []interface{}{}
-	for k, v := range m {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(structs.Name(k)), s.dialect.Placeholder()))
-		bindings = append(bindings, v)
-	}
-	s.dialect.Where(s.dialect.And(ands...), bindings...)
-	return s
-}
-
-// Filter build complex filter statements such as gt, gte, st, ste, in, avg, count, etc.
-func (s *Session) Filter() *Session {
-	return s
-}
-
-// Join performs a join with another struct given model an optionally given explicit conditions
-func (s *Session) Join(model interface{}, exConditions ...interface{}) *Session {
+	s.Dialect.Where(s.Dialect.And(ands...), bindings...)
 	return s
 }
 
 // First returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
 func (s *Session) First(model interface{}) error {
-	query := s.dialect.Query()
+	query := s.Dialect.Query()
 	return s.metadata.Engine().Get(query, model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
 func (s *Session) All(models interface{}) error {
-	query := s.dialect.Query()
-	fmt.Println(query.SQL())
+	query := s.Dialect.Query()
 	return s.metadata.Engine().Select(query, models)
 }
