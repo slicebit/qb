@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/fatih/structs"
 	"github.com/serenize/snaker"
-	"github.com/mitchellh/mapstructure"
 	"strings"
 )
 
@@ -33,11 +32,6 @@ func (m *Mapper) extractValue(value string) string {
 	}
 
 	return ""
-}
-
-// ToStruct maps a map[string]interface{} into struct
-func (m *Mapper) ToStruct(data map[string]interface{}, result interface{}) error {
-	return mapstructure.Decode(data, result)
 }
 
 // ToRawMap converts a model struct to map without changing the field names.
