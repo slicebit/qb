@@ -27,7 +27,7 @@ func TestEngineExec(t *testing.T) {
 
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
 
-	query := NewBuilder(engine.Driver()).
+	query := NewBuilder().
 		Insert("user").
 		Values(map[string]interface{}{
 			"full_name": "Aras Can Akin",

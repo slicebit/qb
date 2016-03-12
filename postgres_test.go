@@ -32,7 +32,7 @@ type pFailModel struct {
 type PostgresExpressionTestSuite struct {
 	suite.Suite
 	metadata *MetaData
-	dialect  *Builder
+	builder  *Builder
 	engine   *Engine
 	session  *Session
 }
@@ -42,7 +42,7 @@ func (suite *PostgresExpressionTestSuite) SetupTest() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
 	suite.engine = engine
-	suite.dialect = NewBuilder(engine.Driver())
+	suite.builder = NewBuilder()
 	suite.metadata = NewMetaData(engine)
 	suite.session = NewSession(suite.metadata)
 }
@@ -61,8 +61,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	fmt.Println()
 
 	// insert user using dialect
-	insUserJN := suite.dialect.
-	Insert("p_user").Values(
+	insUserJN := suite.builder.Insert("p_user").Values(
 		map[string]interface{}{
 			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			"email":     "jack@nicholson.com",
@@ -70,7 +69,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
 		}).Query()
 
-	fmt.Println(insUserJN.SQL())
+	fmt.Println(insUserJN.SQL(suite.metadata.Engine().Driver()))
 	fmt.Println(insUserJN.Bindings())
 	fmt.Println()
 
@@ -90,7 +89,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.Nil(suite.T(), err)
 
 	// insert session using dialect
-	insSession := suite.dialect.Insert("p_session").Values(
+	insSession := suite.builder.Insert("p_session").Values(
 		map[string]interface{}{
 			"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
@@ -102,7 +101,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.Nil(suite.T(), err)
 
 	// select user using dialect
-	selUser := suite.dialect.
+	selUser := suite.builder.
 	Select("id", "email", "full_name", "bio").
 	From("p_user").
 	Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
@@ -116,7 +115,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
 
 	// select sessions
-	selSessions := suite.dialect.
+	selSessions := suite.builder.
 	Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
 	From("p_user u").
 	InnerJoin("p_session s", "u.id = s.user_id").
@@ -143,7 +142,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.Equal(suite.T(), len(sessions), 1)
 
 	// update session
-	query := suite.dialect.
+	query := suite.builder.
 	Update("p_session").
 	Set(
 		map[string]interface{}{
@@ -156,7 +155,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.Nil(suite.T(), err)
 
 	// delete session
-	delSession := suite.dialect.
+	delSession := suite.builder.
 	Delete("p_session").
 	Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
 	Query()
@@ -165,7 +164,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.Nil(suite.T(), err)
 
 	// insert failure
-	insFail := suite.dialect.
+	insFail := suite.builder.
 	Insert("p_user").
 	Values(
 		map[string]interface{}{
@@ -177,7 +176,7 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 	assert.NotNil(suite.T(), err)
 
 	// insert type failure
-	insTypeFail := suite.dialect.
+	insTypeFail := suite.builder.
 	Insert("p_user").
 	Values(map[string]interface{}{
 		"email": 5,

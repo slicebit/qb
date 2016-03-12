@@ -104,7 +104,7 @@ func TestTableInsert(t *testing.T) {
 
 	query := table.Insert(kv).Query()
 
-	assert.Equal(t, query.SQL(), "INSERT INTO user\n(id, full_name)\nVALUES (?, ?);")
+	assert.Equal(t, query.SQL("mysql"), "INSERT INTO user\n(id, full_name)\nVALUES (?, ?);")
 	assert.Equal(t, query.Bindings(), []interface{}{1, "Aras Can Akin"})
 }
 
@@ -126,7 +126,7 @@ func TestTableUpdate(t *testing.T) {
 		Where("id = ?", 1).
 		Query()
 
-	assert.Equal(t, query.SQL(), "UPDATE user\nSET full_name = ?\nWHERE id = ?;")
+	assert.Equal(t, query.SQL("mysql"), "UPDATE user\nSET full_name = ?\nWHERE id = ?;")
 	assert.Equal(t, query.Bindings(), []interface{}{"Aras", 1})
 }
 
@@ -148,6 +148,6 @@ func TestTableDelete(t *testing.T) {
 		Where("id = ?", 1).
 		Query()
 
-	assert.Equal(t, query.SQL(), "DELETE FROM user\nWHERE id = ?;")
+	assert.Equal(t, query.SQL("mysql"), "DELETE FROM user\nWHERE id = ?;")
 	assert.Equal(t, query.Bindings(), []interface{}{1})
 }

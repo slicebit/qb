@@ -12,7 +12,7 @@ func NewSession(metadata *MetaData) *Session {
 		queries:  []*Query{},
 		mapper:   NewMapper(metadata.Engine().Driver()),
 		metadata: metadata,
-		builder: NewBuilder(metadata.engine.Driver()),
+		builder: NewBuilder(),
 	}
 }
 
@@ -55,13 +55,13 @@ func (s *Session) Delete(model interface{}) {
 
 		for _, pk := range pcols {
 			b := kv[pk]
-			ands = append(ands, fmt.Sprintf("%s = %s", pk, d.Placeholder()))
+			ands = append(ands, fmt.Sprintf("%s = ?", pk))
 			bindings = append(bindings, b)
 		}
 
 	} else {
 		for k, v := range kv {
-			ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), d.Placeholder()))
+			ands = append(ands, fmt.Sprintf("%s = ?", s.mapper.ColName(k)))
 			bindings = append(bindings, v)
 		}
 	}
@@ -96,7 +96,7 @@ func (s *Session) AddAll(models ...interface{}) {
 func (s *Session) Commit() error {
 
 	for _, q := range s.queries {
-		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
+		_, err := s.tx.Exec(q.SQL(s.metadata.Engine().Driver()), q.Bindings()...)
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sort.Strings(sqlColNames)
 
-	s.builder = NewBuilder(s.metadata.Engine().Driver())
+	s.builder = NewBuilder()
 	s.builder.Select(sqlColNames...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)
@@ -129,7 +129,7 @@ func (s *Session) Find(model interface{}) *Session {
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Placeholder()))
+		ands = append(ands, fmt.Sprintf("%s = ?", s.mapper.ColName(k)))
 		bindings = append(bindings, v)
 	}
 

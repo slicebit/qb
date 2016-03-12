@@ -35,7 +35,7 @@ func (suite *SqliteTestSuite) SetupTest() {
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
 	engine.DB().Exec("CREATE DATABASE qb_test;")
-	suite.dialect = NewBuilder(engine.Driver())
+	suite.dialect = NewBuilder()
 	suite.metadata = NewMetaData(engine)
 }
 
@@ -59,7 +59,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
 		}).Query()
 
-	fmt.Println(insUser.SQL())
+	fmt.Println(insUser.SQL(suite.metadata.engine.Driver()))
 	fmt.Println(insUser.Bindings())
 	_, err = suite.metadata.Engine().Exec(insUser)
 	assert.Nil(suite.T(), err)
@@ -76,7 +76,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	_, err = suite.metadata.Engine().Exec(insSession)
 
-	fmt.Println(insSession.SQL())
+	fmt.Println(insSession.SQL(suite.metadata.Engine().Driver()))
 	fmt.Println(insSession.Bindings())
 	assert.Nil(suite.T(), err)
 

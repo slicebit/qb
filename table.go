@@ -35,7 +35,7 @@ func (t *Table) Name() string {
 // SQL generates create table syntax of table
 func (t *Table) SQL() string {
 
-	dialect := NewBuilder(t.driver)
+	dialect := NewBuilder()
 
 	cols := []string{}
 	for _, v := range t.columns {
@@ -60,7 +60,7 @@ func (t *Table) SQL() string {
 
 	query := dialect.CreateTable(t.name, cols, constraints).Query()
 
-	return query.SQL()
+	return query.SQL(t.driver)
 }
 
 // AddColumn appends a new column to current table
@@ -125,15 +125,15 @@ func (t *Table) Insert(kv map[string]interface{}) *Builder {
 	}
 
 	// TODO: Validate column name
-	return NewBuilder(t.driver).Insert(t.name).Values(kv)
+	return NewBuilder().Insert(t.name).Values(kv)
 }
 
 // Update creates an update statement for the table name
 func (t *Table) Update(kv map[string]interface{}) *Builder {
-	return NewBuilder(t.driver).Update(t.Name()).Set(kv)
+	return NewBuilder().Update(t.Name()).Set(kv)
 }
 
 // Delete creates a delete statement for the table name
 func (t *Table) Delete() *Builder {
-	return NewBuilder(t.driver).Delete(t.Name())
+	return NewBuilder().Delete(t.Name())
 }

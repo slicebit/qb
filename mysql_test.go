@@ -27,14 +27,14 @@ type mSession struct {
 type MysqlTestSuite struct {
 	suite.Suite
 	metadata *MetaData
-	dialect  *Builder
+	builder  *Builder
 }
 
 func (suite *MysqlTestSuite) SetupTest() {
 	engine, err := NewEngine("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
-	suite.dialect = NewBuilder(engine.Driver())
+	suite.builder = NewBuilder()
 	suite.metadata = NewMetaData(engine)
 }
 
@@ -49,7 +49,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	// insert user
-	insUser := suite.dialect.Insert("m_user").
+	insUser := suite.builder.Insert("m_user").
 		Values(map[string]interface{}{
 			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			"email":     "jack@nicholson.com",
@@ -58,13 +58,13 @@ func (suite *MysqlTestSuite) TestMysql() {
 			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
 		}).Query()
 
-	fmt.Println(insUser.SQL())
+	fmt.Println(insUser.SQL(suite.metadata.Engine().Driver()))
 	fmt.Println(insUser.Bindings())
 	_, err = suite.metadata.Engine().Exec(insUser)
 	assert.Nil(suite.T(), err)
 
 	// insert session
-	insSession := suite.dialect.Insert("m_session").Values(map[string]interface{}{
+	insSession := suite.builder.Insert("m_session").Values(map[string]interface{}{
 		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
 		"created_at": time.Now(),
@@ -73,12 +73,12 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	_, err = suite.metadata.Engine().Exec(insSession)
 
-	fmt.Println(insSession.SQL())
+	fmt.Println(insSession.SQL(suite.metadata.Engine().Driver()))
 	fmt.Println(insSession.Bindings())
 	assert.Nil(suite.T(), err)
 
 	// select user
-	selUser := suite.dialect.
+	selUser := suite.builder.
 		Select("id", "email", "full_name", "bio").
 		From("m_user").
 		Where("m_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
@@ -93,7 +93,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Equal(suite.T(), user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
 
 	// select sessions
-	selSessions := suite.dialect.
+	selSessions := suite.builder.
 		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
 		From("m_user u").
 		InnerJoin("m_session s", "u.id = s.user_id").
@@ -120,7 +120,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Equal(suite.T(), len(sessions), 1)
 
 	// update session
-	query := suite.dialect.
+	query := suite.builder.
 		Update("m_session").
 		Set(
 			map[string]interface{}{
@@ -133,7 +133,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	// delete session
-	delSession := suite.dialect.
+	delSession := suite.builder.
 		Delete("m_session").
 		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
 		Query()
@@ -142,7 +142,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	// insert failure
-	insFail := suite.dialect.
+	insFail := suite.builder.
 		Insert("m_user").
 		Values(map[string]interface{}{"invalid_column": "invalid_value"}).
 		Query()
