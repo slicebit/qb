@@ -80,6 +80,7 @@ func (q *Query) SQL(driver string) string {
 	if len(q.clauses) > 0 {
 		sql := fmt.Sprintf("%s;", strings.Join(q.clauses, q.delimiter))
 		if driver == "postgres" {
+			q.bindingIndex = 0
 			count := strings.Count(sql, "?")
 			for i := 0; i < count; i++ {
 				sql = strings.Replace(sql, "?", q.placeholder(driver), 1)

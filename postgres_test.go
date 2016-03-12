@@ -60,32 +60,33 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 
 	fmt.Println()
 
-	// insert user using dialect
-	insUserJN := suite.builder.Insert("p_user").Values(
-		map[string]interface{}{
-			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			"email":     "jack@nicholson.com",
-			"full_name": "Jack Nicholson",
-			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
-		}).Query()
+	var insUser *Query
 
-	fmt.Println(insUserJN.SQL(suite.metadata.Engine().Driver()))
-	fmt.Println(insUserJN.Bindings())
+	// insert user using dialect
+	insUser = suite.builder.Insert("p_user").Values(map[string]interface{}{
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"email":     "jack@nicholson.com",
+		"full_name": "Jack Nicholson",
+		"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
+	}).Query()
+
+	fmt.Println(insUser.SQL(suite.metadata.Engine().Driver()))
+	fmt.Println(insUser.Bindings())
 	fmt.Println()
 
-	_, err = suite.metadata.Engine().Exec(insUserJN)
+	_, err = suite.metadata.Engine().Exec(insUser)
 	assert.Nil(suite.T(), err)
 
 	// insert user using table
-	ddlID, _ := uuid.NewV4()
-	insUserDDL := suite.metadata.Table("p_user").Insert(
+	userID, _ := uuid.NewV4()
+	insUser = suite.metadata.Table("p_user").Insert(
 		map[string]interface{}{
-			"id":        ddlID.String(),
+			"id":        userID.String(),
 			"email":     "daniel@day-lewis.com",
 			"full_name": "Daniel Day-Lewis",
 		}).Query()
 
-	_, err = suite.metadata.Engine().Exec(insUserDDL)
+	_, err = suite.metadata.Engine().Exec(insUser)
 	assert.Nil(suite.T(), err)
 
 	// insert session using dialect
@@ -102,10 +103,10 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 
 	// select user using dialect
 	selUser := suite.builder.
-	Select("id", "email", "full_name", "bio").
-	From("p_user").
-	Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-	Query()
+		Select("id", "email", "full_name", "bio").
+		From("p_user").
+		Where("p_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		Query()
 
 	var user pUser
 	suite.metadata.Engine().QueryRow(selUser).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
@@ -116,11 +117,11 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 
 	// select sessions
 	selSessions := suite.builder.
-	Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
-	From("p_user u").
-	InnerJoin("p_session s", "u.id = s.user_id").
-	Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-	Query()
+		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
+		From("p_user u").
+		InnerJoin("p_session s", "u.id = s.user_id").
+		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		Query()
 
 	rows, err := suite.metadata.Engine().Query(selSessions)
 	assert.Nil(suite.T(), err)
@@ -143,44 +144,44 @@ func (suite *PostgresExpressionTestSuite) TestPostgresExpression() {
 
 	// update session
 	query := suite.builder.
-	Update("p_session").
-	Set(
-		map[string]interface{}{
-			"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
-		},
-	).
-	Where("id = ?", 1).Query()
+		Update("p_session").
+		Set(
+			map[string]interface{}{
+				"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
+			},
+		).
+		Where("id = ?", 1).Query()
 
 	_, err = suite.metadata.Engine().Exec(query)
 	assert.Nil(suite.T(), err)
 
 	// delete session
 	delSession := suite.builder.
-	Delete("p_session").
-	Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
-	Query()
+		Delete("p_session").
+		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
+		Query()
 
 	_, err = suite.metadata.Engine().Exec(delSession)
 	assert.Nil(suite.T(), err)
 
 	// insert failure
 	insFail := suite.builder.
-	Insert("p_user").
-	Values(
-		map[string]interface{}{
-			"invalid_column": "invalid_value",
-		}).
-	Query()
+		Insert("p_user").
+		Values(
+			map[string]interface{}{
+				"invalid_column": "invalid_value",
+			}).
+		Query()
 
 	_, err = suite.metadata.Engine().Exec(insFail)
 	assert.NotNil(suite.T(), err)
 
 	// insert type failure
 	insTypeFail := suite.builder.
-	Insert("p_user").
-	Values(map[string]interface{}{
-		"email": 5,
-	}).Query()
+		Insert("p_user").
+		Values(map[string]interface{}{
+			"email": 5,
+		}).Query()
 
 	_, err = suite.metadata.Engine().Exec(insTypeFail)
 	assert.NotNil(suite.T(), err)
@@ -256,9 +257,9 @@ func (suite *PostgresSessionTestSuite) TestPostgresSession() {
 
 	fmt.Println(usr)
 
-	//// find filter by all using session
+	// find filter by all using session
 	oneOscarUsers := []pUser{}
-	suite.session.Find(&pUser{Oscars:1}).All(&oneOscarUsers)
+	suite.session.Find(&pUser{Oscars: 1}).All(&oneOscarUsers)
 
 	fmt.Println("One oscar users;")
 	fmt.Println(oneOscarUsers)
@@ -266,6 +267,10 @@ func (suite *PostgresSessionTestSuite) TestPostgresSession() {
 	// delete user using session api
 	suite.session.Delete(rdn)
 	err = suite.session.Commit()
+	assert.Nil(suite.T(), err)
+
+	// drop tables
+	err = suite.metadata.DropAll()
 	assert.Nil(suite.T(), err)
 }
 

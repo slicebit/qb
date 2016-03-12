@@ -72,11 +72,6 @@ func (e *Engine) Select(query *Query, model interface{}) error {
 	return e.db.Select(model, query.SQL(e.driver), query.Bindings()...)
 }
 
-// Queryx wraps sqlx's Queryx
-func (e *Engine) Queryx(query *Query) (*sqlx.Rows, error) {
-	return e.db.Queryx(query.SQL(e.driver), query.Bindings()...)
-}
-
 // DB returns sql.DB of wrapped engine connection
 func (e *Engine) DB() *sqlx.DB {
 	return e.db
