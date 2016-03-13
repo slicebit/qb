@@ -43,9 +43,8 @@ func main() {
     metadata := qb.NewMetadata(engine)
     session := qb.NewSession(metadata)
 
-    session.Metadata().Add(&User{}, &Session{})
-    err = session.Metadata().CreateAll()
-    // Creates user table
+    session.Metadata().Add(&User{})
+    err = session.Metadata().CreateAll() // Creates user table
 
     // insert user using session
     userID, _ := uuid.NewV4()
