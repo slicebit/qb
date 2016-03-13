@@ -1,0 +1,18 @@
+language: go
+sudo: true
+go:
+    - tip
+install:
+    - go get -u -t -v github.com/aacanakin/qb
+    - go get github.com/stretchr/testify/assert
+    - go get golang.org/x/tools/cmd/cover
+    - go get github.com/mattn/goveralls
+script:
+    - go test -v -covermode=count -coverprofile=coverage.out
+    - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken Th94cgmSyB8a432jJcG7Sl5eaTyCJqsbE
+before_script:
+  - mysql -e 'create database IF NOT EXISTS qb_test;'
+  - psql -c 'create database qb_test;' -U postgres
+services:
+  - mysql
+  - postgresql
