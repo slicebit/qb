@@ -1,7 +1,7 @@
 # qb - the database toolkit for go
 **This project is currently pre 1.**
-
-Although the tests coverage are high, currently, it is not recommended to use it in production. It can currently crash especially in high concurrency.
+More documentation will be coming soon.
+Although the tests coverage are high, currently, it is not recommended to use it in production. It can currently crash especially in concurrency.
 
 About qb
 --------
@@ -12,13 +12,13 @@ Features
 - Support for postgres, mysql & sqlite
 - Simplistic query builder with no real magic
 - Struct to table ddl mapper where initial table migrations can happen
-- Expression api which can be built almost any sql statements
+- Expression builder which can be built almost any sql statements
 - Transactional session api that auto map structs to queries
 - Foreign Key definitions of structs using tags
 - Relationships (soon..)
 
-Quick Start - Session API
--------------------------
+Quick Start
+-----------
 ```go
 import (
     "github.com/aacanakin/qb"
@@ -48,22 +48,16 @@ func main() {
     // Creates user table
 
     // insert user using session
-    rdnId, _ := uuid.NewV4()
-	rdn := &User{
-		ID:       rdnId.String(),
+    userID, _ := uuid.NewV4()
+	user := &User{
+		ID:       userID.String(),
 		Email:    "robert@de-niro.com",
 		FullName: "Robert De Niro",
 		Password: "rdn",
 	}
 
-    session.Add(rdn)
+    session.Add(user)
     err = session.Commit()
-    // inserts Robert De Niro to users table
+    // user is inserted into db
 }
-```
-
-Quick Start - Expression API
-----------------------------
-```go
-// incoming...
 ```
