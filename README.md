@@ -1,5 +1,5 @@
 # qb - the database toolkit for go
-[![Build Status](https://travis-ci.org/aacanakin/qb.svg?branch=master)](https://travis-ci.org/aacanakin/qb) [![Coverage Status](https://coveralls.io/repos/github/aacanakin/qb/badge.svg?branch=master)](https://coveralls.io/github/aacanakin/qb?branch=master) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/aacanakin/qb/master/LICENSE)
+[![Build Status](https://travis-ci.org/aacanakin/qb.svg?branch=master)](https://travis-ci.org/aacanakin/qb) [![Coverage Status](https://coveralls.io/repos/github/aacanakin/qb/badge.svg?branch=master)](https://coveralls.io/github/aacanakin/qb?branch=master) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/aacanakin/qb/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/aacanakin/qb)](https://goreportcard.com/report/github.com/aacanakin/qb)
 
 **This project is currently pre 1.**
 More documentation will be coming soon.
