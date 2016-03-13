@@ -5,14 +5,14 @@ import (
 	"strings"
 )
 
-// NewDialect generates a new dialect object
+// NewBuilder generates a new dialect object
 func NewBuilder() *Builder {
 	return &Builder{
 		query: NewQuery(),
 	}
 }
 
-// Dialect is a subset of dialect could be used for common sql queries
+// Builder is a struct that holds an active query that it is used for building common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
 	query *Query

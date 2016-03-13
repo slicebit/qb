@@ -63,7 +63,7 @@ func (q *Query) placeholder(driver string) string {
 	return "?"
 }
 
-// Placeholders generates multiple placeholders
+// QuestionMarks generates temporary question marks for each binding in the query
 // This is for builder to be able to temporarily put question marks
 // The driver is unknown in builder
 func (q *Query) QuestionMarks(values ...interface{}) []string {

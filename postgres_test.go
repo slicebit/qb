@@ -234,9 +234,9 @@ func (suite *PostgresSessionTestSuite) TestPostgresSession() {
 		Oscars:   3,
 	}
 
-	apId, _ := uuid.NewV4()
+	apID, _ := uuid.NewV4()
 	ap := pUser{
-		ID:       apId.String(),
+		ID:       apID.String(),
 		Email:    "al@pacino.com",
 		FullName: "Al Pacino",
 		Oscars:   1,

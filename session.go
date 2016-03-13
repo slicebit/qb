@@ -12,7 +12,7 @@ func NewSession(metadata *MetaData) *Session {
 		queries:  []*Query{},
 		mapper:   NewMapper(metadata.Engine().Driver()),
 		metadata: metadata,
-		builder: NewBuilder(),
+		builder:  NewBuilder(),
 	}
 }
 
@@ -107,14 +107,14 @@ func (s *Session) Commit() error {
 	return err
 }
 
-//// Find returns a row given model properties
+// Find returns a row given model properties
 func (s *Session) Find(model interface{}) *Session {
 
 	tName := s.mapper.ModelName(model)
 	rModelMap := s.mapper.ToRawMap(model)
 
 	sqlColNames := []string{}
-	for k, _ := range rModelMap {
+	for k := range rModelMap {
 		sqlColNames = append(sqlColNames, s.mapper.ColName(k))
 	}
 
@@ -152,6 +152,7 @@ func (s *Session) All(models interface{}) error {
 }
 
 // builder overrides for session
+
 // Select generates "select %s" statement
 func (s *Session) Select(columns ...string) *Session {
 	s.builder.Select(columns...)

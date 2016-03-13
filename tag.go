@@ -1,8 +1,8 @@
 package qb
 
 import (
-	"strings"
 	"fmt"
+	"strings"
 )
 
 // Tag is the base abstraction of qbit tag

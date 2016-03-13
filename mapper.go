@@ -65,7 +65,7 @@ func (m *Mapper) ColName(col string) string {
 	return snaker.CamelToSnake(col)
 }
 
-// ConvertType returns the type mapping of column.
+// ToType returns the type mapping of column.
 // If tagType is, then colType would automatically be resolved.
 // If tagType is not "", then automatic type resolving would be overridden by tagType
 func (m *Mapper) ToType(colType string, tagType string) *Type {
@@ -99,7 +99,7 @@ func (m *Mapper) ToType(colType string, tagType string) *Type {
 	}
 }
 
-// Convert parses struct and converts it to a new table
+// ToTable parses struct and converts it to a new table
 func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 
 	modelName := m.ModelName(model)
