@@ -9,7 +9,7 @@ install:
     - go get github.com/mattn/goveralls
 script:
     - go test -v -covermode=count -coverprofile=coverage.out
-    - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken Th94cgmSyB8a432jJcG7Sl5eaTyCJqsbE
+    - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken 0yIEy3NVX2lXn3KxYzHjkla7EWGjvmLAp
 before_script:
   - mysql -e 'create database IF NOT EXISTS qb_test;'
   - psql -c 'create database qb_test;' -U postgres
