@@ -6,21 +6,29 @@ import (
 )
 
 // NewBuilder generates a new dialect object
-func NewBuilder() *Builder {
+func NewBuilder(driver string) *Builder {
 	return &Builder{
-		query: NewQuery(),
+		query:   NewQuery(),
+		dialect: NewDialect(driver),
 	}
 }
 
 // Builder is a struct that holds an active query that it is used for building common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
-	query *Query
+	query   *Query
+	dialect Dialect
+}
+
+// Dialect returns the active dialect of builder
+func (b *Builder) Dialect() Dialect {
+	return b.dialect
 }
 
 // Reset clears query bindings and its errors
 func (b *Builder) Reset() {
 	b.query = NewQuery()
+	b.dialect.Reset()
 }
 
 // Query returns the active query and resets the query.
@@ -28,12 +36,13 @@ func (b *Builder) Reset() {
 func (b *Builder) Query() *Query {
 	query := b.query
 	b.Reset()
+	fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
 	return query
 }
 
 // Insert generates an "insert into %s(%s)" statement
 func (b *Builder) Insert(table string) *Builder {
-	clause := fmt.Sprintf("INSERT INTO %s", table)
+	clause := fmt.Sprintf("INSERT INTO %s", b.dialect.Escape(table))
 	b.query.AddClause(clause)
 	return b
 }
@@ -51,14 +60,19 @@ func (b *Builder) Values(m map[string]interface{}) *Builder {
 
 	b.query.AddClause(fmt.Sprintf("(%s)", strings.Join(keys, ", ")))
 
-	clause := fmt.Sprintf("VALUES (%s)", strings.Join(b.query.QuestionMarks(values...), ", "))
+	placeholders := []string{}
+
+	for _ = range values {
+		placeholders = append(placeholders, b.dialect.Placeholder())
+	}
+	clause := fmt.Sprintf("VALUES (%s)", strings.Join(placeholders, ", "))
 	b.query.AddClause(clause)
 	return b
 }
 
 // Update generates "update %s" statement
 func (b *Builder) Update(table string) *Builder {
-	clause := fmt.Sprintf("UPDATE %s", table)
+	clause := fmt.Sprintf("UPDATE %s", b.dialect.Escape(table))
 	b.query.AddClause(clause)
 	return b
 }
@@ -67,7 +81,7 @@ func (b *Builder) Update(table string) *Builder {
 func (b *Builder) Set(m map[string]interface{}) *Builder {
 	updates := []string{}
 	for k, v := range m {
-		updates = append(updates, fmt.Sprintf("%s = ?", k))
+		updates = append(updates, fmt.Sprintf("%s = %s", k, b.dialect.Placeholder()))
 		b.query.AddBinding(v)
 	}
 	clause := fmt.Sprintf("SET %s", strings.Join(updates, ", "))
@@ -77,7 +91,7 @@ func (b *Builder) Set(m map[string]interface{}) *Builder {
 
 // Delete generates "delete" statement
 func (b *Builder) Delete(table string) *Builder {
-	b.query.AddClause(fmt.Sprintf("DELETE FROM %s", table))
+	b.query.AddClause(fmt.Sprintf("DELETE FROM %s", b.dialect.Escape(table)))
 	return b
 }
 
@@ -90,37 +104,78 @@ func (b *Builder) Select(columns ...string) *Builder {
 
 // From generates "from %s" statement for each table name
 func (b *Builder) From(tables ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("FROM %s", strings.Join(tables, ", ")))
+	tbls := []string{}
+	for _, v := range tables {
+		tablePieces := strings.Split(v, " ")
+		v = b.dialect.Escape(tablePieces[0])
+		if len(tablePieces) > 1 {
+			v = fmt.Sprintf("%s %s", v, tablePieces[1])
+		}
+		tbls = append(tbls, v)
+	}
+	b.query.AddClause(fmt.Sprintf("FROM %s", strings.Join(tbls, ", ")))
 	return b
 }
 
 // InnerJoin generates "inner join %s on %s" statement for each expression
 func (b *Builder) InnerJoin(table string, expressions ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("INNER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	tablePieces := strings.Split(table, " ")
+
+	v := b.dialect.Escape(tablePieces[0])
+	if len(tablePieces) > 1 {
+		v = fmt.Sprintf("%s %s", v, tablePieces[1])
+	}
+	b.query.AddClause(fmt.Sprintf("INNER JOIN %s ON %s", v, strings.Join(expressions, " ")))
 	return b
 }
 
 // CrossJoin generates "cross join %s" statement for table
 func (b *Builder) CrossJoin(table string) *Builder {
-	b.query.AddClause(fmt.Sprintf("CROSS JOIN %s", table))
+	tablePieces := strings.Split(table, " ")
+
+	v := b.dialect.Escape(tablePieces[0])
+	if len(tablePieces) > 1 {
+		v = fmt.Sprintf("%s %s", v, tablePieces[1])
+	}
+
+	b.query.AddClause(fmt.Sprintf("CROSS JOIN %s", v))
 	return b
 }
 
 // LeftOuterJoin generates "left outer join %s on %s" statement for each expression
 func (b *Builder) LeftOuterJoin(table string, expressions ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("LEFT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	tablePieces := strings.Split(table, " ")
+
+	v := b.dialect.Escape(tablePieces[0])
+	if len(tablePieces) > 1 {
+		v = fmt.Sprintf("%s %s", v, tablePieces[1])
+	}
+
+	b.query.AddClause(fmt.Sprintf("LEFT OUTER JOIN %s ON %s", v, strings.Join(expressions, " ")))
 	return b
 }
 
 // RightOuterJoin generates "right outer join %s on %s" statement for each expression
 func (b *Builder) RightOuterJoin(table string, expressions ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("RIGHT OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	tablePieces := strings.Split(table, " ")
+
+	v := b.dialect.Escape(tablePieces[0])
+	if len(tablePieces) > 1 {
+		v = fmt.Sprintf("%s %s", v, tablePieces[1])
+	}
+	b.query.AddClause(fmt.Sprintf("RIGHT OUTER JOIN %s ON %s", v, strings.Join(expressions, " ")))
 	return b
 }
 
 // FullOuterJoin generates "full outer join %s on %s" for each expression
 func (b *Builder) FullOuterJoin(table string, expressions ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("FULL OUTER JOIN %s ON %s", table, strings.Join(expressions, " ")))
+	tablePieces := strings.Split(table, " ")
+
+	v := b.dialect.Escape(tablePieces[0])
+	if len(tablePieces) > 1 {
+		v = fmt.Sprintf("%s %s", v, tablePieces[1])
+	}
+	b.query.AddClause(fmt.Sprintf("FULL OUTER JOIN %s ON %s", v, strings.Join(expressions, " ")))
 	return b
 }
 
@@ -253,7 +308,7 @@ func (b *Builder) Or(expressions ...string) string {
 // CreateTable generates generic CREATE TABLE statement
 func (b *Builder) CreateTable(table string, fields []string, constraints []string) *Builder {
 
-	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", table))
+	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", b.dialect.Escape(table)))
 
 	for k, f := range fields {
 		clause := fmt.Sprintf("\t%s", f)
@@ -283,7 +338,7 @@ func (b *Builder) AlterTable(table string) *Builder {
 
 // DropTable generates generic DROP TABLE statement
 func (b *Builder) DropTable(table string) *Builder {
-	b.query.AddClause(fmt.Sprintf("DROP TABLE %s", table))
+	b.query.AddClause(fmt.Sprintf("DROP TABLE %s", b.dialect.Escape(table)))
 	return b
 }
 

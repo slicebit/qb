@@ -4,16 +4,23 @@ import (
 	"database/sql"
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // NewSession generates a new Session given engine and returns session pointer
-func NewSession(metadata *MetaData) *Session {
+func New(driver string, dsn string) (*Session, error) {
+
+	engine, err := NewEngine(driver, dsn)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Session{
 		queries:  []*Query{},
-		mapper:   NewMapper(metadata.Engine().Driver()),
-		metadata: metadata,
-		builder:  NewBuilder(),
-	}
+		mapper:   NewMapper(engine.Driver()),
+		metadata: NewMetaData(engine),
+		builder:  NewBuilder(engine.Driver()),
+	}, nil
 }
 
 // Session is the composition of engine connection & orm mappings
@@ -37,6 +44,21 @@ func (s *Session) add(query *Query) {
 	s.queries = append(s.queries, query)
 }
 
+// AddQuery adds a query given the query pointer retrieved from Query() function
+func (s *Session) AddQuery(query *Query) {
+	s.add(query)
+}
+
+// Query returns the active query built by session
+func (s *Session) Query() *Query {
+	return s.builder.Query()
+}
+
+// Metadata returns the metadata of session
+func (s *Session) Metadata() *MetaData {
+	return s.metadata
+}
+
 // Delete adds a single delete query to the session
 func (s *Session) Delete(model interface{}) {
 
@@ -47,30 +69,16 @@ func (s *Session) Delete(model interface{}) {
 	d := s.metadata.Table(tName).Delete()
 	ands := []string{}
 	bindings := []interface{}{}
-
-	pcols := s.metadata.Table(tName).PrimaryKey()
-
-	// if table has primary key
-	if len(pcols) > 0 {
-
-		for _, pk := range pcols {
-			b := kv[pk]
-			ands = append(ands, fmt.Sprintf("%s = ?", pk))
-			bindings = append(bindings, b)
-		}
-
-	} else {
-		for k, v := range kv {
-			ands = append(ands, fmt.Sprintf("%s = ?", s.mapper.ColName(k)))
-			bindings = append(bindings, v)
-		}
+	for k, v := range kv {
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Dialect().Placeholder()))
+		bindings = append(bindings, v)
 	}
 
 	del := d.Where(d.And(ands...), bindings...).Query()
 	s.add(del)
 }
 
-// Add adds a single query to the session. The query must be insert or update
+// Add adds a single model to the session. The query must be insert or update
 func (s *Session) Add(model interface{}) {
 
 	rawMap := s.mapper.ToMap(model)
@@ -96,7 +104,7 @@ func (s *Session) AddAll(models ...interface{}) {
 func (s *Session) Commit() error {
 
 	for _, q := range s.queries {
-		_, err := s.tx.Exec(q.SQL(s.metadata.Engine().Driver()), q.Bindings()...)
+		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
 		if err != nil {
 			return err
 		}
@@ -120,7 +128,7 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sort.Strings(sqlColNames)
 
-	s.builder = NewBuilder()
+	s.builder = NewBuilder(s.metadata.Engine().Driver())
 	s.builder.Select(sqlColNames...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)
@@ -129,7 +137,7 @@ func (s *Session) Find(model interface{}) *Session {
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = ?", s.mapper.ColName(k)))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Dialect().Placeholder()))
 		bindings = append(bindings, v)
 	}
 
@@ -152,6 +160,18 @@ func (s *Session) All(models interface{}) error {
 }
 
 // builder overrides for session
+
+// Update generates "update %s" statement
+func (s *Session) Update(table string) *Session {
+	s.builder.Update(table)
+	return s
+}
+
+// Set generates "set a = placeholder" statement for each key a and add bindings for map value
+func (s *Session) Set(m map[string]interface{}) *Session {
+	s.builder.Set(m)
+	return s
+}
 
 // Select generates "select %s" statement
 func (s *Session) Select(columns ...string) *Session {
@@ -197,6 +217,7 @@ func (s *Session) FullOuterJoin(table string, expressions ...string) *Session {
 
 // Where generates "where %s" for the expression and adds bindings for each value
 func (s *Session) Where(expression string, bindings ...interface{}) *Session {
+	expression = strings.Replace(expression, "?", s.builder.Dialect().Placeholder(), -1)
 	s.builder.Where(expression, bindings...)
 	return s
 }

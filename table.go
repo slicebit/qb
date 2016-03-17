@@ -35,7 +35,7 @@ func (t *Table) Name() string {
 // SQL generates create table syntax of table
 func (t *Table) SQL() string {
 
-	dialect := NewBuilder()
+	builder := NewBuilder(t.driver)
 
 	cols := []string{}
 	for _, v := range t.columns {
@@ -51,16 +51,16 @@ func (t *Table) SQL() string {
 
 	// build foreign key constraints using refCols
 	for _, ref := range t.refs {
-		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), ref.refTable, strings.Join(ref.refCols, ", ")))
+		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), builder.Dialect().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
 	}
 
 	for _, v := range t.constraints {
 		constraints = append(constraints, v.Name)
 	}
 
-	query := dialect.CreateTable(t.name, cols, constraints).Query()
+	query := builder.CreateTable(t.name, cols, constraints).Query()
 
-	return query.SQL(t.driver)
+	return query.SQL()
 }
 
 // AddColumn appends a new column to current table
@@ -125,15 +125,15 @@ func (t *Table) Insert(kv map[string]interface{}) *Builder {
 	}
 
 	// TODO: Validate column name
-	return NewBuilder().Insert(t.name).Values(kv)
+	return NewBuilder(t.driver).Insert(t.name).Values(kv)
 }
 
 // Update creates an update statement for the table name
 func (t *Table) Update(kv map[string]interface{}) *Builder {
-	return NewBuilder().Update(t.Name()).Set(kv)
+	return NewBuilder(t.driver).Update(t.Name()).Set(kv)
 }
 
 // Delete creates a delete statement for the table name
 func (t *Table) Delete() *Builder {
-	return NewBuilder().Delete(t.Name())
+	return NewBuilder(t.driver).Delete(t.Name())
 }

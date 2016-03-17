@@ -7,13 +7,7 @@ import (
 
 func TestSession(t *testing.T) {
 
-	engine, err := NewEngine("postgres", "user=root dbname=qb_test")
-
-	assert.Equal(t, err, nil)
-	assert.NotNil(t, engine)
-
-	metadata := NewMetaData(engine)
-	session := NewSession(metadata)
-
+	session, err := New("postgres", "user=root dbname=qb_test")
 	assert.NotNil(t, session)
+	assert.Nil(t, err)
 }

@@ -1,7 +1,7 @@
 package qb
 
 import (
-	"fmt"
+	"database/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -26,146 +26,123 @@ type sSession struct {
 
 type SqliteTestSuite struct {
 	suite.Suite
-	metadata *MetaData
-	dialect  *Builder
+	session *Session
 }
 
 func (suite *SqliteTestSuite) SetupTest() {
+	var err error
+
 	engine, err := NewEngine("sqlite3", ":memory:")
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), engine)
 	engine.DB().Exec("CREATE DATABASE qb_test;")
-	suite.dialect = NewBuilder()
-	suite.metadata = NewMetaData(engine)
+
+	suite.session, err = New("sqlite3", ":memory:")
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), suite.session)
 }
 
 func (suite *SqliteTestSuite) TestSqlite() {
 
+	type User struct {
+		ID       string         `qb:"type:varchar(40); constraints:primary_key"`
+		Email    string         `qb:"constraints:unique, notnull"`
+		FullName string         `qb:"constraints:notnull"`
+		Bio      sql.NullString `qb:"type:text; constraints:null"`
+		Oscars   int            `qb:"constraints:default(0)"`
+	}
+
+	type Session struct {
+		ID        int       `qb:"type:int; constraints:primary_key, auto_increment"`
+		UserID    string    `qb:"type:varchar(40); constraints:ref(user.id)"`
+		AuthToken string    `qb:"type:varchar(40); constraints:notnull, unique"`
+		CreatedAt time.Time `qb:"constraints:notnull"`
+		ExpiresAt time.Time `qb:"constraints:notnull"`
+	}
+
 	var err error
 
-	// create tables
-	suite.metadata.Add(sUser{})
-	suite.metadata.Add(sSession{})
-	err = suite.metadata.CreateAll()
+	suite.session.Metadata().Add(User{})
+	suite.session.Metadata().Add(Session{})
+
+	err = suite.session.Metadata().CreateAll()
 	assert.Nil(suite.T(), err)
 
-	// insert user
-	insUser := suite.dialect.Insert("s_user").Values(
-		map[string]interface{}{
-			"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			"email":     "jack@nicholson.com",
-			"full_name": "Jack Nicholson",
-			"password":  "jack-nicholson",
-			"bio":       "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.",
-		}).Query()
+	// add sample user
+	suite.session.Add(&User{
+		ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		Email:    "jack@nicholson.com",
+		FullName: "Jack Nicholson",
+		Bio:      sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
+	})
 
-	fmt.Println(insUser.SQL(suite.metadata.engine.Driver()))
-	fmt.Println(insUser.Bindings())
-	_, err = suite.metadata.Engine().Exec(insUser)
+	// add sample session
+	suite.session.Add(&Session{
+		UserID:    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		AuthToken: "e4968197-6137-47a4-ba79-690d8c552248",
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	})
+
+	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
-	// insert session
-	insSession := suite.dialect.Insert("s_session").Values(
-		map[string]interface{}{
-			"id":         "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			"user_id":    "e4968197-6137-47a4-ba79-690d8c552248",
-			"auth_token": "75dc92f2-730a-436a-9db6-629aa644c198",
-			"created_at": time.Now(),
-			"expires_at": time.Now().Add(24 * time.Hour),
-		}).Query()
+	// find user
+	var user User
 
-	_, err = suite.metadata.Engine().Exec(insSession)
+	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).First(&user)
 
-	fmt.Println(insSession.SQL(suite.metadata.Engine().Driver()))
-	fmt.Println(insSession.Bindings())
-	assert.Nil(suite.T(), err)
-
-	// select user
-	selUser := suite.dialect.
-		Select("id", "email", "full_name", "bio").
-		From("s_user").
-		Where("s_user.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Query()
-
-	var user mUser
-	suite.metadata.Engine().QueryRow(selUser).Scan(&user.ID, &user.Email, &user.FullName, &user.Bio)
-
-	assert.Equal(suite.T(), user.ID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
 	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
-	assert.Equal(suite.T(), user.Bio, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
+	assert.Equal(suite.T(), user.Bio.String, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
 
-	// select sessions
-	selSessions := suite.dialect.
-		Select("s.id", "s.auth_token", "s.created_at", "s.expires_at").
-		From("s_user u").
-		InnerJoin("s_session s", "u.id = s.user_id").
-		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Query()
+	// select using join
+	sessions := []Session{}
+	err = suite.session.Select("s.id", "s.user_id", "s.auth_token").
+		From("session s").
+		InnerJoin("user u", "u.id = s.user_id").
+		Where("s.user_id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		All(&sessions)
 
-	rows, err := suite.metadata.Engine().Query(selSessions)
 	assert.Nil(suite.T(), err)
-	if err != nil {
-		defer rows.Close()
-	}
-
-	sessions := []mSession{}
-
-	for rows.Next() {
-		var session mSession
-		rows.Scan(&session.ID, &session.AuthToken, &session.CreatedAt, &session.ExpiresAt)
-		assert.Equal(suite.T(), session.ID, int64(1))
-		assert.NotNil(suite.T(), session.CreatedAt)
-		assert.NotNil(suite.T(), session.ExpiresAt)
-		sessions = append(sessions, session)
-	}
-
 	assert.Equal(suite.T(), len(sessions), 1)
 
-	// update session
-	query := suite.dialect.
-		Update("s_session").
-		Set(
-			map[string]interface{}{
-				"auth_token": "99e591f8-1025-41ef-a833-6904a0f89a38",
-			},
-		).
-		Where("id = ?", 1).Query()
+	assert.Equal(suite.T(), sessions[0].ID, 1)
+	assert.Equal(suite.T(), sessions[0].UserID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
+	assert.Equal(suite.T(), sessions[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
 
-	_, err = suite.metadata.Engine().Exec(query)
+	// update user
+	update := suite.session.
+		Update("user").
+		Set(map[string]interface{}{
+			"bio": nil,
+		}).
+		Where("id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		Query()
+
+	suite.session.AddQuery(update)
+	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
+
+	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).First(&user)
+	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
 
 	// delete session
-	delSession := suite.dialect.
-		Delete("s_session").
-		Where("auth_token = ?", "99e591f8-1025-41ef-a833-6904a0f89a38").
-		Query()
-
-	_, err = suite.metadata.Engine().Exec(delSession)
+	suite.session.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
+	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
-	// insert failure
-	insFail := suite.dialect.
-		Insert("s_user").
-		Values(map[string]interface{}{
-			"invalid_column": "invalid_value",
-		}).
-		Query()
-
-	_, err = suite.metadata.Engine().Exec(insFail)
-	assert.NotNil(suite.T(), err)
-
-	// insert type failure
-	//insTypeFail := suite.dialect.
-	//	Insert("s_user", "email").
-	//	Values(5).
-	//	Query()
-	//
-	//_, err = suite.metadata.Engine().Exec(insTypeFail)
-	//assert.NotNil(suite.T(), err)
-
 	// drop tables
-	err = suite.metadata.DropAll()
+	assert.Nil(suite.T(), suite.session.Metadata().DropAll())
+
+	// fail model
+	type FailModel struct {
+		ID int64 `qb:"type:notype"`
+	}
+
+	assert.Panics(suite.T(), func() {
+		suite.session.Add(FailModel{})
+	})
 }
 
 func TestSqliteTestSuite(t *testing.T) {
