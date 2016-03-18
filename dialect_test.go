@@ -28,7 +28,6 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 	suite.def.Reset() // does nothing
 }
 
-
 func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
