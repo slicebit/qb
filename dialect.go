@@ -1,6 +1,8 @@
 package qb
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // NewDialect returns a dialect pointer given driver
 func NewDialect(driver string) Dialect {
