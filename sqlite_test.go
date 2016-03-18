@@ -8,22 +8,6 @@ import (
 	"time"
 )
 
-type sUser struct {
-	ID       string `qb:"constraints:primary_key"`
-	Email    string `qb:"constraints:unique, notnull"`
-	FullName string `qb:"constraints:notnull"`
-	Password string `qb:"constraints:notnull"`
-	Bio      string `qb:"type:text; constraints:null"`
-}
-
-type sSession struct {
-	ID        int64     `qb:"type:bigint; constraints:primary_key, auto_increment"`
-	UserID    string    `qb:"type:uuid; constraints:ref(s_user.id)"`
-	AuthToken string    `qb:"type:uuid; constraints:notnull, unique"`
-	CreatedAt time.Time `qb:"constraints:notnull"`
-	ExpiresAt time.Time `qb:"constraints:notnull"`
-}
-
 type SqliteTestSuite struct {
 	suite.Suite
 	session *Session
@@ -32,12 +16,12 @@ type SqliteTestSuite struct {
 func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
-	engine, err := NewEngine("sqlite3", ":memory:")
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), engine)
-	engine.DB().Exec("CREATE DATABASE qb_test;")
+	//engine, err := NewEngine("sqlite3", "./qb_test.db")
+	//assert.Nil(suite.T(), err)
+	//assert.NotNil(suite.T(), engine)
+	//engine.DB().Exec("CREATE DATABASE qb_test;")
 
-	suite.session, err = New("sqlite3", ":memory:")
+	suite.session, err = New("sqlite3", "./qb_test.db")
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.session)
 }
@@ -53,7 +37,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	}
 
 	type Session struct {
-		ID        int       `qb:"type:int; constraints:primary_key, auto_increment"`
+		ID        int       `qb:"type:integer; constraints:primary_key, autoincrement"`
 		UserID    string    `qb:"type:varchar(40); constraints:ref(user.id)"`
 		AuthToken string    `qb:"type:varchar(40); constraints:notnull, unique"`
 		CreatedAt time.Time `qb:"constraints:notnull"`

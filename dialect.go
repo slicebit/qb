@@ -2,6 +2,7 @@ package qb
 
 import "fmt"
 
+// NewDialect returns a dialect pointer given driver
 func NewDialect(driver string) Dialect {
 	switch driver {
 	case "postgres":
@@ -15,10 +16,13 @@ func NewDialect(driver string) Dialect {
 	}
 }
 
+// Dialect is the common adapter for driver changes
+// It is for fixing compatibility issues of different drivers
 type Dialect interface {
 	Escape(str string) string
 	Placeholder() string
 	Reset()
+	SupportsInlinePrimaryKey() bool
 }
 
 type DefaultDialect struct{}
@@ -32,6 +36,8 @@ func (d *DefaultDialect) Placeholder() string {
 }
 
 func (d *DefaultDialect) Reset() {}
+
+func (d *DefaultDialect) SupportsInlinePrimaryKey() bool { return true }
 
 type PostgresDialect struct {
 	bindingIndex int
@@ -48,6 +54,8 @@ func (d *PostgresDialect) Placeholder() string {
 
 func (d *PostgresDialect) Reset() { d.bindingIndex = 0 }
 
+func (d *PostgresDialect) SupportsInlinePrimaryKey() bool { return true }
+
 type MysqlDialect struct{}
 
 func (d *MysqlDialect) Escape(str string) string {
@@ -60,6 +68,8 @@ func (d *MysqlDialect) Placeholder() string {
 
 func (d *MysqlDialect) Reset() {}
 
+func (d *MysqlDialect) SupportsInlinePrimaryKey() bool { return false }
+
 type SqliteDialect struct{}
 
 func (d *SqliteDialect) Escape(str string) string {
@@ -71,3 +81,5 @@ func (d *SqliteDialect) Placeholder() string {
 }
 
 func (d *SqliteDialect) Reset() {}
+
+func (d *SqliteDialect) SupportsInlinePrimaryKey() bool { return true }

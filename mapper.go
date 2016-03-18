@@ -105,6 +105,7 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 	modelName := m.ModelName(model)
 
 	table := NewTable(m.driver, modelName, []Column{}, []Constraint{})
+	dialect := NewDialect(m.driver)
 
 	//fmt.Printf("model name: %s\n\n", modelName)
 
@@ -119,10 +120,12 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 		rawTag = f.Tag(tagPrefix)
 
 		constraints := []Constraint{}
+		//fmt.Println()
 		//fmt.Printf("field name: %s\n", colName)
 		//fmt.Printf("field raw tag: %s\n", rawTag)
 		//fmt.Printf("field type name: %T\n", f.Value())
 		//fmt.Printf("field constraints: %v\n", constraints)
+		//fmt.Println()
 
 		// clean trailing spaces of tag
 		rawTag = strings.Replace(f.Tag(tagPrefix), " ", "", -1)
@@ -149,7 +152,7 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 					constraint = Constraint{
 						Name: "AUTO_INCREMENT",
 					}
-				} else if m.driver == "sqlite" {
+				} else if m.driver == "sqlite3" {
 					constraint = Constraint{
 						Name: "AUTOINCREMENT",
 					}
@@ -159,8 +162,14 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 			} else if strings.Contains(v, "default") {
 				constraint = Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
-				table.AddPrimary(colName)
-				continue
+				if dialect.SupportsInlinePrimaryKey() {
+					constraint = Constraint{
+						Name: "PRIMARY KEY",
+					}
+				} else {
+					table.AddPrimary(colName)
+					continue
+				}
 			} else if strings.Contains(v, "ref") && strings.Contains(v, "(") && strings.Contains(v, ")") {
 				tc := strings.Split(m.extractValue(v), ".")
 				table.AddRef(colName, tc[0], tc[1])
