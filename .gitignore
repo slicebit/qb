@@ -25,3 +25,4 @@ _testmain.go
 
 .idea/*
 qbit
+qb_test.db
