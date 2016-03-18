@@ -31,9 +31,14 @@ func (suite *BuilderTestSuite) TestBuilderSelectSimple() {
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
+		Where("").
 		Query()
 
 	assert.Equal(suite.T(), query.SQL(), "SELECT id, email, name\nFROM `user`;")
+}
+
+func (suite *BuilderTestSuite) TestBuilderEmptyAnd() {
+	assert.Equal(suite.T(), suite.builder.And(), "")
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectSingleCondition() {
@@ -219,11 +224,11 @@ func (suite *BuilderTestSuite) TestBuilderLeftJoin() {
 	query := suite.builder.
 		Select("id", "name").
 		From("user").
-		LeftOuterJoin("email", "user.id = email.id").
+		LeftOuterJoin("email e", "user.id = e.id").
 		Where("id = ?", 5).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, name\nFROM `user`\nLEFT OUTER JOIN `email` ON user.id = email.id\nWHERE id = ?;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, name\nFROM `user`\nLEFT OUTER JOIN `email` e ON user.id = e.id\nWHERE id = ?;")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{5})
 }
 
@@ -232,11 +237,11 @@ func (suite *BuilderTestSuite) TestBuilderRightJoin() {
 	query := suite.builder.
 		Select("id", "email_address").
 		From("user").
-		RightOuterJoin("email", "user.id = email.id").
+		RightOuterJoin("email e", "user.id = e.id").
 		Where("id = ?", 5).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, email_address\nFROM `user`\nRIGHT OUTER JOIN `email` ON user.id = email.id\nWHERE id = ?;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, email_address\nFROM `user`\nRIGHT OUTER JOIN `email` e ON user.id = e.id\nWHERE id = ?;")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{5})
 }
 
@@ -245,11 +250,11 @@ func (suite *BuilderTestSuite) TestBuilderFullOuterJoin() {
 	query := suite.builder.
 		Select("id", "name", "email").
 		From("user").
-		FullOuterJoin("email", "user.id = email.id").
+		FullOuterJoin("email e", "user.id = e.id").
 		Where("id = ?", 5).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, name, email\nFROM `user`\nFULL OUTER JOIN `email` ON user.id = email.id\nWHERE id = ?;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, name, email\nFROM `user`\nFULL OUTER JOIN `email` e ON user.id = e.id\nWHERE id = ?;")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{5})
 
 }
@@ -259,11 +264,11 @@ func (suite *BuilderTestSuite) TestBuilderCrossJoin() {
 	query := suite.builder.
 		Select("id", "name", "email").
 		From("user").
-		CrossJoin("email").
+		CrossJoin("email e").
 		Where("id = ?", 5).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, name, email\nFROM `user`\nCROSS JOIN `email`\nWHERE id = ?;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, name, email\nFROM `user`\nCROSS JOIN `email` e\nWHERE id = ?;")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{5})
 }
 
