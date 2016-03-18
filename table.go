@@ -79,9 +79,9 @@ func (t *Table) AddPrimary(col string) {
 }
 
 // PrimaryKey returns the primaryCols as a string array
-func (t *Table) PrimaryKey() []string {
-	return t.primaryCols
-}
+//func (t *Table) PrimaryKey() []string {
+//	return t.primaryCols
+//}
 
 type ref struct {
 	cols     []string
