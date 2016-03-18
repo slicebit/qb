@@ -25,6 +25,7 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
 	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.def.SupportsInlinePrimaryKey(), false)
+	suite.def.Reset() // does nothing
 }
 
 
@@ -32,6 +33,7 @@ func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.mysql.SupportsInlinePrimaryKey(), false)
+	suite.mysql.Reset() // does nothing
 }
 
 func (suite *DialectTestSuite) TestPostgresDialect() {
@@ -47,6 +49,7 @@ func (suite *DialectTestSuite) TestSqliteDialect() {
 	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.sqlite.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.sqlite.SupportsInlinePrimaryKey(), true)
+	suite.sqlite.Reset() // does nothing
 }
 
 func TestDialectTestSuite(t *testing.T) {

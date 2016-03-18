@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// NewSession generates a new Session given engine and returns session pointer
+// New generates a new Session given engine and returns session pointer
 func New(driver string, dsn string) (*Session, error) {
 
 	engine, err := NewEngine(driver, dsn)
