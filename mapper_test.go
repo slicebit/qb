@@ -44,7 +44,7 @@ func TestMapper(t *testing.T) {
 
 func TestMapperSqliteAutoIncrement(t *testing.T) {
 
-	mapper := NewMapper("sqlite")
+	mapper := NewMapper("sqlite3")
 	sqliteAutoIncrementUserTable, err := mapper.ToTable(MapperTestSqliteAutoIncrementUser{})
 
 	assert.Nil(t, err)
