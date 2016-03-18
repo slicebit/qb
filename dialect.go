@@ -27,8 +27,10 @@ type Dialect interface {
 	SupportsInlinePrimaryKey() bool
 }
 
+// Default dialect is a type of dialect that can be used with unsupported sql drivers
 type DefaultDialect struct{}
 
+// Escape wraps the string with escape characters of the dialect
 func (d *DefaultDialect) Escape(str string) string {
 	return str
 }
@@ -39,8 +41,9 @@ func (d *DefaultDialect) Placeholder() string {
 
 func (d *DefaultDialect) Reset() {}
 
-func (d *DefaultDialect) SupportsInlinePrimaryKey() bool { return true }
+func (d *DefaultDialect) SupportsInlinePrimaryKey() bool { return false }
 
+// Default dialect is a type of dialect that can be used with postgres sql driver
 type PostgresDialect struct {
 	bindingIndex int
 }

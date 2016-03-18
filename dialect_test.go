@@ -21,6 +21,13 @@ func (suite *DialectTestSuite) SetupTest() {
 	suite.def = NewDialect("default")
 }
 
+func (suite *DialectTestSuite) TestDefaultDialect() {
+	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
+	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
+	assert.Equal(suite.T(), suite.def.SupportsInlinePrimaryKey(), false)
+}
+
+
 func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
