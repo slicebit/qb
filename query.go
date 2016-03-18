@@ -52,17 +52,6 @@ func (q *Query) Bindings() []interface{} {
 	return q.bindings
 }
 
-// Placeholder generates a placeholder for binding.
-// If the driver is postgres generates "$i" where i is incremental integer
-// Otherwise it generates "?"
-func (q *Query) placeholder(driver string) string {
-	if driver == "postgres" {
-		q.bindingIndex++
-		return fmt.Sprintf("$%d", q.bindingIndex)
-	}
-	return "?"
-}
-
 // QuestionMarks generates temporary question marks for each binding in the query
 // This is for builder to be able to temporarily put question marks
 // The driver is unknown in builder
