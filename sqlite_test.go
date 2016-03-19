@@ -52,21 +52,20 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	err = suite.session.Metadata().CreateAll()
 	assert.Nil(suite.T(), err)
 
-	// add sample user
-	suite.session.Add(&User{
-		ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-		Email:    "jack@nicholson.com",
-		FullName: "Jack Nicholson",
-		Bio:      sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
-	})
-
-	// add sample session
-	suite.session.Add(&Session{
-		UserID:    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-		AuthToken: "e4968197-6137-47a4-ba79-690d8c552248",
-		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	})
+	// add sample user & session
+	suite.session.AddAll(
+		&User{
+			ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+			Email:    "jack@nicholson.com",
+			FullName: "Jack Nicholson",
+			Bio:      sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
+		}, &Session{
+			UserID:    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+			AuthToken: "e4968197-6137-47a4-ba79-690d8c552248",
+			CreatedAt: time.Now(),
+			ExpiresAt: time.Now().Add(24 * time.Hour),
+		},
+	)
 
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)

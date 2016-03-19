@@ -11,3 +11,9 @@ func TestSession(t *testing.T) {
 	assert.NotNil(t, session)
 	assert.Nil(t, err)
 }
+
+func TestSessionFail(t *testing.T) {
+	session, err := New("unknown", "invalid")
+	assert.Nil(t, session)
+	assert.NotNil(t, err)
+}
