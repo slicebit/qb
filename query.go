@@ -52,17 +52,6 @@ func (q *Query) Bindings() []interface{} {
 	return q.bindings
 }
 
-// QuestionMarks generates temporary question marks for each binding in the query
-// This is for builder to be able to temporarily put question marks
-// The driver is unknown in builder
-func (q *Query) QuestionMarks(values ...interface{}) []string {
-	marks := []string{}
-	for _ = range values {
-		marks = append(marks, "?")
-	}
-	return marks
-}
-
 // SQL returns the query struct sql statement
 func (q *Query) SQL() string {
 

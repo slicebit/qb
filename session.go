@@ -44,6 +44,11 @@ func (s *Session) add(query *Query) {
 	s.queries = append(s.queries, query)
 }
 
+// Builder returns query builder
+func (s *Session) Builder() *Builder{
+	return s.builder
+}
+
 // AddQuery adds a query given the query pointer retrieved from Query() function
 func (s *Session) AddQuery(query *Query) {
 	s.add(query)

@@ -36,5 +36,20 @@ func TestEngineExec(t *testing.T) {
 
 	res, err := engine.Exec(query)
 	assert.Equal(t, res, nil)
-	assert.NotEqual(t, err, nil)
+	assert.NotNil(t, err)
+}
+
+func TestEngineFail(t *testing.T) {
+
+	engine, err := NewEngine("sqlite3", "./qb_test.db")
+	assert.Nil(t, err)
+
+	query := NewBuilder(engine.Driver()).
+		Insert("user").
+		Values(map[string]interface{}{
+			"full_name": "Aras Can Akin",
+		}).Query()
+
+	_, err = engine.Exec(query)
+	assert.NotNil(t, err)
 }

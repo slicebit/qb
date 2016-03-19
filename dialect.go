@@ -23,6 +23,7 @@ func NewDialect(driver string) Dialect {
 type Dialect interface {
 	Escape(str string) string
 	Placeholder() string
+	Placeholders(values ...interface{}) []string
 	Reset()
 	SupportsInlinePrimaryKey() bool
 }
@@ -38,6 +39,15 @@ func (d *DefaultDialect) Escape(str string) string {
 // Placeholder returns the placeholder for bindings in the sql
 func (d *DefaultDialect) Placeholder() string {
 	return "?"
+}
+
+// Placeholders returns the placeholders for bindings in the sql
+func (d *DefaultDialect) Placeholders(values ...interface{}) []string {
+	placeholders := []string{}
+	for _ = range values {
+		placeholders = append(placeholders, d.Placeholder())
+	}
+	return placeholders
 }
 
 // Reset does nothing for the default driver
@@ -62,6 +72,15 @@ func (d *PostgresDialect) Placeholder() string {
 	return fmt.Sprintf("$%d", d.bindingIndex)
 }
 
+// Placeholders returns the placeholders for bindings in the sql
+func (d *PostgresDialect) Placeholders(values ...interface{}) []string {
+	placeholders := []string{}
+	for _ = range values {
+		placeholders = append(placeholders, d.Placeholder())
+	}
+	return placeholders
+}
+
 // Reset clears the binding index for postgres driver
 func (d *PostgresDialect) Reset() { d.bindingIndex = 0 }
 
@@ -81,6 +100,15 @@ func (d *MysqlDialect) Placeholder() string {
 	return "?"
 }
 
+// Placeholders returns the placeholders for bindings in the sql
+func (d *MysqlDialect) Placeholders(values ...interface{}) []string {
+	placeholders := []string{}
+	for _ = range values {
+		placeholders = append(placeholders, d.Placeholder())
+	}
+	return placeholders
+}
+
 // Reset does nothing for the default driver
 func (d *MysqlDialect) Reset() {}
 
@@ -98,6 +126,15 @@ func (d *SqliteDialect) Escape(str string) string {
 // Placeholder returns the placeholder for bindings in the sql
 func (d *SqliteDialect) Placeholder() string {
 	return "?"
+}
+
+// Placeholders returns the placeholders for bindings in the sql
+func (d *SqliteDialect) Placeholders(values ...interface{}) []string {
+	placeholders := []string{}
+	for _ = range values {
+		placeholders = append(placeholders, d.Placeholder())
+	}
+	return placeholders
 }
 
 // Reset does nothing for the default driver
