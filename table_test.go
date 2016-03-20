@@ -104,8 +104,12 @@ func TestTableInsert(t *testing.T) {
 
 	query := table.Insert(kv).Query()
 
-	assert.Equal(t, query.SQL(), "INSERT INTO `user`\n(id, full_name)\nVALUES (?, ?);")
-	assert.Equal(t, query.Bindings(), []interface{}{1, "Aras Can Akin"})
+	assert.Contains(t, query.SQL(), "INSERT INTO `user`\n(")
+	assert.Contains(t, query.SQL(), "id")
+	assert.Contains(t, query.SQL(), "full_name")
+	assert.Contains(t, query.SQL(), ")\nVALUES (?, ?);")
+	assert.Contains(t, query.Bindings(), 1)
+	assert.Contains(t, query.Bindings(), "Aras Can Akin")
 }
 
 func TestTableUpdate(t *testing.T) {

@@ -159,11 +159,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectGtGteStSte() {
 
 func (suite *BuilderTestSuite) TestBuilderBasicInsert() {
 
-	//query := suite.builder.
-	//	Insert("user", "name", "email", "password").
-	//	Values("Aras Can Akin", "a@b.c", "p4ssw0rd").
-	//	Query()
-
 	fields := map[string]interface{}{
 		"name":     "Aras Can Akin",
 		"email":    "a@b.c",
@@ -175,8 +170,14 @@ func (suite *BuilderTestSuite) TestBuilderBasicInsert() {
 		Values(fields).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "INSERT INTO `user`\n(name, email, password)\nVALUES (?, ?, ?);")
-	assert.Equal(suite.T(), query.Bindings(), []interface{}{"Aras Can Akin", "a@b.c", "p4ssw0rd"})
+	assert.Contains(suite.T(), query.SQL(), "INSERT INTO `user`\n(")
+	assert.Contains(suite.T(), query.SQL(), "name")
+	assert.Contains(suite.T(), query.SQL(), "email")
+	assert.Contains(suite.T(), query.SQL(), "password")
+	assert.Contains(suite.T(), query.SQL(), "\nVALUES (?, ?, ?);")
+	assert.Contains(suite.T(), query.Bindings(), "Aras Can Akin")
+	assert.Contains(suite.T(), query.Bindings(), "a@b.c")
+	assert.Contains(suite.T(), query.Bindings(), "p4ssw0rd")
 }
 
 func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
@@ -191,8 +192,13 @@ func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
 		Where("id = ?", 5).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "UPDATE `user`\nSET email = ?, name = ?\nWHERE id = ?;")
-	assert.Equal(suite.T(), query.Bindings(), []interface{}{"a@b.c", "Aras", 5})
+	assert.Contains(suite.T(), query.SQL(), "UPDATE `user`\nSET")
+	assert.Contains(suite.T(), query.SQL(), "email = ?")
+	assert.Contains(suite.T(), query.SQL(), "name = ?")
+	assert.Contains(suite.T(), query.SQL(), "WHERE id = ?;")
+	assert.Contains(suite.T(), query.Bindings(), "a@b.c")
+	assert.Contains(suite.T(), query.Bindings(), "Aras")
+	assert.Contains(suite.T(), query.Bindings(), 5)
 }
 
 func (suite *BuilderTestSuite) TestBuilderDelete() {
