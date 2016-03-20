@@ -26,6 +26,7 @@ Quick Start
 package main
 
 import (
+	"fmt"
 	"github.com/aacanakin/qb"
 	"github.com/nu7hatch/gouuid"
 )
@@ -61,5 +62,10 @@ func main() {
 
 	db.Add(user)
 	err = db.Commit() // insert user
+
+	var robert User
+	db.Find(&User{ID: userID.String()}).First(&robert)
+
+	fmt.Printf("%v\n", robert)
 }
 ```
