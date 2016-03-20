@@ -23,9 +23,11 @@ Features
 Quick Start
 -----------
 ```go
+package main
+
 import (
-    "github.com/aacanakin/qb"
-    "github.com/nu7hatch/gouuid"
+	"github.com/aacanakin/qb"
+	"github.com/nu7hatch/gouuid"
 )
 
 type User struct {
@@ -37,20 +39,19 @@ type User struct {
 }
 
 func main() {
-    engine, err := qb.NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 
-    if err != nil {
-        panic(err)
-    }
+	db, err := qb.New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	if err != nil {
+		panic(err)
+	}
 
-    metadata := qb.NewMetadata(engine)
-    session := qb.NewSession(metadata)
+	// add table to metadata
+	db.Metadata().Add(User{})
 
-    session.Metadata().Add(&User{})
-    err = session.Metadata().CreateAll() // Creates user table
+	// create all tables registered to metadata
+	db.Metadata().CreateAll()
 
-    // insert user using session
-    userID, _ := uuid.NewV4()
+	userID, _ := uuid.NewV4()
 	user := &User{
 		ID:       userID.String(),
 		Email:    "robert@de-niro.com",
@@ -58,8 +59,7 @@ func main() {
 		Password: "rdn",
 	}
 
-    session.Add(user)
-    err = session.Commit()
-    // user is inserted into db
+	db.Add(user)
+	err = db.Commit() // insert user
 }
 ```
