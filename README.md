@@ -67,5 +67,6 @@ func main() {
 	db.Find(&User{ID: userID.String()}).First(&robert)
 
 	fmt.Printf("%v\n", robert)
+
 }
 ```
