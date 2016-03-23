@@ -44,6 +44,11 @@ func (s *Session) add(query *Query) {
 	s.queries = append(s.queries, query)
 }
 
+// Close closes engine db (sqlx) connection
+func (s *Session) Close() {
+	s.metadata.Engine().DB().Close()
+}
+
 // Builder returns query builder
 func (s *Session) Builder() *Builder{
 	return s.builder

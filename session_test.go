@@ -8,6 +8,7 @@ import (
 func TestSession(t *testing.T) {
 
 	session, err := New("postgres", "user=root dbname=qb_test")
+	defer session.Close()
 	assert.NotNil(t, session)
 	assert.Nil(t, err)
 }
