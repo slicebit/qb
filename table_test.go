@@ -79,13 +79,6 @@ func TestTable(t *testing.T) {
 		"\tFOREIGN KEY (`facebook_id`) REFERENCES `user_facebook`(`id`)\n);"
 
 	assert.Equal(t, table.SQL(), q)
-
-	//dialect := NewDialect("mysql")
-	//assert.Equal(t, table.Constraints(), []Constraint{
-	//	Primary(dialect.Escape("id")),
-	//	Foreign(dialect.Escape("profile_id"), dialect.Escape("profile"), dialect.Escape("id")),
-	//	Foreign(dialect.Escape("facebook_id"), dialect.Escape("user_facebook"), dialect.Escape("id")),
-	//})
 }
 
 func TestTableInsert(t *testing.T) {
@@ -97,9 +90,9 @@ func TestTableInsert(t *testing.T) {
 			NewColumn("id", BigInt(), []Constraint{}),
 			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
 		},
-		[]Constraint{
-			Primary("id"),
-		})
+		[]Constraint{})
+
+	table.AddPrimary("id")
 
 	kv := map[string]interface{}{
 		"id":        1,
@@ -125,9 +118,9 @@ func TestTableUpdate(t *testing.T) {
 			NewColumn("id", BigInt(), []Constraint{}),
 			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
 		},
-		[]Constraint{
-			Primary("id"),
-		})
+		[]Constraint{})
+
+	table.AddPrimary("id")
 
 	query := table.
 		Update(map[string]interface{}{"full_name": "Aras"}).
@@ -147,9 +140,9 @@ func TestTableDelete(t *testing.T) {
 			NewColumn("id", BigInt(), []Constraint{}),
 			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
 		},
-		[]Constraint{
-			Primary("id"),
-		})
+		[]Constraint{})
+
+	table.AddPrimary("id")
 
 	query := table.
 		Delete().

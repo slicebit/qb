@@ -36,26 +36,3 @@ func Unique(cols ...string) Constraint {
 	}
 	return Constraint{fmt.Sprintf("UNIQUE(%s)", strings.Join(cols, ", "))}
 }
-
-// Primary generates generic primary key syntax
-// if cols are given, then composite primary key will be built
-func Primary(cols ...string) Constraint {
-	if len(cols) == 0 {
-		return Constraint{"PRIMARY KEY"}
-	}
-	constraint := Constraint{fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))}
-	return constraint
-}
-
-// Foreign generates generic foreign key syntax
-func Foreign(cols string, reftable string, refcols string) Constraint {
-	constraint := Constraint{
-		fmt.Sprintf(
-			"FOREIGN KEY (%s) REFERENCES %s(%s)",
-			cols,
-			reftable,
-			refcols,
-		),
-	}
-	return constraint
-}

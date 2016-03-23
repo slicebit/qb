@@ -26,6 +26,7 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.def.Placeholders(5, 10), []string{"?", "?"})
 	assert.Equal(suite.T(), suite.def.SupportsInlinePrimaryKey(), false)
+	assert.Equal(suite.T(), suite.def.Driver(), "")
 	suite.def.Reset() // does nothing
 }
 
@@ -34,6 +35,7 @@ func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.mysql.Placeholders(5, 10), []string{"?", "?"})
 	assert.Equal(suite.T(), suite.mysql.SupportsInlinePrimaryKey(), false)
+	assert.Equal(suite.T(), suite.mysql.Driver(), "mysql")
 	suite.mysql.Reset() // does nothing
 }
 
@@ -45,6 +47,7 @@ func (suite *DialectTestSuite) TestPostgresDialect() {
 	assert.Equal(suite.T(), suite.postgres.Placeholder(), "$1")
 	assert.Equal(suite.T(), suite.postgres.Placeholders(5, 10), []string{"$2", "$3"})
 	assert.Equal(suite.T(), suite.postgres.SupportsInlinePrimaryKey(), true)
+	assert.Equal(suite.T(), suite.postgres.Driver(), "postgres")
 }
 
 func (suite *DialectTestSuite) TestSqliteDialect() {
@@ -52,6 +55,7 @@ func (suite *DialectTestSuite) TestSqliteDialect() {
 	assert.Equal(suite.T(), suite.sqlite.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.sqlite.Placeholders(5, 10), []string{"?", "?"})
 	assert.Equal(suite.T(), suite.sqlite.SupportsInlinePrimaryKey(), true)
+	assert.Equal(suite.T(), suite.sqlite.Driver(), "sqlite3")
 	suite.sqlite.Reset() // does nothing
 }
 
