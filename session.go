@@ -135,8 +135,6 @@ func (s *Session) Find(model interface{}) *Session {
 		sqlColNames = append(sqlColNames, s.mapper.ColName(k))
 	}
 
-	//sort.Strings(sqlColNames)
-
 	s.builder = NewBuilder(s.metadata.Engine().Driver())
 	s.builder.Select(s.builder.Dialect().EscapeAll(sqlColNames)...).From(tName)
 
