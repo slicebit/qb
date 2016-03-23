@@ -37,7 +37,6 @@ type User struct {
 	ID       string `qb:"type:uuid; constraints:primary_key"`
 	Email    string `qb:"constraints:unique, notnull"`
 	FullName string `qb:"constraints:notnull"`
-	Password string `qb:"constraints:notnull"`
 	Bio      string `qb:"type:text; constraints:null"`
 }
 
@@ -48,6 +47,8 @@ func main() {
 		panic(err)
 	}
 
+	defer db.Close()
+
 	// add table to metadata
 	db.Metadata().Add(User{})
 
@@ -55,20 +56,23 @@ func main() {
 	db.Metadata().CreateAll()
 
 	userID, _ := uuid.NewV4()
-	user := &User{
+	db.Add(&User{
 		ID:       userID.String(),
 		Email:    "robert@de-niro.com",
 		FullName: "Robert De Niro",
-		Password: "rdn",
-	}
+	})
 
-	db.Add(user)
 	err = db.Commit() // insert user
+	fmt.Println(err)
 
-	var robert User
-	db.Find(&User{ID: userID.String()}).First(&robert)
+	var user User
+	db.Find(&User{ID: userID.String()}).First(&user)
 
-	fmt.Printf("%v\n", robert)
+	fmt.Println("id", user.ID)
+	fmt.Println("email", user.Email)
+	fmt.Println("full_name", user.FullName)
+
+	db.Metadata().DropAll() // drops all tables
 
 }
 ```
