@@ -3,7 +3,6 @@ package qb
 import (
 	"database/sql"
 	"fmt"
-	"sort"
 	"strings"
 )
 
@@ -136,10 +135,10 @@ func (s *Session) Find(model interface{}) *Session {
 		sqlColNames = append(sqlColNames, s.mapper.ColName(k))
 	}
 
-	sort.Strings(sqlColNames)
+	//sort.Strings(sqlColNames)
 
 	s.builder = NewBuilder(s.metadata.Engine().Driver())
-	s.builder.Select(sqlColNames...).From(tName)
+	s.builder.Select(s.builder.Dialect().EscapeAll(sqlColNames)...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)
 
