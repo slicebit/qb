@@ -22,6 +22,7 @@ func NewDialect(driver string) Dialect {
 // It is for fixing compatibility issues of different drivers
 type Dialect interface {
 	Escape(str string) string
+	EscapeAll([]string) []string
 	Placeholder() string
 	Placeholders(values ...interface{}) []string
 	Reset()
@@ -37,6 +38,11 @@ func (d *DefaultDialect) Escape(str string) string {
 	return str
 }
 
+// EscapeAll wraps all elements of string array
+func (d *DefaultDialect) EscapeAll(strings []string) []string {
+	return escapeAll(d, strings[0:])
+}
+
 // Placeholder returns the placeholder for bindings in the sql
 func (d *DefaultDialect) Placeholder() string {
 	return "?"
@@ -44,11 +50,7 @@ func (d *DefaultDialect) Placeholder() string {
 
 // Placeholders returns the placeholders for bindings in the sql
 func (d *DefaultDialect) Placeholders(values ...interface{}) []string {
-	placeholders := []string{}
-	for _ = range values {
-		placeholders = append(placeholders, d.Placeholder())
-	}
-	return placeholders
+	return placeholders(d, values...)
 }
 
 // Reset does nothing for the default driver
@@ -72,6 +74,11 @@ func (d *PostgresDialect) Escape(str string) string {
 	return fmt.Sprintf("\"%s\"", str)
 }
 
+// EscapeAll wraps all elements of string array
+func (d *PostgresDialect) EscapeAll(strings []string) []string {
+	return escapeAll(d, strings[0:])
+}
+
 // Placeholder returns the placeholder for bindings in the sql
 func (d *PostgresDialect) Placeholder() string {
 	d.bindingIndex++
@@ -80,11 +87,7 @@ func (d *PostgresDialect) Placeholder() string {
 
 // Placeholders returns the placeholders for bindings in the sql
 func (d *PostgresDialect) Placeholders(values ...interface{}) []string {
-	placeholders := []string{}
-	for _ = range values {
-		placeholders = append(placeholders, d.Placeholder())
-	}
-	return placeholders
+	return placeholders(d, values...)
 }
 
 // Reset clears the binding index for postgres driver
@@ -106,6 +109,11 @@ func (d *MysqlDialect) Escape(str string) string {
 	return fmt.Sprintf("`%s`", str)
 }
 
+// EscapeAll wraps all elements of string array
+func (d *MysqlDialect) EscapeAll(strings []string) []string {
+	return escapeAll(d, strings[0:])
+}
+
 // Placeholder returns the placeholder for bindings in the sql
 func (d *MysqlDialect) Placeholder() string {
 	return "?"
@@ -113,11 +121,7 @@ func (d *MysqlDialect) Placeholder() string {
 
 // Placeholders returns the placeholders for bindings in the sql
 func (d *MysqlDialect) Placeholders(values ...interface{}) []string {
-	placeholders := []string{}
-	for _ = range values {
-		placeholders = append(placeholders, d.Placeholder())
-	}
-	return placeholders
+	return placeholders(d, values...)
 }
 
 // Reset does nothing for the default driver
@@ -139,6 +143,11 @@ func (d *SqliteDialect) Escape(str string) string {
 	return fmt.Sprintf("`%s`", str)
 }
 
+// EscapeAll wraps all elements of string array
+func (d *SqliteDialect) EscapeAll(strings []string) []string {
+	return escapeAll(d, strings[0:])
+}
+
 // Placeholder returns the placeholder for bindings in the sql
 func (d *SqliteDialect) Placeholder() string {
 	return "?"
@@ -146,11 +155,7 @@ func (d *SqliteDialect) Placeholder() string {
 
 // Placeholders returns the placeholders for bindings in the sql
 func (d *SqliteDialect) Placeholders(values ...interface{}) []string {
-	placeholders := []string{}
-	for _ = range values {
-		placeholders = append(placeholders, d.Placeholder())
-	}
-	return placeholders
+	return placeholders(d, values...)
 }
 
 // Reset does nothing for the default driver
@@ -162,4 +167,22 @@ func (d *SqliteDialect) SupportsInlinePrimaryKey() bool { return true }
 // Driver returns the current driver of dialect
 func (d *SqliteDialect) Driver() string {
 	return "sqlite3"
+}
+
+// common escape all
+func escapeAll(dialect Dialect, strings []string) []string {
+	for k, v := range strings {
+		strings[k] = dialect.Escape(v)
+	}
+
+	return strings
+}
+
+// common placeholders
+func placeholders(dialect Dialect, values ...interface{}) []string {
+	placeholders := []string{}
+	for _ = range values {
+		placeholders = append(placeholders, dialect.Placeholder())
+	}
+	return placeholders
 }
