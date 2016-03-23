@@ -26,6 +26,7 @@ type Dialect interface {
 	Placeholders(values ...interface{}) []string
 	Reset()
 	SupportsInlinePrimaryKey() bool
+	Driver() string
 }
 
 // DefaultDialect is a type of dialect that can be used with unsupported sql drivers
@@ -55,6 +56,11 @@ func (d *DefaultDialect) Reset() {}
 
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (d *DefaultDialect) SupportsInlinePrimaryKey() bool { return false }
+
+// Driver returns the current driver of dialect
+func (d *DefaultDialect) Driver() string {
+	return ""
+}
 
 // PostgresDialect is a type of dialect that can be used with postgres driver
 type PostgresDialect struct {
@@ -87,6 +93,11 @@ func (d *PostgresDialect) Reset() { d.bindingIndex = 0 }
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (d *PostgresDialect) SupportsInlinePrimaryKey() bool { return true }
 
+// Driver returns the current driver of dialect
+func (d *PostgresDialect) Driver() string {
+	return "postgres"
+}
+
 // MysqlDialect is a type of dialect that can be used with mysql driver
 type MysqlDialect struct{}
 
@@ -115,6 +126,11 @@ func (d *MysqlDialect) Reset() {}
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (d *MysqlDialect) SupportsInlinePrimaryKey() bool { return false }
 
+// Driver returns the current driver of dialect
+func (d *MysqlDialect) Driver() string {
+	return "mysql"
+}
+
 // SqliteDialect is a type of dialect that can be used with sqlite driver
 type SqliteDialect struct{}
 
@@ -142,3 +158,8 @@ func (d *SqliteDialect) Reset() {}
 
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (d *SqliteDialect) SupportsInlinePrimaryKey() bool { return true }
+
+// Driver returns the current driver of dialect
+func (d *SqliteDialect) Driver() string {
+	return "sqlite3"
+}

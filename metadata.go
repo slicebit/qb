@@ -71,9 +71,6 @@ func (m *MetaData) CreateAll() error {
 	}
 
 	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
-	}
 	return err
 }
 

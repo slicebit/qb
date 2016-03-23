@@ -13,7 +13,7 @@ func NewTable(driver string, name string, columns []Column, constraints []Constr
 		constraints: constraints,
 		primaryCols: []string{},
 		refs:        []ref{},
-		driver:      driver,
+		builder:     NewBuilder(driver),
 	}
 }
 
@@ -24,7 +24,7 @@ type Table struct {
 	constraints []Constraint
 	primaryCols []string
 	refs        []ref
-	driver      string
+	builder *Builder
 }
 
 // Name returns the table name
@@ -35,30 +35,35 @@ func (t *Table) Name() string {
 // SQL generates create table syntax of table
 func (t *Table) SQL() string {
 
-	builder := NewBuilder(t.driver)
-
 	cols := []string{}
 	for _, v := range t.columns {
-		cols = append(cols, v.SQL(t.driver))
+		cols = append(cols, v.SQL(t.builder.Dialect().Driver()))
 	}
 
 	constraints := []string{}
 
 	// build primary key constraints using primaryCols
 	if len(t.primaryCols) > 0 {
+		for k, col := range t.primaryCols {
+			t.primaryCols[k] = t.builder.Dialect().Escape(col)
+		}
 		constraints = append(constraints, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(t.primaryCols, ", ")))
 	}
 
 	// build foreign key constraints using refCols
 	for _, ref := range t.refs {
-		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), builder.Dialect().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
+		for k, _ := range ref.cols {
+			ref.cols[k] = t.builder.Dialect().Escape(ref.cols[k])
+			ref.refCols[k] = t.builder.Dialect().Escape(ref.refCols[k])
+		}
+		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), t.builder.Dialect().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
 	}
 
 	for _, v := range t.constraints {
 		constraints = append(constraints, v.Name)
 	}
 
-	query := builder.CreateTable(t.name, cols, constraints).Query()
+	query := t.builder.CreateTable(t.name, cols, constraints).Query()
 
 	return query.SQL()
 }
@@ -125,15 +130,15 @@ func (t *Table) Insert(kv map[string]interface{}) *Builder {
 	}
 
 	// TODO: Validate column name
-	return NewBuilder(t.driver).Insert(t.name).Values(kv)
+	return t.builder.Insert(t.name).Values(kv)
 }
 
 // Update creates an update statement for the table name
 func (t *Table) Update(kv map[string]interface{}) *Builder {
-	return NewBuilder(t.driver).Update(t.Name()).Set(kv)
+	return t.builder.Update(t.Name()).Set(kv)
 }
 
 // Delete creates a delete statement for the table name
 func (t *Table) Delete() *Builder {
-	return NewBuilder(t.driver).Delete(t.Name())
+	return t.builder.Delete(t.Name())
 }

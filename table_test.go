@@ -57,31 +57,35 @@ func TestTable(t *testing.T) {
 			),
 		},
 		[]Constraint{
-			Primary("id"),
-			Foreign("profile_id", "profile", "id"),
+		//	Primary("id"),
+		//	Foreign("profile_id", "profile", "id"),
 		},
 	)
 
-	table.AddConstraint(Foreign("facebook_id", "user_facebook", "id"))
+	table.AddPrimary("id")
+	table.AddRef("profile_id", "profile", "id")
+	table.AddRef("facebook_id", "user_facebook", "id")
 
 	q := "CREATE TABLE `user`(\n" +
-		"\tid BIGINT,\n" +
-		"\tprofile_id BIGINT,\n" +
-		"\tfacebook_id BIGINT,\n" +
-		"\temail VARCHAR(512) UNIQUE NOT NULL,\n" +
-		"\tbio TEXT NOT NULL,\n" +
-		"\tgender CHAR(16) DEFAULT 'female',\n" +
-		"\tbirth_date CHAR(16) NOT NULL,\n" +
-		"\tPRIMARY KEY(id),\n" +
-		"\tFOREIGN KEY (profile_id) REFERENCES profile(id),\n" +
-		"\tFOREIGN KEY (facebook_id) REFERENCES user_facebook(id)\n);"
+		"\t`id` BIGINT,\n" +
+		"\t`profile_id` BIGINT,\n" +
+		"\t`facebook_id` BIGINT,\n" +
+		"\t`email` VARCHAR(512) UNIQUE NOT NULL,\n" +
+		"\t`bio` TEXT NOT NULL,\n" +
+		"\t`gender` CHAR(16) DEFAULT 'female',\n" +
+		"\t`birth_date` CHAR(16) NOT NULL,\n" +
+		"\tPRIMARY KEY (`id`),\n" +
+		"\tFOREIGN KEY (`profile_id`) REFERENCES `profile`(`id`),\n" +
+		"\tFOREIGN KEY (`facebook_id`) REFERENCES `user_facebook`(`id`)\n);"
 
 	assert.Equal(t, table.SQL(), q)
-	assert.Equal(t, table.Constraints(), []Constraint{
-		Primary("id"),
-		Foreign("profile_id", "profile", "id"),
-		Foreign("facebook_id", "user_facebook", "id"),
-	})
+
+	//dialect := NewDialect("mysql")
+	//assert.Equal(t, table.Constraints(), []Constraint{
+	//	Primary(dialect.Escape("id")),
+	//	Foreign(dialect.Escape("profile_id"), dialect.Escape("profile"), dialect.Escape("id")),
+	//	Foreign(dialect.Escape("facebook_id"), dialect.Escape("user_facebook"), dialect.Escape("id")),
+	//})
 }
 
 func TestTableInsert(t *testing.T) {

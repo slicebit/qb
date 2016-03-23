@@ -24,22 +24,17 @@ type Column struct {
 // SQL returns column as an sql statement
 func (c *Column) SQL(driver string) string {
 
+	dialect := NewDialect(driver)
+
 	constraints := []string{}
 	for _, v := range c.Constraints {
 		constraints = append(constraints, v.Name)
 	}
 
 	colPieces := []string{
-		fmt.Sprintf("%s", c.Name),
+		fmt.Sprintf("%s", dialect.Escape(c.Name)),
 		c.Type.SQL(),
 	}
-
-	// TODO: Find a way to properly do `` and "" for columns
-	//if driver == "postgres" {
-	//	colPieces[0] = fmt.Sprintf("\"%s\"", colPieces[0])
-	//} else {
-	//	colPieces[0] = fmt.Sprintf("`%s`", colPieces[0])
-	//}
 
 	if len(constraints) > 0 {
 		colPieces = append(colPieces, strings.Join(constraints, " "))
