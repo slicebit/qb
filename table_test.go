@@ -56,10 +56,7 @@ func TestTable(t *testing.T) {
 				},
 			),
 		},
-		[]Constraint{
-		//	Primary("id"),
-		//	Foreign("profile_id", "profile", "id"),
-		},
+		[]Constraint{},
 	)
 
 	table.AddPrimary("id")
