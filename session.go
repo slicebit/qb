@@ -43,6 +43,11 @@ func (s *Session) add(query *Query) {
 	s.queries = append(s.queries, query)
 }
 
+// Engine returns the current sqlx wrapped engine
+func (s *Session)Engine() *Engine {
+	return s.metadata.Engine()
+}
+
 // Close closes engine db (sqlx) connection
 func (s *Session) Close() {
 	s.metadata.Engine().DB().Close()
