@@ -73,29 +73,29 @@ func (m *Mapper) ToType(colType string, tagType string) *Type {
 	// convert tagType
 	if tagType != "" {
 		tagType = strings.ToUpper(tagType)
-		return &Type{func() string { return tagType }}
+		return &Type{tagType}
 	}
 
 	// convert default type
 	switch colType {
 	case "string":
-		return VarChar()
+		return &Type{"VARCHAR(255)"}
 	case "int":
-		return Int()
+		return &Type{"INT"}
 	case "int64":
-		return BigInt()
+		return &Type{"BIGINT"}
 	case "float32":
-		return Float()
+		return &Type{"FLOAT"}
 	case "float64":
-		return Float()
+		return &Type{"FLOAT"}
 	case "bool":
-		return Boolean()
+		return &Type{"BOOLEAN"}
 	case "time.Time":
-		return Timestamp()
+		return &Type{"TIMESTAMP"}
 	case "*time.Time":
-		return Timestamp()
+		return &Type{"TIMESTAMP"}
 	default:
-		return VarChar()
+		return &Type{"VARCHAR"}
 	}
 }
 

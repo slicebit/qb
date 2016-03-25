@@ -33,7 +33,7 @@ func (c *Column) SQL(driver string) string {
 
 	colPieces := []string{
 		fmt.Sprintf("%s", dialect.Escape(c.Name)),
-		c.Type.SQL(),
+		c.Type.SQL,
 	}
 
 	if len(constraints) > 0 {

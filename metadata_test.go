@@ -39,7 +39,7 @@ func TestMetadataAddTable(t *testing.T) {
 		"mysql",
 		"user",
 		[]Column{
-			NewColumn("id", BigInt(), []Constraint{}),
+			NewColumn("id", NewType("BIGINT"), []Constraint{}),
 		},
 	)
 

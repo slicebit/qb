@@ -13,22 +13,22 @@ func TestTable(t *testing.T) {
 		[]Column{
 			NewColumn(
 				"id",
-				BigInt(),
+				NewType("BIGINT"),
 				[]Constraint{},
 			),
 			NewColumn(
 				"profile_id",
-				BigInt(),
+				NewType("BIGINT"),
 				[]Constraint{},
 			),
 			NewColumn(
 				"facebook_id",
-				BigInt(),
+				NewType("BIGINT"),
 				[]Constraint{},
 			),
 			NewColumn(
 				"email",
-				VarChar(512),
+				NewType("VARCHAR(512)"),
 				[]Constraint{
 					Constraint{"UNIQUE"},
 					NotNull(),
@@ -36,21 +36,21 @@ func TestTable(t *testing.T) {
 			),
 			NewColumn(
 				"bio",
-				Text(),
+				NewType("TEXT"),
 				[]Constraint{
 					NotNull(),
 				},
 			),
 			NewColumn(
 				"gender",
-				Char(16),
+				NewType("CHAR(16)"),
 				[]Constraint{
 					Default("female"),
 				},
 			),
 			NewColumn(
 				"birth_date",
-				Char(16),
+				NewType("CHAR(16)"),
 				[]Constraint{
 					NotNull(),
 				},
@@ -83,8 +83,8 @@ func TestTableInsert(t *testing.T) {
 		"mysql",
 		"user",
 		[]Column{
-			NewColumn("id", BigInt(), []Constraint{}),
-			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
+			NewColumn("id", NewType("BIGINT"), []Constraint{}),
+			NewColumn("full_name", NewType("VARCHAR"), []Constraint{Unique()}),
 		},
 	)
 
@@ -111,8 +111,8 @@ func TestTableUpdate(t *testing.T) {
 		"mysql",
 		"user",
 		[]Column{
-			NewColumn("id", BigInt(), []Constraint{}),
-			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
+			NewColumn("id", NewType("BIGINT"), []Constraint{}),
+			NewColumn("full_name", NewType("VARCHAR"), []Constraint{Unique()}),
 		},
 	)
 
@@ -133,8 +133,8 @@ func TestTableDelete(t *testing.T) {
 		"mysql",
 		"user",
 		[]Column{
-			NewColumn("id", BigInt(), []Constraint{}),
-			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
+			NewColumn("id", NewType("BIGINT"), []Constraint{}),
+			NewColumn("full_name", NewType("VARCHAR"), []Constraint{Unique()}),
 		})
 
 	table.AddPrimary("id")
