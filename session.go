@@ -44,7 +44,7 @@ func (s *Session) add(query *Query) {
 }
 
 // Engine returns the current sqlx wrapped engine
-func (s *Session)Engine() *Engine {
+func (s *Session) Engine() *Engine {
 	return s.metadata.Engine()
 }
 
@@ -54,7 +54,7 @@ func (s *Session) Close() {
 }
 
 // Builder returns query builder
-func (s *Session) Builder() *Builder{
+func (s *Session) Builder() *Builder {
 	return s.builder
 }
 

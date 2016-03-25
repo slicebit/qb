@@ -245,7 +245,7 @@ func (b *Builder) Max(column string) string {
 // NotIn function generates "%s not in (%s)" for key and adds bindings for each value
 func (b *Builder) NotIn(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
- 	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(b.dialect.Placeholders(values...), ","))
+	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(b.dialect.Placeholders(values...), ","))
 }
 
 // In function generates "%s in (%s)" for key and adds bindings for each value

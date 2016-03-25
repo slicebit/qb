@@ -24,7 +24,7 @@ type Table struct {
 	constraints []Constraint
 	primaryCols []string
 	refs        []ref
-	builder *Builder
+	builder     *Builder
 }
 
 // Name returns the table name
