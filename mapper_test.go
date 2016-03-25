@@ -8,35 +8,31 @@ import (
 	"time"
 )
 
-type unknownType struct{}
-
-type mapperTestUser struct {
-	ID          string `qb:"constraints:primary_key"`
-	FacebookID  int64  `qb:"constraints:ref(facebook.id)"`
-	ProfileID   int64  `qb:"constraints:ref(profile.id)"`
-	ProfileName string `qb:"constraints:ref(profile.name)"`
-	Email       string `qb:"type:varchar(255); constraints:unique,notnull"`
-	FullName    string `qb:"constraints:notnull,default"`
-	Password    string `qb:"type:text"`
-	UserType    string `qb:"constraints:default(guest)"`
-	Premium     bool
-	CreatedAt   time.Time  `qb:"constraints:notnull"`
-	DeletedAt   *time.Time `qb:"constraints:null"`
-	Level       int
-	Money       float32
-	Score       float64
-	Unknown     unknownType
-}
-
-type MapperTestSqliteAutoIncrementUser struct {
-	ID int64 `qb:"constraints:auto_increment"`
-}
-
 func TestMapper(t *testing.T) {
+
+	type UnknownType struct{}
+
+	type User struct {
+		ID          string `qb:"constraints:primary_key"`
+		FacebookID  int64  `qb:"constraints:ref(facebook.id)"`
+		ProfileID   int64  `qb:"constraints:ref(profile.id)"`
+		ProfileName string `qb:"constraints:ref(profile.name)"`
+		Email       string `qb:"type:varchar(255); constraints:unique,notnull"`
+		FullName    string `qb:"constraints:notnull,default"`
+		Password    string `qb:"type:text"`
+		UserType    string `qb:"constraints:default(guest)"`
+		Premium     bool
+		CreatedAt   time.Time  `qb:"constraints:notnull"`
+		DeletedAt   *time.Time `qb:"constraints:null"`
+		Level       int
+		Money       float32
+		Score       float64
+		Unknown     UnknownType
+	}
 
 	mapper := NewMapper("mysql")
 
-	userTable, err := mapper.ToTable(mapperTestUser{})
+	userTable, err := mapper.ToTable(User{})
 
 	assert.Nil(t, err)
 	fmt.Println(userTable.SQL())
@@ -44,24 +40,27 @@ func TestMapper(t *testing.T) {
 
 func TestMapperSqliteAutoIncrement(t *testing.T) {
 
+	type User struct {
+		ID int64 `qb:"constraints:auto_increment"`
+	}
+
 	mapper := NewMapper("sqlite3")
-	sqliteAutoIncrementUserTable, err := mapper.ToTable(MapperTestSqliteAutoIncrementUser{})
+	table, err := mapper.ToTable(User{})
 
 	assert.Nil(t, err)
-	fmt.Println(sqliteAutoIncrementUserTable.SQL())
-
-}
-
-type MapperTestUserErr struct {
-	ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
-	Email string `qb:"wrongtag:"`
+	fmt.Println(table.SQL())
 }
 
 func TestMapperError(t *testing.T) {
 
+	type UserErr struct {
+		ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
+		Email string `qb:"wrongtag:"`
+	}
+
 	mapper := NewMapper("postgres")
 
-	userErrTable, err := mapper.ToTable(MapperTestUserErr{})
+	userErrTable, err := mapper.ToTable(UserErr{})
 
 	assert.NotNil(t, err)
 	assert.Empty(t, userErrTable)
@@ -83,10 +82,15 @@ func TestMapperInvalidConstraint(t *testing.T) {
 
 func TestMapperUtilFuncs(t *testing.T) {
 
+	type UserErr struct {
+		ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
+		Email string `qb:"wrongtag:"`
+	}
+
 	mapper := NewMapper("mysql")
 
 	assert.Equal(t, mapper.ColName("CreatedAt"), "created_at")
 
-	kv := mapper.ToMap(MapperTestUserErr{})
+	kv := mapper.ToMap(UserErr{})
 	assert.Equal(t, kv, map[string]interface{}{})
 }
