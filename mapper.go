@@ -104,7 +104,7 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 
 	modelName := m.ModelName(model)
 
-	table := NewTable(m.driver, modelName, []Column{}, []Constraint{})
+	table := NewTable(m.driver, modelName, []Column{})
 	dialect := NewDialect(m.driver)
 
 	//fmt.Printf("model name: %s\n\n", modelName)

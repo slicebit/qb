@@ -41,7 +41,6 @@ func TestMetadataAddTable(t *testing.T) {
 		[]Column{
 			NewColumn("id", BigInt(), []Constraint{}),
 		},
-		[]Constraint{},
 	)
 
 	metadata.AddTable(table)

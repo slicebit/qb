@@ -56,7 +56,6 @@ func TestTable(t *testing.T) {
 				},
 			),
 		},
-		[]Constraint{},
 	)
 
 	table.AddPrimary("id")
@@ -87,7 +86,7 @@ func TestTableInsert(t *testing.T) {
 			NewColumn("id", BigInt(), []Constraint{}),
 			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
 		},
-		[]Constraint{})
+	)
 
 	table.AddPrimary("id")
 
@@ -115,7 +114,7 @@ func TestTableUpdate(t *testing.T) {
 			NewColumn("id", BigInt(), []Constraint{}),
 			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
 		},
-		[]Constraint{})
+	)
 
 	table.AddPrimary("id")
 
@@ -136,8 +135,7 @@ func TestTableDelete(t *testing.T) {
 		[]Column{
 			NewColumn("id", BigInt(), []Constraint{}),
 			NewColumn("full_name", VarChar(), []Constraint{Unique()}),
-		},
-		[]Constraint{})
+		})
 
 	table.AddPrimary("id")
 

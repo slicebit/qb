@@ -6,11 +6,10 @@ import (
 )
 
 // NewTable generates a new table pointer given table name, column and table constraints
-func NewTable(driver string, name string, columns []Column, constraints []Constraint) *Table {
+func NewTable(driver string, name string, columns []Column) *Table {
 	return &Table{
 		name:        name,
 		columns:     columns,
-		constraints: constraints,
 		primaryCols: []string{},
 		refs:        []ref{},
 		builder:     NewBuilder(driver),
@@ -21,7 +20,6 @@ func NewTable(driver string, name string, columns []Column, constraints []Constr
 type Table struct {
 	name        string
 	columns     []Column
-	constraints []Constraint
 	primaryCols []string
 	refs        []ref
 	builder     *Builder
@@ -59,10 +57,6 @@ func (t *Table) SQL() string {
 		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), t.builder.Dialect().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
 	}
 
-	for _, v := range t.constraints {
-		constraints = append(constraints, v.Name)
-	}
-
 	query := t.builder.CreateTable(t.name, cols, constraints).Query()
 
 	return query.SQL()
@@ -71,11 +65,6 @@ func (t *Table) SQL() string {
 // AddColumn appends a new column to current table
 func (t *Table) AddColumn(column Column) {
 	t.columns = append(t.columns, column)
-}
-
-// AddConstraint appends a new constraint to current table
-func (t *Table) AddConstraint(c Constraint) {
-	t.constraints = append(t.constraints, c)
 }
 
 // AddPrimary appends a primary column that will be lazily built as a primary key constraint
@@ -109,9 +98,9 @@ func (t *Table) AddRef(col string, refTable string, refCol string) {
 }
 
 // Constraints returns the constraint slice of current table
-func (t *Table) Constraints() []Constraint {
-	return t.constraints
-}
+//func (t *Table) Constraints() []Constraint {
+//	return t.constraints
+//}
 
 // Insert creates an insert statement for the table name
 func (t *Table) Insert(kv map[string]interface{}) *Builder {
