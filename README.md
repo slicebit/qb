@@ -1,3 +1,4 @@
+
 # qb - the database toolkit for go
 
 [![Join the chat at https://gitter.im/aacanakin/qb](https://badges.gitter.im/aacanakin/qb.svg)](https://gitter.im/aacanakin/qb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -20,7 +21,18 @@ Features
 - Expression builder which can be built almost any sql statements
 - Transactional session api that auto map structs to queries
 - Foreign Key definitions of structs using tags
+- Single & composite column indices
 - Relationships (soon..)
+
+Installation
+------------
+```sh
+go get -u github.com/aacanakin/qb
+```
+If you want to install test dependencies then;
+```sh
+go get -u -t github.com/aacanakin/qb
+```
 
 Quick Start
 -----------
