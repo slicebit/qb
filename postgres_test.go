@@ -32,11 +32,12 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	}
 
 	type Session struct {
-		ID        int64     `qb:"type:bigserial; constraints:primary_key"`
-		UserID    string    `qb:"type:uuid; constraints:ref(user.id)"`
-		AuthToken string    `qb:"type:uuid; constraints:notnull, unique"`
-		CreatedAt time.Time `qb:"constraints:notnull"`
-		ExpiresAt time.Time `qb:"constraints:notnull"`
+		ID             int64     `qb:"type:bigserial; constraints:primary_key"`
+		UserID         string    `qb:"type:uuid; constraints:ref(user.id)"`
+		AuthToken      string    `qb:"type:uuid; constraints:notnull, unique; index"`
+		CreatedAt      time.Time `qb:"constraints:notnull"`
+		ExpiresAt      time.Time `qb:"constraints:notnull"`
+		CompositeIndex `qb:"index:created_at, expires_at"`
 	}
 
 	var err error

@@ -31,6 +31,11 @@ func ParseTag(rawTag string) (*Tag, error) {
 	tags := strings.Split(rawTag, ";")
 	for _, t := range tags {
 		tagKeyVal := strings.Split(t, ":")
+		if tagKeyVal[0] == "index" {
+			tag.Constraints = append(tag.Constraints, t)
+			continue
+		}
+
 		if len(tagKeyVal) != 2 {
 			return nil, fmt.Errorf("Invalid tag key length, tag: %v", tag)
 		}

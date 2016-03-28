@@ -353,3 +353,9 @@ func (b *Builder) Drop(colName string) *Builder {
 	b.query.AddClause(fmt.Sprintf("DROP %s", colName))
 	return b
 }
+
+// CreateIndex generates an index on columns
+func (b *Builder) CreateIndex(indexName string, tableName string, columns ...string) *Builder {
+	b.query.AddClause(fmt.Sprintf("CREATE INDEX %s ON %s (%s)", indexName, tableName, strings.Join(b.dialect.EscapeAll(columns), ",")))
+	return b
+}

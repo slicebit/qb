@@ -13,6 +13,7 @@ func NewTable(driver string, name string, columns []Column) *Table {
 		primaryCols: []string{},
 		refs:        []ref{},
 		builder:     NewBuilder(driver),
+		indices:     []*Index{},
 	}
 }
 
@@ -23,6 +24,7 @@ type Table struct {
 	primaryCols []string
 	refs        []ref
 	builder     *Builder
+	indices     []*Index
 }
 
 // Name returns the table name
@@ -57,9 +59,18 @@ func (t *Table) SQL() string {
 		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), t.builder.Dialect().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
 	}
 
-	query := t.builder.CreateTable(t.name, cols, constraints).Query()
+	tableSql := t.builder.CreateTable(t.name, cols, constraints).Query().SQL()
 
-	return query.SQL()
+	indexSqls := []string{}
+	for _, index := range t.indices {
+		q := t.builder.CreateIndex(index.Name(), index.Table(), index.Columns()...).Query()
+		indexSqls = append(indexSqls, q.SQL())
+	}
+
+	sqls := []string{tableSql}
+	sqls = append(sqls, indexSqls...)
+
+	return strings.Join(sqls, "\n")
 }
 
 // AddColumn appends a new column to current table
@@ -97,10 +108,11 @@ func (t *Table) AddRef(col string, refTable string, refCol string) {
 	t.refs = append(t.refs, r)
 }
 
-// Constraints returns the constraint slice of current table
-//func (t *Table) Constraints() []Constraint {
-//	return t.constraints
-//}
+// AddIndex appends a new index that will be lazily created in SQL() function
+func (t *Table) AddIndex(columns ...string) {
+	indexName := fmt.Sprintf("index_%s", strings.Join(columns, "_"))
+	t.indices = append(t.indices, NewIndex(t.name, indexName, columns...))
+}
 
 // Insert creates an insert statement for the table name
 func (t *Table) Insert(kv map[string]interface{}) *Builder {

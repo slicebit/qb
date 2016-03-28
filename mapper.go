@@ -174,6 +174,15 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 				tc := strings.Split(m.extractValue(v), ".")
 				table.AddRef(colName, tc[0], tc[1])
 				continue
+			} else if strings.Contains(v, "index") {
+				if strings.Contains(f.Name(), "CompositeIndex") {
+					is := strings.Split(v, ":")
+					cols := strings.Split(is[1], ",")
+					table.AddIndex(cols...)
+				} else {
+					table.AddIndex(colName)
+				}
+				continue
 			} else {
 				return nil, fmt.Errorf("Invalid constraint: %s", v)
 			}
@@ -182,6 +191,10 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 
 		//fmt.Printf("field tag.Type: %s\n", tag.Type)
 		//fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
+
+		if strings.Contains(f.Name(), "CompositeIndex") {
+			continue
+		}
 
 		col = Column{
 			Name:        colName,
