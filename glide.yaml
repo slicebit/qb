@@ -1,0 +1,8 @@
+package: github.com/aacanakin/qb
+import:
+- package: github.com/fatih/structs
+- package: github.com/go-sql-driver/mysql
+- package: github.com/jmoiron/sqlx
+- package: github.com/lib/pq
+- package: github.com/mattn/go-sqlite3
+- package: github.com/serenize/snaker

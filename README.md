@@ -26,6 +26,12 @@ Features
 
 Installation
 ------------
+Installation with glide;
+```sh
+glide get github.com/aacanakin/qb
+```
+
+Installation using go get;
 ```sh
 go get -u github.com/aacanakin/qb
 ```

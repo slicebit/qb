@@ -1,0 +1,20 @@
+hash: b8a53c70573f2475dd4882d4ae3409d3be1c52ff422e6ab9f8bb4706f5dda300
+updated: 2016-03-30T23:24:37.740014179+03:00
+imports:
+- name: github.com/fatih/structs
+  version: 73c4e3dc02a78deaba8640d5f3a8c236ec1352bf
+- name: github.com/go-sql-driver/mysql
+  version: 1421caf44f6464fd2ee8de694c7508ee13f92964
+- name: github.com/jmoiron/sqlx
+  version: 398dd5876282499cdfd4cb8ea0f31a672abe9495
+  subpackages:
+  - reflectx
+- name: github.com/lib/pq
+  version: 3cd0097429be7d611bb644ef85b42bfb102ceea4
+  subpackages:
+  - oid
+- name: github.com/mattn/go-sqlite3
+  version: 37aa7c6f5bc95b7264de70cd1f0ca1d39228ebd6
+- name: github.com/serenize/snaker
+  version: 8824b61eca66d308fcb2d515287d3d7a28dba8d6
+devImports: []
