@@ -217,27 +217,27 @@ func (b *Builder) Limit(offset int, count int) *Builder {
 
 // Avg function generates "avg(%s)" statement for column
 func (b *Builder) Avg(column string) string {
-	return fmt.Sprintf("AVG(%s)", column)
+	return fmt.Sprintf("AVG(%s)", b.dialect.Escape(column))
 }
 
 // Count function generates "count(%s)" statement for column
 func (b *Builder) Count(column string) string {
-	return fmt.Sprintf("COUNT(%s)", column)
+	return fmt.Sprintf("COUNT(%s)", b.dialect.Escape(column))
 }
 
 // Sum function generates "sum(%s)" statement for column
 func (b *Builder) Sum(column string) string {
-	return fmt.Sprintf("SUM(%s)", column)
+	return fmt.Sprintf("SUM(%s)", b.dialect.Escape(column))
 }
 
 // Min function generates "min(%s)" statement for column
 func (b *Builder) Min(column string) string {
-	return fmt.Sprintf("MIN(%s)", column)
+	return fmt.Sprintf("MIN(%s)", b.dialect.Escape(column))
 }
 
 // Max function generates "max(%s)" statement for column
 func (b *Builder) Max(column string) string {
-	return fmt.Sprintf("MAX(%s)", column)
+	return fmt.Sprintf("MAX(%s)", b.dialect.Escape(column))
 }
 
 // expressions
@@ -245,49 +245,49 @@ func (b *Builder) Max(column string) string {
 // NotIn function generates "%s not in (%s)" for key and adds bindings for each value
 func (b *Builder) NotIn(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
-	return fmt.Sprintf("%s NOT IN (%s)", key, strings.Join(b.dialect.Placeholders(values...), ","))
+	return fmt.Sprintf("%s NOT IN (%s)", b.dialect.Escape(key), strings.Join(b.dialect.Placeholders(values...), ","))
 }
 
 // In function generates "%s in (%s)" for key and adds bindings for each value
 func (b *Builder) In(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
-	return fmt.Sprintf("%s IN (%s)", key, strings.Join(b.dialect.Placeholders(values...), ","))
+	return fmt.Sprintf("%s IN (%s)", b.dialect.Escape(key), strings.Join(b.dialect.Placeholders(values...), ","))
 }
 
 // NotEq function generates "%s != placeholder" for key and adds binding for value
 func (b *Builder) NotEq(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s != %s", key, b.dialect.Placeholder())
+	return fmt.Sprintf("%s != %s", b.dialect.Escape(key), b.dialect.Placeholder())
 }
 
 // Eq function generates "%s = placeholder" for key and adds binding for value
 func (b *Builder) Eq(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s = %s", key, b.dialect.Placeholder())
+	return fmt.Sprintf("%s = %s", b.dialect.Escape(key), b.dialect.Placeholder())
 }
 
 // Gt function generates "%s > placeholder" for key and adds binding for value
 func (b *Builder) Gt(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s > %s", key, b.dialect.Placeholder())
+	return fmt.Sprintf("%s > %s", b.dialect.Escape(key), b.dialect.Placeholder())
 }
 
 // Gte function generates "%s >= placeholder" for key and adds binding for value
 func (b *Builder) Gte(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s >= %s", key, b.dialect.Placeholder())
+	return fmt.Sprintf("%s >= %s", b.dialect.Escape(key), b.dialect.Placeholder())
 }
 
 // St function generates "%s < placeholder" for key and adds binding for value
 func (b *Builder) St(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s < %s", key, b.dialect.Placeholder())
+	return fmt.Sprintf("%s < %s", b.dialect.Escape(key), b.dialect.Placeholder())
 }
 
 // Ste function generates "%s <= placeholder" for key and adds binding for value
 func (b *Builder) Ste(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s <= %s", key, b.dialect.Placeholder())
+	return fmt.Sprintf("%s <= %s", b.dialect.Escape(key), b.dialect.Placeholder())
 }
 
 // And function generates " AND " between any number of expressions

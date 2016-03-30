@@ -89,7 +89,7 @@ func (suite *BuilderTestSuite) TestBuilderSelectAvgGroupByHaving() {
 		Having(fmt.Sprintf("%s < 50", suite.builder.Max("price"))).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT AVG(price)\nFROM `products`\nGROUP BY category\nHAVING MAX(price) < 50;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT AVG(`price`)\nFROM `products`\nGROUP BY category\nHAVING MAX(`price`) < 50;")
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectSumCount() {
@@ -99,7 +99,7 @@ func (suite *BuilderTestSuite) TestBuilderSelectSumCount() {
 		From("products").
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT SUM(price), COUNT(id)\nFROM `products`;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT SUM(`price`), COUNT(`id`)\nFROM `products`;")
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectMinMax() {
@@ -109,7 +109,7 @@ func (suite *BuilderTestSuite) TestBuilderSelectMinMax() {
 		From("products").
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT MIN(price), MAX(price)\nFROM `products`;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT MIN(`price`), MAX(`price`)\nFROM `products`;")
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectEqNeq() {
@@ -122,7 +122,7 @@ func (suite *BuilderTestSuite) TestBuilderSelectEqNeq() {
 			suite.builder.NotEq("name", "Aras Can Akin"))).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, email, name\nFROM `user`\nWHERE (email = ? AND name != ?);")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, email, name\nFROM `user`\nWHERE (`email` = ? AND `name` != ?);")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{"a@b.c", "Aras Can Akin"})
 }
 
@@ -136,7 +136,7 @@ func (suite *BuilderTestSuite) TestBuilderSelectInNotIn() {
 			suite.builder.NotIn("email", "a@b.c"),
 		)).Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, email, name\nFROM `user`\nWHERE (name IN (?) AND email NOT IN (?));")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, email, name\nFROM `user`\nWHERE (`name` IN (?) AND `email` NOT IN (?));")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{"Aras Can Akin", "a@b.c"})
 
 }
@@ -153,7 +153,7 @@ func (suite *BuilderTestSuite) TestBuilderSelectGtGteStSte() {
 			suite.builder.Gte("avg", 2.8),
 		)).Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, age, avg\nFROM `goqb.user`\nWHERE (age < ? AND age > ? AND avg <= ? AND avg >= ?);")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, age, avg\nFROM `goqb.user`\nWHERE (`age` < ? AND `age` > ? AND `avg` <= ? AND `avg` >= ?);")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{35, 18, 4.0, 2.8})
 }
 
