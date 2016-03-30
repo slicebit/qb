@@ -105,7 +105,7 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 	modelName := m.ModelName(model)
 
 	table := NewTable(m.driver, modelName, []Column{})
-	dialect := NewDialect(m.driver)
+	adapter := NewAdapter(m.driver)
 
 	//fmt.Printf("model name: %s\n\n", modelName)
 
@@ -162,7 +162,7 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 			} else if strings.Contains(v, "default") {
 				constraint = Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
-				if dialect.SupportsInlinePrimaryKey() {
+				if adapter.SupportsInlinePrimaryKey() {
 					constraint = Constraint{
 						Name: "PRIMARY KEY",
 					}

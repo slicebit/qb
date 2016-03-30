@@ -37,7 +37,7 @@ func (t *Table) SQL() string {
 
 	cols := []string{}
 	for _, v := range t.columns {
-		cols = append(cols, v.SQL(t.builder.Dialect().Driver()))
+		cols = append(cols, v.SQL(t.builder.Adapter().Driver()))
 	}
 
 	constraints := []string{}
@@ -45,7 +45,7 @@ func (t *Table) SQL() string {
 	// build primary key constraints using primaryCols
 	if len(t.primaryCols) > 0 {
 		for k, col := range t.primaryCols {
-			t.primaryCols[k] = t.builder.Dialect().Escape(col)
+			t.primaryCols[k] = t.builder.Adapter().Escape(col)
 		}
 		constraints = append(constraints, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(t.primaryCols, ", ")))
 	}
@@ -53,10 +53,10 @@ func (t *Table) SQL() string {
 	// build foreign key constraints using refCols
 	for _, ref := range t.refs {
 		for k, _ := range ref.cols {
-			ref.cols[k] = t.builder.Dialect().Escape(ref.cols[k])
-			ref.refCols[k] = t.builder.Dialect().Escape(ref.refCols[k])
+			ref.cols[k] = t.builder.Adapter().Escape(ref.cols[k])
+			ref.refCols[k] = t.builder.Adapter().Escape(ref.refCols[k])
 		}
-		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), t.builder.Dialect().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
+		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), t.builder.Adapter().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
 	}
 
 	tableSql := t.builder.CreateTable(t.name, cols, constraints).Query().SQL()

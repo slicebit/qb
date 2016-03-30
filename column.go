@@ -24,7 +24,7 @@ type Column struct {
 // SQL returns column as an sql statement
 func (c *Column) SQL(driver string) string {
 
-	dialect := NewDialect(driver)
+	adapter := NewAdapter(driver)
 
 	constraints := []string{}
 	for _, v := range c.Constraints {
@@ -32,7 +32,7 @@ func (c *Column) SQL(driver string) string {
 	}
 
 	colPieces := []string{
-		fmt.Sprintf("%s", dialect.Escape(c.Name)),
+		fmt.Sprintf("%s", adapter.Escape(c.Name)),
 		c.Type.SQL,
 	}
 

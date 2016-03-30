@@ -84,7 +84,7 @@ func (s *Session) Delete(model interface{}) {
 	ands := []string{}
 	bindings := []interface{}{}
 	for k, v := range kv {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Dialect().Placeholder()))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Adapter().Placeholder()))
 		bindings = append(bindings, v)
 	}
 
@@ -141,7 +141,7 @@ func (s *Session) Find(model interface{}) *Session {
 	}
 
 	s.builder = NewBuilder(s.metadata.Engine().Driver())
-	s.builder.Select(s.builder.Dialect().EscapeAll(sqlColNames)...).From(tName)
+	s.builder.Select(s.builder.Adapter().EscapeAll(sqlColNames)...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)
 
@@ -149,7 +149,7 @@ func (s *Session) Find(model interface{}) *Session {
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Dialect().Placeholder()))
+		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Adapter().Placeholder()))
 		bindings = append(bindings, v)
 	}
 
@@ -229,7 +229,7 @@ func (s *Session) FullOuterJoin(table string, expressions ...string) *Session {
 
 // Where generates "where %s" for the expression and adds bindings for each value
 func (s *Session) Where(expression string, bindings ...interface{}) *Session {
-	expression = strings.Replace(expression, "?", s.builder.Dialect().Placeholder(), -1)
+	expression = strings.Replace(expression, "?", s.builder.Adapter().Placeholder(), -1)
 	s.builder.Where(expression, bindings...)
 	return s
 }

@@ -6,22 +6,22 @@ import (
 	"testing"
 )
 
-type DialectTestSuite struct {
+type AdapterTestSuite struct {
 	suite.Suite
-	postgres Dialect
-	mysql    Dialect
-	sqlite   Dialect
-	def      Dialect
+	postgres Adapter
+	mysql    Adapter
+	sqlite   Adapter
+	def      Adapter
 }
 
-func (suite *DialectTestSuite) SetupTest() {
-	suite.postgres = NewDialect("postgres")
-	suite.mysql = NewDialect("mysql")
-	suite.sqlite = NewDialect("sqlite3")
-	suite.def = NewDialect("default")
+func (suite *AdapterTestSuite) SetupTest() {
+	suite.postgres = NewAdapter("postgres")
+	suite.mysql = NewAdapter("mysql")
+	suite.sqlite = NewAdapter("sqlite3")
+	suite.def = NewAdapter("default")
 }
 
-func (suite *DialectTestSuite) TestDefaultDialect() {
+func (suite *AdapterTestSuite) TestDefaultAdapter() {
 	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
 	assert.Equal(suite.T(), suite.def.EscapeAll([]string{"test"}), []string{"test"})
 	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
@@ -31,7 +31,7 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 	suite.def.Reset() // does nothing
 }
 
-func (suite *DialectTestSuite) TestMysqlDialect() {
+func (suite *AdapterTestSuite) TestMysqlAdapter() {
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.mysql.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
@@ -41,7 +41,7 @@ func (suite *DialectTestSuite) TestMysqlDialect() {
 	suite.mysql.Reset() // does nothing
 }
 
-func (suite *DialectTestSuite) TestPostgresDialect() {
+func (suite *AdapterTestSuite) TestPostgresAdapter() {
 	assert.Equal(suite.T(), suite.postgres.Escape("test"), "\"test\"")
 	assert.Equal(suite.T(), suite.postgres.EscapeAll([]string{"test"}), []string{"\"test\""})
 	assert.Equal(suite.T(), suite.postgres.Placeholder(), "$1")
@@ -53,7 +53,7 @@ func (suite *DialectTestSuite) TestPostgresDialect() {
 	assert.Equal(suite.T(), suite.postgres.Driver(), "postgres")
 }
 
-func (suite *DialectTestSuite) TestSqliteDialect() {
+func (suite *AdapterTestSuite) TestSqliteAdapter() {
 	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.sqlite.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.sqlite.Placeholder(), "?")
@@ -63,6 +63,6 @@ func (suite *DialectTestSuite) TestSqliteDialect() {
 	suite.sqlite.Reset() // does nothing
 }
 
-func TestDialectTestSuite(t *testing.T) {
-	suite.Run(t, new(DialectTestSuite))
+func TestAdapterTestSuite(t *testing.T) {
+	suite.Run(t, new(AdapterTestSuite))
 }

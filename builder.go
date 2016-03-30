@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-// NewBuilder generates a new dialect object
+// NewBuilder generates a new builder struct
 func NewBuilder(driver string) *Builder {
 	return &Builder{
 		query:   NewQuery(),
-		dialect: NewDialect(driver),
+		adapter: NewAdapter(driver),
 	}
 }
 
@@ -17,18 +17,18 @@ func NewBuilder(driver string) *Builder {
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
 	query   *Query
-	dialect Dialect
+	adapter Adapter
 }
 
-// Dialect returns the active dialect of builder
-func (b *Builder) Dialect() Dialect {
-	return b.dialect
+// Adapter returns the active adapter of builder
+func (b *Builder) Adapter() Adapter {
+	return b.adapter
 }
 
 // Reset clears query bindings and its errors
 func (b *Builder) Reset() {
 	b.query = NewQuery()
-	b.dialect.Reset()
+	b.adapter.Reset()
 }
 
 // Query returns the active query and resets the query.
@@ -42,7 +42,7 @@ func (b *Builder) Query() *Query {
 
 // Insert generates an "insert into %s(%s)" statement
 func (b *Builder) Insert(table string) *Builder {
-	clause := fmt.Sprintf("INSERT INTO %s", b.dialect.Escape(table))
+	clause := fmt.Sprintf("INSERT INTO %s", b.adapter.Escape(table))
 	b.query.AddClause(clause)
 	return b
 }
@@ -63,7 +63,7 @@ func (b *Builder) Values(m map[string]interface{}) *Builder {
 	placeholders := []string{}
 
 	for _ = range values {
-		placeholders = append(placeholders, b.dialect.Placeholder())
+		placeholders = append(placeholders, b.adapter.Placeholder())
 	}
 	clause := fmt.Sprintf("VALUES (%s)", strings.Join(placeholders, ", "))
 	b.query.AddClause(clause)
@@ -72,7 +72,7 @@ func (b *Builder) Values(m map[string]interface{}) *Builder {
 
 // Update generates "update %s" statement
 func (b *Builder) Update(table string) *Builder {
-	clause := fmt.Sprintf("UPDATE %s", b.dialect.Escape(table))
+	clause := fmt.Sprintf("UPDATE %s", b.adapter.Escape(table))
 	b.query.AddClause(clause)
 	return b
 }
@@ -81,7 +81,7 @@ func (b *Builder) Update(table string) *Builder {
 func (b *Builder) Set(m map[string]interface{}) *Builder {
 	updates := []string{}
 	for k, v := range m {
-		updates = append(updates, fmt.Sprintf("%s = %s", k, b.dialect.Placeholder()))
+		updates = append(updates, fmt.Sprintf("%s = %s", k, b.adapter.Placeholder()))
 		b.query.AddBinding(v)
 	}
 	clause := fmt.Sprintf("SET %s", strings.Join(updates, ", "))
@@ -91,7 +91,7 @@ func (b *Builder) Set(m map[string]interface{}) *Builder {
 
 // Delete generates "delete" statement
 func (b *Builder) Delete(table string) *Builder {
-	b.query.AddClause(fmt.Sprintf("DELETE FROM %s", b.dialect.Escape(table)))
+	b.query.AddClause(fmt.Sprintf("DELETE FROM %s", b.adapter.Escape(table)))
 	return b
 }
 
@@ -107,7 +107,7 @@ func (b *Builder) From(tables ...string) *Builder {
 	tbls := []string{}
 	for _, v := range tables {
 		tablePieces := strings.Split(v, " ")
-		v = b.dialect.Escape(tablePieces[0])
+		v = b.adapter.Escape(tablePieces[0])
 		if len(tablePieces) > 1 {
 			v = fmt.Sprintf("%s %s", v, tablePieces[1])
 		}
@@ -121,7 +121,7 @@ func (b *Builder) From(tables ...string) *Builder {
 func (b *Builder) InnerJoin(table string, expressions ...string) *Builder {
 	tablePieces := strings.Split(table, " ")
 
-	v := b.dialect.Escape(tablePieces[0])
+	v := b.adapter.Escape(tablePieces[0])
 	if len(tablePieces) > 1 {
 		v = fmt.Sprintf("%s %s", v, tablePieces[1])
 	}
@@ -133,7 +133,7 @@ func (b *Builder) InnerJoin(table string, expressions ...string) *Builder {
 func (b *Builder) CrossJoin(table string) *Builder {
 	tablePieces := strings.Split(table, " ")
 
-	v := b.dialect.Escape(tablePieces[0])
+	v := b.adapter.Escape(tablePieces[0])
 	if len(tablePieces) > 1 {
 		v = fmt.Sprintf("%s %s", v, tablePieces[1])
 	}
@@ -146,7 +146,7 @@ func (b *Builder) CrossJoin(table string) *Builder {
 func (b *Builder) LeftOuterJoin(table string, expressions ...string) *Builder {
 	tablePieces := strings.Split(table, " ")
 
-	v := b.dialect.Escape(tablePieces[0])
+	v := b.adapter.Escape(tablePieces[0])
 	if len(tablePieces) > 1 {
 		v = fmt.Sprintf("%s %s", v, tablePieces[1])
 	}
@@ -159,7 +159,7 @@ func (b *Builder) LeftOuterJoin(table string, expressions ...string) *Builder {
 func (b *Builder) RightOuterJoin(table string, expressions ...string) *Builder {
 	tablePieces := strings.Split(table, " ")
 
-	v := b.dialect.Escape(tablePieces[0])
+	v := b.adapter.Escape(tablePieces[0])
 	if len(tablePieces) > 1 {
 		v = fmt.Sprintf("%s %s", v, tablePieces[1])
 	}
@@ -171,7 +171,7 @@ func (b *Builder) RightOuterJoin(table string, expressions ...string) *Builder {
 func (b *Builder) FullOuterJoin(table string, expressions ...string) *Builder {
 	tablePieces := strings.Split(table, " ")
 
-	v := b.dialect.Escape(tablePieces[0])
+	v := b.adapter.Escape(tablePieces[0])
 	if len(tablePieces) > 1 {
 		v = fmt.Sprintf("%s %s", v, tablePieces[1])
 	}
@@ -217,27 +217,27 @@ func (b *Builder) Limit(offset int, count int) *Builder {
 
 // Avg function generates "avg(%s)" statement for column
 func (b *Builder) Avg(column string) string {
-	return fmt.Sprintf("AVG(%s)", b.dialect.Escape(column))
+	return fmt.Sprintf("AVG(%s)", b.adapter.Escape(column))
 }
 
 // Count function generates "count(%s)" statement for column
 func (b *Builder) Count(column string) string {
-	return fmt.Sprintf("COUNT(%s)", b.dialect.Escape(column))
+	return fmt.Sprintf("COUNT(%s)", b.adapter.Escape(column))
 }
 
 // Sum function generates "sum(%s)" statement for column
 func (b *Builder) Sum(column string) string {
-	return fmt.Sprintf("SUM(%s)", b.dialect.Escape(column))
+	return fmt.Sprintf("SUM(%s)", b.adapter.Escape(column))
 }
 
 // Min function generates "min(%s)" statement for column
 func (b *Builder) Min(column string) string {
-	return fmt.Sprintf("MIN(%s)", b.dialect.Escape(column))
+	return fmt.Sprintf("MIN(%s)", b.adapter.Escape(column))
 }
 
 // Max function generates "max(%s)" statement for column
 func (b *Builder) Max(column string) string {
-	return fmt.Sprintf("MAX(%s)", b.dialect.Escape(column))
+	return fmt.Sprintf("MAX(%s)", b.adapter.Escape(column))
 }
 
 // expressions
@@ -245,49 +245,49 @@ func (b *Builder) Max(column string) string {
 // NotIn function generates "%s not in (%s)" for key and adds bindings for each value
 func (b *Builder) NotIn(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
-	return fmt.Sprintf("%s NOT IN (%s)", b.dialect.Escape(key), strings.Join(b.dialect.Placeholders(values...), ","))
+	return fmt.Sprintf("%s NOT IN (%s)", b.adapter.Escape(key), strings.Join(b.adapter.Placeholders(values...), ","))
 }
 
 // In function generates "%s in (%s)" for key and adds bindings for each value
 func (b *Builder) In(key string, values ...interface{}) string {
 	b.query.AddBinding(values...)
-	return fmt.Sprintf("%s IN (%s)", b.dialect.Escape(key), strings.Join(b.dialect.Placeholders(values...), ","))
+	return fmt.Sprintf("%s IN (%s)", b.adapter.Escape(key), strings.Join(b.adapter.Placeholders(values...), ","))
 }
 
 // NotEq function generates "%s != placeholder" for key and adds binding for value
 func (b *Builder) NotEq(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s != %s", b.dialect.Escape(key), b.dialect.Placeholder())
+	return fmt.Sprintf("%s != %s", b.adapter.Escape(key), b.adapter.Placeholder())
 }
 
 // Eq function generates "%s = placeholder" for key and adds binding for value
 func (b *Builder) Eq(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s = %s", b.dialect.Escape(key), b.dialect.Placeholder())
+	return fmt.Sprintf("%s = %s", b.adapter.Escape(key), b.adapter.Placeholder())
 }
 
 // Gt function generates "%s > placeholder" for key and adds binding for value
 func (b *Builder) Gt(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s > %s", b.dialect.Escape(key), b.dialect.Placeholder())
+	return fmt.Sprintf("%s > %s", b.adapter.Escape(key), b.adapter.Placeholder())
 }
 
 // Gte function generates "%s >= placeholder" for key and adds binding for value
 func (b *Builder) Gte(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s >= %s", b.dialect.Escape(key), b.dialect.Placeholder())
+	return fmt.Sprintf("%s >= %s", b.adapter.Escape(key), b.adapter.Placeholder())
 }
 
 // St function generates "%s < placeholder" for key and adds binding for value
 func (b *Builder) St(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s < %s", b.dialect.Escape(key), b.dialect.Placeholder())
+	return fmt.Sprintf("%s < %s", b.adapter.Escape(key), b.adapter.Placeholder())
 }
 
 // Ste function generates "%s <= placeholder" for key and adds binding for value
 func (b *Builder) Ste(key string, value interface{}) string {
 	b.query.AddBinding(value)
-	return fmt.Sprintf("%s <= %s", b.dialect.Escape(key), b.dialect.Placeholder())
+	return fmt.Sprintf("%s <= %s", b.adapter.Escape(key), b.adapter.Placeholder())
 }
 
 // And function generates " AND " between any number of expressions
@@ -308,7 +308,7 @@ func (b *Builder) Or(expressions ...string) string {
 // CreateTable generates generic CREATE TABLE statement
 func (b *Builder) CreateTable(table string, fields []string, constraints []string) *Builder {
 
-	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", b.dialect.Escape(table)))
+	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", b.adapter.Escape(table)))
 
 	for k, f := range fields {
 		clause := fmt.Sprintf("\t%s", f)
@@ -338,7 +338,7 @@ func (b *Builder) AlterTable(table string) *Builder {
 
 // DropTable generates generic DROP TABLE statement
 func (b *Builder) DropTable(table string) *Builder {
-	b.query.AddClause(fmt.Sprintf("DROP TABLE %s", b.dialect.Escape(table)))
+	b.query.AddClause(fmt.Sprintf("DROP TABLE %s", b.adapter.Escape(table)))
 	return b
 }
 
@@ -356,6 +356,6 @@ func (b *Builder) Drop(colName string) *Builder {
 
 // CreateIndex generates an index on columns
 func (b *Builder) CreateIndex(indexName string, tableName string, columns ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("CREATE INDEX %s ON %s (%s)", indexName, tableName, strings.Join(b.dialect.EscapeAll(columns), ",")))
+	b.query.AddClause(fmt.Sprintf("CREATE INDEX %s ON %s (%s)", indexName, tableName, strings.Join(b.adapter.EscapeAll(columns), ",")))
 	return b
 }
