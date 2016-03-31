@@ -168,13 +168,15 @@ func (suite *BuilderTestSuite) TestBuilderBasicInsert() {
 	query := suite.builder.
 		Insert("user").
 		Values(fields).
+		Returning("email").
 		Query()
 
 	assert.Contains(suite.T(), query.SQL(), "INSERT INTO `user`\n(")
 	assert.Contains(suite.T(), query.SQL(), "name")
 	assert.Contains(suite.T(), query.SQL(), "email")
 	assert.Contains(suite.T(), query.SQL(), "password")
-	assert.Contains(suite.T(), query.SQL(), "\nVALUES (?, ?, ?);")
+	assert.Contains(suite.T(), query.SQL(), "\nVALUES (?, ?, ?)")
+	assert.Contains(suite.T(), query.SQL(), "RETURNING `email`;")
 	assert.Contains(suite.T(), query.Bindings(), "Aras Can Akin")
 	assert.Contains(suite.T(), query.Bindings(), "a@b.c")
 	assert.Contains(suite.T(), query.Bindings(), "p4ssw0rd")

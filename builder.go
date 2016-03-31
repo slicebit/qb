@@ -70,6 +70,15 @@ func (b *Builder) Values(m map[string]interface{}) *Builder {
 	return b
 }
 
+// Returning generates RETURNING statement for postgres only
+// NOTE: Do not use it with sqlite, mysql or other drivers
+func (b *Builder) Returning(cols ...string) *Builder {
+	cols = b.adapter.EscapeAll(cols)
+	clause := fmt.Sprintf("RETURNING %s", strings.Join(cols, ", "))
+	b.query.AddClause(clause)
+	return b
+}
+
 // Update generates "update %s" statement
 func (b *Builder) Update(table string) *Builder {
 	clause := fmt.Sprintf("UPDATE %s", b.adapter.Escape(table))
