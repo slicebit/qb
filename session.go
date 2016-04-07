@@ -137,7 +137,11 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sqlColNames := []string{}
 	for k := range rModelMap {
-		sqlColNames = append(sqlColNames, s.mapper.ColName(k))
+		col, err := s.metadata.Table(tName).Column(s.mapper.ColName(k))
+		if err != nil {
+			continue
+		}
+		sqlColNames = append(sqlColNames, col.Name)
 	}
 
 	s.builder = NewBuilder(s.metadata.Engine().Driver())

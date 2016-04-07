@@ -13,6 +13,9 @@ type Tag struct {
 
 	// contains type(size) or type parameters
 	Type string
+
+	// true if it is ignored
+	Ignore bool
 }
 
 // ParseTag parses raw qbit tag and builds a Tag object
@@ -30,10 +33,17 @@ func ParseTag(rawTag string) (*Tag, error) {
 
 	tags := strings.Split(rawTag, ";")
 	for _, t := range tags {
+
 		tagKeyVal := strings.Split(t, ":")
+
 		if tagKeyVal[0] == "index" {
+
 			tag.Constraints = append(tag.Constraints, t)
 			continue
+
+		} else if tagKeyVal[0] == "-" {
+			tag.Ignore = true
+			return tag, nil
 		}
 
 		if len(tagKeyVal) != 2 {

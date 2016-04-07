@@ -27,6 +27,17 @@ type Table struct {
 	indices     []*Index
 }
 
+// Column returns the table column given column name
+func (t *Table) Column(name string) (Column, error) {
+	for _, c := range t.columns {
+		if c.Name == name {
+			return c, nil
+		}
+	}
+
+	return Column{}, fmt.Errorf("Invalid column %s", name)
+}
+
 // Name returns the table name
 func (t *Table) Name() string {
 	return t.name

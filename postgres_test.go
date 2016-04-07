@@ -24,11 +24,12 @@ func (suite *PostgresTestSuite) SetupTest() {
 func (suite *PostgresTestSuite) TestPostgres() {
 
 	type User struct {
-		ID       string         `qb:"type:uuid; constraints:primary_key, auto_increment"`
-		Email    string         `qb:"constraints:unique, notnull"`
-		FullName string         `qb:"constraints:notnull"`
-		Bio      sql.NullString `qb:"type:text; constraints:null"`
-		Oscars   int            `qb:"constraints:default(0)"`
+		ID          string         `qb:"type:uuid; constraints:primary_key, auto_increment"`
+		Email       string         `qb:"constraints:unique, notnull"`
+		FullName    string         `qb:"constraints:notnull"`
+		Bio         sql.NullString `qb:"type:text; constraints:null"`
+		Oscars      int            `qb:"constraints:default(0)"`
+		IgnoreFiled string         `qb:"-"`
 	}
 
 	type Session struct {

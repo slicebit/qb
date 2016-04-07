@@ -16,7 +16,7 @@ func TestTag(t *testing.T) {
 	assert.Equal(t, tagWithoutConstraint.Constraints, []string{})
 
 	tagEmpty, _ := ParseTag("     ")
-	assert.Equal(t, tagEmpty, &Tag{[]string{}, ""})
+	assert.Equal(t, tagEmpty, &Tag{[]string{}, "", false})
 
 	tagInvalidKeyLength, err := ParseTag("type::")
 	assert.Nil(t, tagInvalidKeyLength)

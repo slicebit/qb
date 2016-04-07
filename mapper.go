@@ -136,6 +136,10 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 			return nil, err
 		}
 
+		if tag.Ignore {
+			continue
+		}
+
 		// convert tag into constraints
 		var constraint Constraint
 		for _, v := range tag.Constraints {
