@@ -36,7 +36,7 @@ func (b *Builder) Reset() {
 func (b *Builder) Query() *Query {
 	query := b.query
 	b.Reset()
-	fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
+	//fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
 	return query
 }
 
