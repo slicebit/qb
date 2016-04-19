@@ -123,9 +123,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Panics(suite.T(), func() {
 		suite.session.Add(FailModel{})
 	})
-
-	//assert.NotNil(suite.T(), suite.session.Metadata().CreateAll())
-	//assert.NotNil(suite.T(), suite.session.Metadata().DropAll())
 }
 
 func TestPostgresTestSuite(t *testing.T) {
