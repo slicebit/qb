@@ -36,7 +36,7 @@ func (b *Builder) Reset() {
 func (b *Builder) Query() *Query {
 	query := b.query
 	b.Reset()
-	fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
+	//fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
 	return query
 }
 
@@ -53,7 +53,7 @@ func (b *Builder) Values(m map[string]interface{}) *Builder {
 	keys := []string{}
 	values := []interface{}{}
 	for k, v := range m {
-		keys = append(keys, k)
+		keys = append(keys, b.adapter.Escape(k))
 		values = append(values, v)
 		b.query.AddBinding(v)
 	}
