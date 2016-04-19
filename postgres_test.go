@@ -70,7 +70,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// find user
 	var user User
 
-	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).First(&user)
+	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 
 	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
@@ -104,7 +104,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
-	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).First(&user)
+	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
 
 	// delete session

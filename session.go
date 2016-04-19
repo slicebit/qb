@@ -159,7 +159,7 @@ func (s *Session) Find(model interface{}) *Session {
 
 // First returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
-func (s *Session) First(model interface{}) error {
+func (s *Session) One(model interface{}) error {
 	query := s.builder.Query()
 	return s.metadata.Engine().Get(query, model)
 }

@@ -84,7 +84,7 @@ func main() {
 	fmt.Println(err)
 
 	var user User
-	db.Find(&User{ID: userID.String()}).First(&user)
+	db.Find(&User{ID: userID.String()}).One(&user)
 
 	fmt.Println("id", user.ID)
 	fmt.Println("email", user.Email)
