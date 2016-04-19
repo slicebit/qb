@@ -195,8 +195,8 @@ func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
 		Query()
 
 	assert.Contains(suite.T(), query.SQL(), "UPDATE `user`\nSET")
-	assert.Contains(suite.T(), query.SQL(), "email = ?")
-	assert.Contains(suite.T(), query.SQL(), "name = ?")
+	assert.Contains(suite.T(), query.SQL(), "`email` = ?")
+	assert.Contains(suite.T(), query.SQL(), "`name` = ?")
 	assert.Contains(suite.T(), query.SQL(), "WHERE id = ?;")
 	assert.Contains(suite.T(), query.Bindings(), "a@b.c")
 	assert.Contains(suite.T(), query.Bindings(), "Aras")

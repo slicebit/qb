@@ -36,7 +36,7 @@ func (b *Builder) Reset() {
 func (b *Builder) Query() *Query {
 	query := b.query
 	b.Reset()
-	//fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
+	fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
 	return query
 }
 
@@ -90,6 +90,13 @@ func (b *Builder) Update(table string) *Builder {
 func (b *Builder) Set(m map[string]interface{}) *Builder {
 	updates := []string{}
 	for k, v := range m {
+		// check if aliasing exists
+		if strings.Contains(k, ".") {
+			kpieces := strings.Split(k, ".")
+			k = fmt.Sprintf("%s.%s", kpieces[0], b.adapter.Escape(kpieces[1]))
+		} else {
+			k = b.adapter.Escape(k)
+		}
 		updates = append(updates, fmt.Sprintf("%s = %s", k, b.adapter.Placeholder()))
 		b.query.AddBinding(v)
 	}

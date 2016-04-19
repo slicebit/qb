@@ -123,7 +123,7 @@ func TestTableUpdate(t *testing.T) {
 		Where("id = ?", 1).
 		Query()
 
-	assert.Equal(t, query.SQL(), "UPDATE `user`\nSET full_name = ?\nWHERE id = ?;")
+	assert.Equal(t, query.SQL(), "UPDATE `user`\nSET `full_name` = ?\nWHERE id = ?;")
 	assert.Equal(t, query.Bindings(), []interface{}{"Aras", 1})
 }
 

@@ -85,9 +85,9 @@ func (m *Mapper) ToType(colType string, tagType string) *Type {
 	case "int64":
 		return &Type{"BIGINT"}
 	case "float32":
-		return &Type{"FLOAT"}
+		return &Type{"FLOAT"} // TODO: Not sure
 	case "float64":
-		return &Type{"FLOAT"}
+		return &Type{"FLOAT"} // TODO: Not sure
 	case "bool":
 		return &Type{"BOOLEAN"}
 	case "time.Time":
