@@ -2,7 +2,6 @@ package qb
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -80,7 +79,7 @@ func (s *Session) Delete(model interface{}) {
 
 	tName := s.mapper.ModelName(model)
 
-	d := s.Builder().Delete(tName)
+	d := s.builder.Delete(tName)
 	ands := []string{}
 	for k, v := range kv {
 		ands = append(ands, s.Eq(s.mapper.ColName(k), v))
@@ -151,8 +150,7 @@ func (s *Session) Find(model interface{}) *Session {
 	bindings := []interface{}{}
 
 	for k, v := range modelMap {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Adapter().Placeholder()))
-		bindings = append(bindings, v)
+		ands = append(ands, s.builder.Eq(s.mapper.ColName(k), v))
 	}
 
 	s.builder.Where(s.builder.And(ands...), bindings...)
