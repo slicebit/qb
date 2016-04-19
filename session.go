@@ -80,15 +80,14 @@ func (s *Session) Delete(model interface{}) {
 
 	tName := s.mapper.ModelName(model)
 
-	d := s.metadata.Table(tName).Delete()
+	d := s.Builder().Delete(tName)
 	ands := []string{}
-	bindings := []interface{}{}
+	//bindings := []interface{}{}
 	for k, v := range kv {
-		ands = append(ands, fmt.Sprintf("%s = %s", s.mapper.ColName(k), s.builder.Adapter().Placeholder()))
-		bindings = append(bindings, v)
+		ands = append(ands, s.Eq(s.mapper.ColName(k), v))
 	}
 
-	del := d.Where(d.And(ands...), bindings...).Query()
+	del := d.Where(d.And(ands...)).Query()
 	s.add(del)
 }
 
