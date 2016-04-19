@@ -82,7 +82,6 @@ func (s *Session) Delete(model interface{}) {
 
 	d := s.Builder().Delete(tName)
 	ands := []string{}
-	//bindings := []interface{}{}
 	for k, v := range kv {
 		ands = append(ands, s.Eq(s.mapper.ColName(k), v))
 	}
