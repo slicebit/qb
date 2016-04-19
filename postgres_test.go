@@ -29,7 +29,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		FullName    string         `qb:"constraints:notnull"`
 		Bio         sql.NullString `qb:"type:text; constraints:null"`
 		Oscars      int            `qb:"constraints:default(0)"`
-		IgnoreFiled string         `qb:"-"`
+		IgnoreField string         `qb:"-"`
 	}
 
 	type Session struct {
