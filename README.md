@@ -85,7 +85,10 @@ func main() {
 	})
 
 	err = db.Commit() // insert user
-	fmt.Println(err)
+	if err != nil {
+	    fmt.Println(err)
+	    return
+	}
 
 	var user User
 	db.Find(&User{ID: userID.String()}).One(&user)
