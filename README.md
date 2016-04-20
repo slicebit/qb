@@ -6,16 +6,20 @@
 
 
 **This project is currently pre 1.**
-More documentation will be coming soon.
-Although the tests coverage are high, currently, it is not recommended to use it in production. It can currently crash especially in concurrency.
+
+It can currently have potential bugs. Currently, there are no tests having concurrency race condition tests. It can currently crash especially in concurrency. Moreover, before 1.x releases, each major release could break backwards compatibility.
 
 About qb
 --------
 qb is a database toolkit for easier db usage in go. It is inspired from python's most favorite orm sqlalchemy. qb is an orm as well as a query builder. It is quite modular in case of using just expression api and query building stuff.
 
+[Documentation](https://qb.readme.io)
+-------------
+The documentation is hosted in [readme.io](https://qb.readme.io) which has great support for markdown docs. Currently, the docs is about 80% - 90% complete. The doc files will be added to this repo soon. Moreover, you can check the godoc from [here](https://godoc.org/github.com/aacanakin/qb). Contributions & Feedbacks in docs are welcome.
+
 Features
 --------
-- Support for postgres, mysql & sqlite
+- Support for postgres, mysql & sqlite3
 - Simplistic query builder with no real magic
 - Struct to table ddl mapper where initial table migrations can happen
 - Expression builder which can be built almost any sql statements
