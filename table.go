@@ -63,14 +63,14 @@ func (t *Table) SQL() string {
 
 	// build foreign key constraints using refCols
 	for _, ref := range t.refs {
-		for k, _ := range ref.cols {
+		for k := range ref.cols {
 			ref.cols[k] = t.builder.Adapter().Escape(ref.cols[k])
 			ref.refCols[k] = t.builder.Adapter().Escape(ref.refCols[k])
 		}
 		constraints = append(constraints, fmt.Sprintf("FOREIGN KEY (%s) REFERENCES %s(%s)", strings.Join(ref.cols, ", "), t.builder.Adapter().Escape(ref.refTable), strings.Join(ref.refCols, ", ")))
 	}
 
-	tableSql := t.builder.CreateTable(t.name, cols, constraints).Query().SQL()
+	tableSQL := t.builder.CreateTable(t.name, cols, constraints).Query().SQL()
 
 	indexSqls := []string{}
 	for _, index := range t.indices {
@@ -78,7 +78,7 @@ func (t *Table) SQL() string {
 		indexSqls = append(indexSqls, q.SQL())
 	}
 
-	sqls := []string{tableSql}
+	sqls := []string{tableSQL}
 	sqls = append(sqls, indexSqls...)
 
 	return strings.Join(sqls, "\n")
