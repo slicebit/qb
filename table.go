@@ -6,13 +6,13 @@ import (
 )
 
 // NewTable generates a new table pointer given table name, column and table constraints
-func NewTable(driver string, name string, columns []Column) *Table {
+func NewTable(builder *Builder, name string, columns []Column) *Table {
 	return &Table{
 		name:        name,
 		columns:     columns,
 		primaryCols: []string{},
 		refs:        []ref{},
-		builder:     NewBuilder(driver),
+		builder:     builder,
 		indices:     []*Index{},
 	}
 }
@@ -48,7 +48,7 @@ func (t *Table) SQL() string {
 
 	cols := []string{}
 	for _, v := range t.columns {
-		cols = append(cols, v.SQL(t.builder.Adapter().Driver()))
+		cols = append(cols, v.SQL(t.builder.Adapter()))
 	}
 
 	constraints := []string{}

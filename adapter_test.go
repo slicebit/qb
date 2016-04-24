@@ -23,7 +23,9 @@ func (suite *AdapterTestSuite) SetupTest() {
 
 func (suite *AdapterTestSuite) TestDefaultAdapter() {
 	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
-	assert.Equal(suite.T(), suite.def.EscapeAll([]string{"test"}), []string{"test"})
+	suite.def.SetEscaping(true)
+	assert.Equal(suite.T(), suite.def.Escape("test"), "`test`")
+	assert.Equal(suite.T(), suite.def.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.def.Placeholders(5, 10), []string{"?", "?"})
 	assert.Equal(suite.T(), suite.def.SupportsInlinePrimaryKey(), false)
@@ -32,6 +34,8 @@ func (suite *AdapterTestSuite) TestDefaultAdapter() {
 }
 
 func (suite *AdapterTestSuite) TestMysqlAdapter() {
+	assert.Equal(suite.T(), suite.mysql.Escape("test"), "test")
+	suite.mysql.SetEscaping(true)
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.mysql.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
@@ -42,6 +46,8 @@ func (suite *AdapterTestSuite) TestMysqlAdapter() {
 }
 
 func (suite *AdapterTestSuite) TestPostgresAdapter() {
+	assert.Equal(suite.T(), suite.postgres.Escape("test"), "test")
+	suite.postgres.SetEscaping(true)
 	assert.Equal(suite.T(), suite.postgres.Escape("test"), "\"test\"")
 	assert.Equal(suite.T(), suite.postgres.EscapeAll([]string{"test"}), []string{"\"test\""})
 	assert.Equal(suite.T(), suite.postgres.Placeholder(), "$1")
@@ -54,6 +60,8 @@ func (suite *AdapterTestSuite) TestPostgresAdapter() {
 }
 
 func (suite *AdapterTestSuite) TestSqliteAdapter() {
+	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "test")
+	suite.sqlite.SetEscaping(true)
 	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.sqlite.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.sqlite.Placeholder(), "?")

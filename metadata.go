@@ -1,20 +1,22 @@
 package qb
 
 // NewMetaData creates a new MetaData object and returns
-func NewMetaData(engine *Engine) *MetaData {
+func NewMetaData(engine *Engine, builder *Builder) *MetaData {
 
 	return &MetaData{
-		tables: []*Table{},
-		engine: engine,
-		mapper: NewMapper(engine.Driver()),
+		tables:  []*Table{},
+		engine:  engine,
+		mapper:  NewMapper(builder),
+		builder: builder,
 	}
 }
 
 // MetaData is the container for database structs and tables
 type MetaData struct {
-	tables []*Table
-	engine *Engine
-	mapper *Mapper
+	tables  []*Table
+	engine  *Engine
+	mapper  *Mapper
+	builder *Builder
 }
 
 // Engine returns the currently bound engine of metadata
@@ -77,15 +79,13 @@ func (m *MetaData) CreateAll() error {
 // DropAll drops all the tables which is added to metadata
 func (m *MetaData) DropAll() error {
 
-	b := NewBuilder(m.engine.Driver())
-
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
 		return err
 	}
 
 	for i := len(m.tables) - 1; i >= 0; i-- {
-		drop := b.DropTable(m.tables[i].Name()).Query()
+		drop := m.builder.DropTable(m.tables[i].Name()).Query()
 		_, err = tx.Exec(drop.SQL())
 		if err != nil {
 			return err

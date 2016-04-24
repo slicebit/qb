@@ -16,12 +16,18 @@ type SqliteTestSuite struct {
 func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
-	//engine, err := NewEngine("sqlite3", "./qb_test.db")
-	//assert.Nil(suite.T(), err)
-	//assert.NotNil(suite.T(), engine)
-	//engine.DB().Exec("CREATE DATABASE qb_test;")
+	builder := NewBuilder("sqlite3")
+	builder.SetEscaping(true)
 
-	suite.session, err = New("sqlite3", "./qb_test.db")
+	engine, err := NewEngine("sqlite3", "./qb_test.db")
+
+	suite.session = &Session{
+		queries: []*Query{},
+		mapper : NewMapper(builder),
+		metadata: NewMetaData(engine, builder),
+		builder: builder,
+	}
+
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.session)
 }

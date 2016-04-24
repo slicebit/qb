@@ -12,7 +12,8 @@ type UserMetadata struct {
 func TestMetadata(t *testing.T) {
 
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
-	metadata := NewMetaData(engine)
+	builder := NewBuilder(engine.Driver())
+	metadata := NewMetaData(engine, builder)
 
 	metadata.Add(UserMetadata{})
 }
@@ -24,7 +25,8 @@ type UserMetadataError struct {
 func TestMetadataAddError(t *testing.T) {
 
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
-	metadata := NewMetaData(engine)
+	builder := NewBuilder("postgres")
+	metadata := NewMetaData(engine, builder)
 
 	assert.Panics(t, func() { metadata.Add(UserMetadataError{}) })
 	assert.Equal(t, len(metadata.Tables()), 0)
@@ -33,10 +35,11 @@ func TestMetadataAddError(t *testing.T) {
 func TestMetadataAddTable(t *testing.T) {
 
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
-	metadata := NewMetaData(engine)
+	builder := NewBuilder("postgres")
+	metadata := NewMetaData(engine, builder)
 
 	table := NewTable(
-		"mysql",
+		builder,
 		"user",
 		[]Column{
 			NewColumn("id", NewType("BIGINT"), []Constraint{}),
@@ -52,14 +55,16 @@ func TestMetadataAddTable(t *testing.T) {
 
 func TestMetadataTable(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
-	metadata := NewMetaData(engine)
+	builder := NewBuilder("postgres")
+	metadata := NewMetaData(engine, builder)
 
 	assert.Nil(t, metadata.Table("invalid-table"))
 }
 
 func TestMetadataFailCreateDropAll(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test")
-	metadata := NewMetaData(engine)
+	builder := NewBuilder("postgres")
+	metadata := NewMetaData(engine, builder)
 	metadata.Engine().DB().Close()
 	assert.NotNil(t, metadata.CreateAll())
 	assert.NotNil(t, metadata.DropAll())

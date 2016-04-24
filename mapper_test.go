@@ -30,7 +30,7 @@ func TestMapper(t *testing.T) {
 		Unknown     UnknownType
 	}
 
-	mapper := NewMapper("mysql")
+	mapper := NewMapper(NewBuilder("mysql"))
 
 	userTable, err := mapper.ToTable(User{})
 
@@ -44,7 +44,7 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 		ID int64 `qb:"constraints:auto_increment"`
 	}
 
-	mapper := NewMapper("sqlite3")
+	mapper := NewMapper(NewBuilder("sqlite3"))
 	table, err := mapper.ToTable(User{})
 
 	assert.Nil(t, err)
@@ -58,7 +58,7 @@ func TestMapperError(t *testing.T) {
 		Email string `qb:"wrongtag:"`
 	}
 
-	mapper := NewMapper("postgres")
+	mapper := NewMapper(NewBuilder("postgres"))
 
 	userErrTable, err := mapper.ToTable(UserErr{})
 
@@ -72,7 +72,7 @@ type InvalidConstraint struct {
 
 func TestMapperInvalidConstraint(t *testing.T) {
 
-	mapper := NewMapper("mysql")
+	mapper := NewMapper(NewBuilder("mysql"))
 
 	invalidConstraintTable, err := mapper.ToTable(InvalidConstraint{})
 
@@ -87,7 +87,7 @@ func TestMapperUtilFuncs(t *testing.T) {
 		Email string `qb:"wrongtag:"`
 	}
 
-	mapper := NewMapper("mysql")
+	mapper := NewMapper(NewBuilder("mysql"))
 
 	assert.Equal(t, mapper.ColName("CreatedAt"), "created_at")
 

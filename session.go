@@ -13,11 +13,13 @@ func New(driver string, dsn string) (*Session, error) {
 		return nil, err
 	}
 
+	builder := NewBuilder(engine.Driver())
+
 	return &Session{
 		queries:  []*Query{},
-		mapper:   NewMapper(engine.Driver()),
-		metadata: NewMetaData(engine),
-		builder:  NewBuilder(engine.Driver()),
+		mapper:   NewMapper(builder),
+		metadata: NewMetaData(engine, builder),
+		builder:  builder,
 	}, nil
 }
 
@@ -141,7 +143,6 @@ func (s *Session) Find(model interface{}) *Session {
 		sqlColNames = append(sqlColNames, col.Name)
 	}
 
-	s.builder = NewBuilder(s.metadata.Engine().Driver())
 	s.builder.Select(s.builder.Adapter().EscapeAll(sqlColNames)...).From(tName)
 
 	modelMap := s.mapper.ToMap(model)

@@ -4,13 +4,13 @@ package qb
 func NewAdapter(driver string) Adapter {
 	switch driver {
 	case "postgres":
-		return &PostgresAdapter{bindingIndex: 0}
+		return &PostgresAdapter{escaping: false, bindingIndex: 0}
 	case "mysql":
-		return &MysqlAdapter{}
+		return &MysqlAdapter{false}
 	case "sqlite3":
-		return &SqliteAdapter{}
+		return &SqliteAdapter{false}
 	default:
-		return &DefaultAdapter{}
+		return &DefaultAdapter{false}
 	}
 }
 
@@ -19,8 +19,11 @@ func NewAdapter(driver string) Adapter {
 type Adapter interface {
 	Escape(str string) string
 	EscapeAll([]string) []string
+	SetEscaping(escaping bool)
+	GetEscaping() bool
 	Placeholder() string
 	Placeholders(values ...interface{}) []string
+	AutoIncrement() string
 	Reset()
 	SupportsInlinePrimaryKey() bool
 	Driver() string

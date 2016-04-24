@@ -7,8 +7,10 @@ import (
 
 func TestTable(t *testing.T) {
 
+	builder := NewBuilder("mysql")
+
 	table := NewTable(
-		"mysql",
+		builder,
 		"user",
 		[]Column{
 			NewColumn(
@@ -78,9 +80,10 @@ func TestTable(t *testing.T) {
 }
 
 func TestTableInsert(t *testing.T) {
+	builder := NewBuilder("mysql")
 
 	table := NewTable(
-		"mysql",
+		builder,
 		"user",
 		[]Column{
 			NewColumn("id", NewType("BIGINT"), []Constraint{}),
@@ -107,8 +110,10 @@ func TestTableInsert(t *testing.T) {
 
 func TestTableUpdate(t *testing.T) {
 
+	builder := NewBuilder("mysql")
+
 	table := NewTable(
-		"mysql",
+		builder,
 		"user",
 		[]Column{
 			NewColumn("id", NewType("BIGINT"), []Constraint{}),
@@ -129,8 +134,10 @@ func TestTableUpdate(t *testing.T) {
 
 func TestTableDelete(t *testing.T) {
 
+	builder := NewBuilder("mysql")
+
 	table := NewTable(
-		"mysql",
+		builder,
 		"user",
 		[]Column{
 			NewColumn("id", NewType("BIGINT"), []Constraint{}),

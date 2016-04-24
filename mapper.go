@@ -10,15 +10,15 @@ import (
 const tagPrefix = "qb"
 
 // NewMapper creates a new mapper struct and returns it as a mapper pointer
-func NewMapper(driver string) *Mapper {
+func NewMapper(builder *Builder) *Mapper {
 	return &Mapper{
-		driver: driver,
+		builder: builder,
 	}
 }
 
 // Mapper is the generic struct for struct to table mapping
 type Mapper struct {
-	driver string
+	builder *Builder
 }
 
 func (m *Mapper) extractValue(value string) string {
@@ -104,8 +104,8 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 
 	modelName := m.ModelName(model)
 
-	table := NewTable(m.driver, modelName, []Column{})
-	adapter := NewAdapter(m.driver)
+	table := NewTable(m.builder, modelName, []Column{})
+	adapter := m.builder.Adapter()
 
 	//fmt.Printf("model name: %s\n\n", modelName)
 
@@ -152,16 +152,15 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 					Name: "UNIQUE",
 				}
 			} else if v == "auto_increment" || v == "autoincrement" {
-				if m.driver == "mysql" {
-					constraint = Constraint{
-						Name: "AUTO_INCREMENT",
-					}
-				} else if m.driver == "sqlite3" {
-					constraint = Constraint{
-						Name: "AUTOINCREMENT",
-					}
-				} else {
+				c := m.builder.Adapter().AutoIncrement()
+
+				// it doesn't support auto increment
+				if c == "" {
 					continue
+				} else {
+					constraint = Constraint{
+						Name: c,
+					}
 				}
 			} else if strings.Contains(v, "default") {
 				constraint = Default(m.extractValue(v))

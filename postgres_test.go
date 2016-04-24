@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+	"fmt"
 )
 
 type PostgresTestSuite struct {
@@ -15,8 +16,18 @@ type PostgresTestSuite struct {
 
 func (suite *PostgresTestSuite) SetupTest() {
 
-	var err error
-	suite.session, err = New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	builder := NewBuilder("postgres")
+	builder.SetEscaping(true)
+
+	engine, err := NewEngine("postgres",  "user=postgres dbname=qb_test sslmode=disable")
+
+	suite.session = &Session{
+		queries: []*Query{},
+		mapper: NewMapper(builder),
+		metadata: NewMetaData(engine, builder),
+		builder: builder,
+	}
+
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.session)
 }
@@ -72,6 +83,8 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 
+	fmt.Printf("User: %+v\n", user)
+
 	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
 	assert.Equal(suite.T(), user.Bio.String, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
@@ -97,7 +110,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		Set(map[string]interface{}{
 			"bio": nil,
 		}).
-		Where("id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		Where(suite.session.Eq("id", "b6f8bfe3-a830-441a-a097-1777e6bfae95")).
 		Query()
 
 	suite.session.AddQuery(update)

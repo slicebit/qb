@@ -20,6 +20,11 @@ type Builder struct {
 	adapter Adapter
 }
 
+// SetEscaping sets the escaping parameter of current adapter
+func (b *Builder) SetEscaping(escaping bool) {
+	b.adapter.SetEscaping(escaping)
+}
+
 // Adapter returns the active adapter of builder
 func (b *Builder) Adapter() Adapter {
 	return b.adapter
@@ -36,7 +41,7 @@ func (b *Builder) Reset() {
 func (b *Builder) Query() *Query {
 	query := b.query
 	b.Reset()
-	//fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
+	fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
 	return query
 }
 
