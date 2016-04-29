@@ -101,11 +101,9 @@ func (m *Mapper) ToType(colType string, tagType string) *Type {
 
 // ToTable parses struct and converts it to a new table
 func (m *Mapper) ToTable(model interface{}) (*Table, error) {
-
 	modelName := m.ModelName(model)
 
 	table := NewTable(m.builder, modelName, []Column{})
-	adapter := m.builder.Adapter()
 
 	//fmt.Printf("model name: %s\n\n", modelName)
 
@@ -165,7 +163,7 @@ func (m *Mapper) ToTable(model interface{}) (*Table, error) {
 			} else if strings.Contains(v, "default") {
 				constraint = Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
-				if adapter.SupportsInlinePrimaryKey() {
+				if m.builder.Adapter().SupportsInlinePrimaryKey() {
 					constraint = Constraint{
 						Name: "PRIMARY KEY",
 					}
