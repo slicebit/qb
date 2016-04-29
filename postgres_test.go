@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 	"fmt"
+	"sync"
 )
 
 type PostgresTestSuite struct {
@@ -26,6 +27,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 		mapper: NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
 		builder: builder,
+		mutex: &sync.Mutex{},
 	}
 
 	assert.Nil(suite.T(), err)

@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+	"sync"
 )
 
 type SqliteTestSuite struct {
@@ -26,6 +27,7 @@ func (suite *SqliteTestSuite) SetupTest() {
 		mapper : NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
 		builder: builder,
+		mutex: &sync.Mutex{},
 	}
 
 	assert.Nil(suite.T(), err)

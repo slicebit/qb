@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+	"sync"
 )
 
 type MysqlTestSuite struct {
@@ -26,6 +27,7 @@ func (suite *MysqlTestSuite) SetupTest() {
 		mapper : NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
 		builder: builder,
+		mutex: &sync.Mutex{},
 	}
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.session)

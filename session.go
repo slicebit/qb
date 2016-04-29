@@ -3,6 +3,7 @@ package qb
 import (
 	"database/sql"
 	"strings"
+	"sync"
 )
 
 // New generates a new Session given engine and returns session pointer
@@ -20,6 +21,7 @@ func New(driver string, dsn string) (*Session, error) {
 		mapper:   NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
 		builder:  builder,
+		mutex: &sync.Mutex{},
 	}, nil
 }
 
@@ -30,18 +32,22 @@ type Session struct {
 	metadata *MetaData
 	tx       *sql.Tx
 	builder  *Builder
+	mutex *sync.Mutex
 }
 
 func (s *Session) add(query *Query) {
+	s.mutex.Lock()
 	var err error
 	if s.tx == nil {
 		s.queries = []*Query{}
 		s.tx, err = s.metadata.Engine().DB().Begin()
 		if err != nil {
+			s.mutex.Unlock()
 			panic(err)
 		}
 	}
 	s.queries = append(s.queries, query)
+	s.mutex.Unlock()
 }
 
 // Engine returns the current sqlx wrapped engine
