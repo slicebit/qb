@@ -51,6 +51,9 @@ func (a *MysqlAdapter) Reset() {}
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (a *MysqlAdapter) SupportsInlinePrimaryKey() bool { return false }
 
+// SupportsUnsigned returns whether driver supports unsigned type mappings or not
+func (a *MysqlAdapter) SupportsUnsigned() bool { return true }
+
 // Driver returns the current driver of adapter
 func (a *MysqlAdapter) Driver() string {
 	return "mysql"

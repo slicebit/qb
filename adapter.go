@@ -26,6 +26,7 @@ type Adapter interface {
 	AutoIncrement() string
 	Reset()
 	SupportsInlinePrimaryKey() bool
+	SupportsUnsigned() bool
 	Driver() string
 }
 

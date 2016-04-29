@@ -51,6 +51,9 @@ func (a *DefaultAdapter) Reset() {}
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (a *DefaultAdapter) SupportsInlinePrimaryKey() bool { return false }
 
+// SupportsUnsigned returns whether driver supports unsigned type mappings or not
+func (a *DefaultAdapter) SupportsUnsigned() bool { return false }
+
 // Driver returns the current driver of adapter
 func (a *DefaultAdapter) Driver() string {
 	return ""

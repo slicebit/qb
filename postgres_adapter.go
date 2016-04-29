@@ -53,6 +53,9 @@ func (a *PostgresAdapter) Reset() { a.bindingIndex = 0 }
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (a *PostgresAdapter) SupportsInlinePrimaryKey() bool { return true }
 
+// SupportsUnsigned returns whether driver supports unsigned type mappings or not
+func (a *PostgresAdapter) SupportsUnsigned() bool { return false }
+
 // Driver returns the current driver of adapter
 func (a *PostgresAdapter) Driver() string {
 	return "postgres"

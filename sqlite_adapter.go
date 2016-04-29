@@ -51,6 +51,9 @@ func (a *SqliteAdapter) Reset() {}
 // SupportsInlinePrimaryKey returns whether the driver supports inline primary key definitions
 func (a *SqliteAdapter) SupportsInlinePrimaryKey() bool { return true }
 
+// SupportsUnsigned returns whether driver supports unsigned type mappings or not
+func (a *SqliteAdapter) SupportsUnsigned() bool { return false }
+
 // Driver returns the current driver of adapter
 func (a *SqliteAdapter) Driver() string {
 	return "sqlite3"

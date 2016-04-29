@@ -22,7 +22,6 @@ type Mapper struct {
 }
 
 func (m *Mapper) extractValue(value string) string {
-
 	hasParams := strings.Contains(value, "(") && strings.Contains(value, ")")
 
 	if hasParams {
@@ -42,7 +41,6 @@ func (m *Mapper) ToRawMap(model interface{}) map[string]interface{} {
 // ToMap converts a model struct to a map. Uninitialized fields are ignored.
 // Fields are renamed using qb conventions
 func (m *Mapper) ToMap(model interface{}) map[string]interface{} {
-
 	fields := structs.Fields(model)
 	kv := map[string]interface{}{}
 	for _, f := range fields {
@@ -69,20 +67,49 @@ func (m *Mapper) ColName(col string) string {
 // If tagType is, then colType would automatically be resolved.
 // If tagType is not "", then automatic type resolving would be overridden by tagType
 func (m *Mapper) ToType(colType string, tagType string) *Type {
-
 	// convert tagType
 	if tagType != "" {
 		tagType = strings.ToUpper(tagType)
 		return &Type{tagType}
 	}
-
 	// convert default type
 	switch colType {
 	case "string":
 		return &Type{"VARCHAR(255)"}
 	case "int":
 		return &Type{"INT"}
+	case "int8":
+		return &Type{"SMALLINT"}
+	case "int16":
+		return &Type{"SMALLINT"}
+	case "int32":
+		return &Type{"INT"}
 	case "int64":
+		return &Type{"BIGINT"}
+	case "uint":
+		if m.builder.Adapter().SupportsUnsigned() {
+			return &Type{"INT UNSIGNED"}
+		}
+		return &Type{"BIGINT"}
+	case "uint8":
+		if m.builder.Adapter().SupportsUnsigned() {
+			return &Type{"TINYINT UNSIGNED"}
+		}
+		return &Type{"SMALLINT"}
+	case "uint16":
+		if m.builder.Adapter().SupportsUnsigned() {
+			return &Type{"SMALLINT UNSIGNED"}
+		}
+		return &Type{"INT"}
+	case "uint32":
+		if m.builder.Adapter().SupportsUnsigned() {
+			return &Type{"INT UNSIGNED"}
+		}
+		return &Type{"BIGINT"}
+	case "uint64":
+		if m.builder.Adapter().SupportsUnsigned() {
+			return &Type{"BIGINT UNSIGNED"}
+		}
 		return &Type{"BIGINT"}
 	case "float32":
 		return &Type{"FLOAT"} // TODO: Not sure
