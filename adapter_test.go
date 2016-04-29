@@ -22,8 +22,12 @@ func (suite *AdapterTestSuite) SetupTest() {
 }
 
 func (suite *AdapterTestSuite) TestDefaultAdapter() {
+	assert.Equal(suite.T(), suite.def.SupportsUnsigned(), false)
+	assert.Equal(suite.T(), suite.def.AutoIncrement(), "AUTO INCREMENT")
 	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
+	assert.Equal(suite.T(), suite.def.Escaping(), false)
 	suite.def.SetEscaping(true)
+	assert.Equal(suite.T(), suite.def.Escaping(), true)
 	assert.Equal(suite.T(), suite.def.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.def.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
@@ -34,8 +38,12 @@ func (suite *AdapterTestSuite) TestDefaultAdapter() {
 }
 
 func (suite *AdapterTestSuite) TestMysqlAdapter() {
+	assert.Equal(suite.T(), suite.mysql.SupportsUnsigned(), true)
+	assert.Equal(suite.T(), suite.mysql.AutoIncrement(), "AUTO_INCREMENT")
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "test")
+	assert.Equal(suite.T(), suite.mysql.Escaping(), false)
 	suite.mysql.SetEscaping(true)
+	assert.Equal(suite.T(), suite.mysql.Escaping(), true)
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.mysql.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
@@ -46,8 +54,12 @@ func (suite *AdapterTestSuite) TestMysqlAdapter() {
 }
 
 func (suite *AdapterTestSuite) TestPostgresAdapter() {
+	assert.Equal(suite.T(), suite.postgres.SupportsUnsigned(), false)
+	assert.Equal(suite.T(), suite.postgres.AutoIncrement(), "")
 	assert.Equal(suite.T(), suite.postgres.Escape("test"), "test")
+	assert.Equal(suite.T(), suite.postgres.Escaping(), false)
 	suite.postgres.SetEscaping(true)
+	assert.Equal(suite.T(), suite.postgres.Escaping(), true)
 	assert.Equal(suite.T(), suite.postgres.Escape("test"), "\"test\"")
 	assert.Equal(suite.T(), suite.postgres.EscapeAll([]string{"test"}), []string{"\"test\""})
 	assert.Equal(suite.T(), suite.postgres.Placeholder(), "$1")
@@ -60,8 +72,12 @@ func (suite *AdapterTestSuite) TestPostgresAdapter() {
 }
 
 func (suite *AdapterTestSuite) TestSqliteAdapter() {
+	assert.Equal(suite.T(), suite.sqlite.SupportsUnsigned(), false)
+	assert.Equal(suite.T(), suite.sqlite.AutoIncrement(), "AUTOINCREMENT")
 	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "test")
+	assert.Equal(suite.T(), suite.sqlite.Escaping(), false)
 	suite.sqlite.SetEscaping(true)
+	assert.Equal(suite.T(), suite.sqlite.Escaping(), true)
 	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "`test`")
 	assert.Equal(suite.T(), suite.sqlite.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.sqlite.Placeholder(), "?")

@@ -25,8 +25,8 @@ func (a *DefaultAdapter) SetEscaping(escaping bool) {
 	a.escaping = escaping
 }
 
-// GetEscaping gets the escaping parameter of adapter
-func (a *DefaultAdapter) GetEscaping() bool {
+// Escaping gets the escaping parameter of adapter
+func (a *DefaultAdapter) Escaping() bool {
 	return a.escaping
 }
 

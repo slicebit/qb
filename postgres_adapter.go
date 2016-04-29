@@ -26,8 +26,8 @@ func (a *PostgresAdapter) SetEscaping(escaping bool) {
 	a.escaping = escaping
 }
 
-// GetEscaping gets the escaping parameter of adapter
-func (a *PostgresAdapter) GetEscaping() bool {
+// Escaping gets the escaping parameter of adapter
+func (a *PostgresAdapter) Escaping() bool {
 	return a.escaping
 }
 

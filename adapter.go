@@ -20,7 +20,7 @@ type Adapter interface {
 	Escape(str string) string
 	EscapeAll([]string) []string
 	SetEscaping(escaping bool)
-	GetEscaping() bool
+	Escaping() bool
 	Placeholder() string
 	Placeholders(values ...interface{}) []string
 	AutoIncrement() string

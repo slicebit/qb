@@ -25,8 +25,8 @@ func (a *MysqlAdapter) SetEscaping(escaping bool) {
 	a.escaping = escaping
 }
 
-// GetEscaping gets the escaping parameter of adapter
-func (a *MysqlAdapter) GetEscaping() bool {
+// Escaping gets the escaping parameter of adapter
+func (a *MysqlAdapter) Escaping() bool {
 	return a.escaping
 }
 
