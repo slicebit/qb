@@ -6,7 +6,6 @@ import (
 )
 
 func TestTag(t *testing.T) {
-
 	tag, _ := ParseTag("type:varchar(255);constraints:default(guest),notnull")
 	assert.Equal(t, tag.Type, "varchar(255)")
 	assert.Equal(t, tag.Constraints, []string{"default(guest)", "notnull"})

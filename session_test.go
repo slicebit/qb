@@ -6,7 +6,6 @@ import (
 )
 
 func TestSession(t *testing.T) {
-
 	session, err := New("postgres", "user=root dbname=qb_test")
 	defer session.Close()
 	assert.Equal(t, session.Metadata().Engine(), session.Engine())

@@ -6,7 +6,6 @@ import (
 )
 
 func TestTable(t *testing.T) {
-
 	builder := NewBuilder("mysql")
 
 	table := NewTable(

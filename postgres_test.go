@@ -16,7 +16,6 @@ type PostgresTestSuite struct {
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
-
 	builder := NewBuilder("postgres")
 	builder.SetEscaping(true)
 
@@ -35,7 +34,6 @@ func (suite *PostgresTestSuite) SetupTest() {
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {
-
 	type User struct {
 		ID          string         `qb:"type:uuid; constraints:primary_key, auto_increment"`
 		Email       string         `qb:"constraints:unique, notnull"`

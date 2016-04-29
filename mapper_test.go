@@ -9,7 +9,6 @@ import (
 )
 
 func TestMapper(t *testing.T) {
-
 	type UnknownType struct{}
 
 	type User struct {
@@ -39,7 +38,6 @@ func TestMapper(t *testing.T) {
 }
 
 func TestMapperSqliteAutoIncrement(t *testing.T) {
-
 	type User struct {
 		ID int64 `qb:"constraints:auto_increment"`
 	}
@@ -52,7 +50,6 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 }
 
 func TestMapperError(t *testing.T) {
-
 	type UserErr struct {
 		ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
 		Email string `qb:"wrongtag:"`
@@ -71,7 +68,6 @@ type InvalidConstraint struct {
 }
 
 func TestMapperInvalidConstraint(t *testing.T) {
-
 	mapper := NewMapper(NewBuilder("mysql"))
 
 	invalidConstraintTable, err := mapper.ToTable(InvalidConstraint{})
@@ -81,7 +77,6 @@ func TestMapperInvalidConstraint(t *testing.T) {
 }
 
 func TestMapperUtilFuncs(t *testing.T) {
-
 	type UserErr struct {
 		ID    string `qb:"type:varchar(255);tag_should_raise_err:val;"`
 		Email string `qb:"wrongtag:"`

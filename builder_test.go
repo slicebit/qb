@@ -17,7 +17,6 @@ func (suite *BuilderTestSuite) SetupTest() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderInit() {
-
 	query := suite.builder.
 		Select("id").
 		From("user").
@@ -27,7 +26,6 @@ func (suite *BuilderTestSuite) TestBuilderInit() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectSimple() {
-
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
@@ -42,7 +40,6 @@ func (suite *BuilderTestSuite) TestBuilderEmptyAnd() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectSingleCondition() {
-
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
@@ -54,7 +51,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectSingleCondition() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectOrderByMultiConditionWithAnd() {
-
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
@@ -68,7 +64,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectOrderByMultiConditionWithAnd() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectMultiConditionWithOr() {
-
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
@@ -81,7 +76,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectMultiConditionWithOr() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectAvgGroupByHaving() {
-
 	query := suite.builder.
 		Select(suite.builder.Avg("price")).
 		From("products").
@@ -93,7 +87,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectAvgGroupByHaving() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectSumCount() {
-
 	query := suite.builder.
 		Select(suite.builder.Sum("price"), suite.builder.Count("id")).
 		From("products").
@@ -103,7 +96,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectSumCount() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectMinMax() {
-
 	query := suite.builder.
 		Select(suite.builder.Min("price"), suite.builder.Max("price")).
 		From("products").
@@ -113,7 +105,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectMinMax() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectEqNeq() {
-
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
@@ -127,7 +118,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectEqNeq() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectInNotIn() {
-
 	query := suite.builder.
 		Select("id", "email", "name").
 		From("user").
@@ -142,7 +132,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectInNotIn() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectGtGteStSte() {
-
 	query := suite.builder.
 		Select("id", "age", "avg").
 		From("goqb.user").
@@ -158,7 +147,6 @@ func (suite *BuilderTestSuite) TestBuilderSelectGtGteStSte() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderBasicInsert() {
-
 	fields := map[string]interface{}{
 		"name":     "Aras Can Akin",
 		"email":    "a@b.c",
@@ -183,7 +171,6 @@ func (suite *BuilderTestSuite) TestBuilderBasicInsert() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
-
 	query := suite.builder.
 		Update("user").
 		Set(
@@ -204,7 +191,6 @@ func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderDelete() {
-
 	query := suite.builder.
 		Delete("user").
 		Where("id = ?", 5).
@@ -215,7 +201,6 @@ func (suite *BuilderTestSuite) TestBuilderDelete() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderInnerJoin() {
-
 	query := suite.builder.
 		Select("id", "name", "email").
 		From("user").
@@ -228,7 +213,6 @@ func (suite *BuilderTestSuite) TestBuilderInnerJoin() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderLeftJoin() {
-
 	query := suite.builder.
 		Select("id", "name").
 		From("user").
@@ -241,7 +225,6 @@ func (suite *BuilderTestSuite) TestBuilderLeftJoin() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderRightJoin() {
-
 	query := suite.builder.
 		Select("id", "email_address").
 		From("user").
@@ -254,7 +237,6 @@ func (suite *BuilderTestSuite) TestBuilderRightJoin() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderFullOuterJoin() {
-
 	query := suite.builder.
 		Select("id", "name", "email").
 		From("user").
@@ -268,7 +250,6 @@ func (suite *BuilderTestSuite) TestBuilderFullOuterJoin() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderCrossJoin() {
-
 	query := suite.builder.
 		Select("id", "name", "email").
 		From("user").
@@ -281,7 +262,6 @@ func (suite *BuilderTestSuite) TestBuilderCrossJoin() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderCreateTable() {
-
 	query := suite.builder.
 		CreateTable("user",
 			[]string{
@@ -308,7 +288,6 @@ func (suite *BuilderTestSuite) TestBuilderCreateTable() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderAlterTableAddColumn() {
-
 	query := suite.builder.
 		AlterTable("user").
 		Add("name", "TEXT").
@@ -318,7 +297,6 @@ func (suite *BuilderTestSuite) TestBuilderAlterTableAddColumn() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderAlterTableDropColumn() {
-
 	query := suite.builder.
 		AlterTable("user").
 		Drop("name").
@@ -328,7 +306,6 @@ func (suite *BuilderTestSuite) TestBuilderAlterTableDropColumn() {
 }
 
 func (suite *BuilderTestSuite) TestBuilderDropTable() {
-
 	query := suite.builder.
 		DropTable("user").
 		Query()

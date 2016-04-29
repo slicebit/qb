@@ -23,7 +23,6 @@ type Column struct {
 
 // SQL returns column as an sql statement
 func (c *Column) SQL(adapter Adapter) string {
-
 	constraints := []string{}
 	for _, v := range c.Constraints {
 		constraints = append(constraints, v.Name)

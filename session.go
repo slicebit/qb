@@ -8,7 +8,6 @@ import (
 
 // New generates a new Session given engine and returns session pointer
 func New(driver string, dsn string) (*Session, error) {
-
 	engine, err := NewEngine(driver, dsn)
 	if err != nil {
 		return nil, err
@@ -82,7 +81,6 @@ func (s *Session) Metadata() *MetaData {
 
 // Delete adds a single delete query to the session
 func (s *Session) Delete(model interface{}) {
-
 	kv := s.mapper.ToMap(model)
 
 	tName := s.mapper.ModelName(model)
@@ -121,7 +119,6 @@ func (s *Session) AddAll(models ...interface{}) {
 
 // Commit commits the current transaction with queries
 func (s *Session) Commit() error {
-
 	for _, q := range s.queries {
 		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
 		if err != nil {
@@ -136,7 +133,6 @@ func (s *Session) Commit() error {
 
 // Find returns a row given model properties
 func (s *Session) Find(model interface{}) *Session {
-
 	tName := s.mapper.ModelName(model)
 	rModelMap := s.mapper.ToRawMap(model)
 

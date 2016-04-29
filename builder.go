@@ -54,7 +54,6 @@ func (b *Builder) Insert(table string) *Builder {
 
 // Values generates "values(%s)" statement and add bindings for each value
 func (b *Builder) Values(m map[string]interface{}) *Builder {
-
 	keys := []string{}
 	values := []interface{}{}
 	for k, v := range m {
@@ -328,7 +327,6 @@ func (b *Builder) Or(expressions ...string) string {
 
 // CreateTable generates generic CREATE TABLE statement
 func (b *Builder) CreateTable(table string, fields []string, constraints []string) *Builder {
-
 	b.query.AddClause(fmt.Sprintf("CREATE TABLE %s(", b.adapter.Escape(table)))
 
 	for k, f := range fields {

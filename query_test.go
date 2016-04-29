@@ -6,7 +6,6 @@ import (
 )
 
 func TestQuery(t *testing.T) {
-
 	query := NewQuery()
 
 	query.AddClause("SELECT name")
@@ -20,7 +19,6 @@ func TestQuery(t *testing.T) {
 }
 
 func TestQueryWithDelimiter(t *testing.T) {
-
 	query := NewQuery()
 
 	assert.Equal(t, query.SQL(), "")

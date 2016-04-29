@@ -35,7 +35,6 @@ func (suite *SqliteTestSuite) SetupTest() {
 }
 
 func (suite *SqliteTestSuite) TestSqlite() {
-
 	type User struct {
 		ID       string         `qb:"type:varchar(40); constraints:primary_key"`
 		Email    string         `qb:"constraints:unique, notnull"`

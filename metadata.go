@@ -2,7 +2,6 @@ package qb
 
 // NewMetaData creates a new MetaData object and returns
 func NewMetaData(engine *Engine, builder *Builder) *MetaData {
-
 	return &MetaData{
 		tables:  []*Table{},
 		engine:  engine,
@@ -26,7 +25,6 @@ func (m *MetaData) Engine() *Engine {
 
 // Add retrieves the struct and converts it using mapper and appends to tables slice
 func (m *MetaData) Add(model interface{}) {
-
 	table, err := m.mapper.ToTable(model)
 	if err != nil {
 		panic(err)
@@ -42,7 +40,6 @@ func (m *MetaData) AddTable(table *Table) {
 
 // Table returns the metadata registered table object. It returns nil if table is not found
 func (m *MetaData) Table(name string) *Table {
-
 	for _, t := range m.tables {
 		if t.name == name {
 			return t
@@ -59,7 +56,6 @@ func (m *MetaData) Tables() []*Table {
 
 // CreateAll creates all the tables added to metadata
 func (m *MetaData) CreateAll() error {
-
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
 		return err
@@ -78,7 +74,6 @@ func (m *MetaData) CreateAll() error {
 
 // DropAll drops all the tables which is added to metadata
 func (m *MetaData) DropAll() error {
-
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
 		return err

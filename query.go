@@ -54,7 +54,6 @@ func (q *Query) Bindings() []interface{} {
 
 // SQL returns the query struct sql statement
 func (q *Query) SQL() string {
-
 	if len(q.clauses) > 0 {
 		sql := fmt.Sprintf("%s;", strings.Join(q.clauses, q.delimiter))
 		return sql

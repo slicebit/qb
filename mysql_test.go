@@ -15,7 +15,6 @@ type MysqlTestSuite struct {
 }
 
 func (suite *MysqlTestSuite) SetupTest() {
-
 	var err error
 	builder := NewBuilder("mysql")
 	builder.SetEscaping(true)
@@ -34,7 +33,6 @@ func (suite *MysqlTestSuite) SetupTest() {
 }
 
 func (suite *MysqlTestSuite) TestMysql() {
-
 	type User struct {
 		ID       string         `qb:"type:varchar(40); constraints:primary_key"`
 		Email    string         `qb:"constraints:unique, notnull"`

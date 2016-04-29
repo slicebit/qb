@@ -11,7 +11,6 @@ import (
 
 // NewEngine generates a new engine and returns it as an engine pointer
 func NewEngine(driver string, dsn string) (*Engine, error) {
-
 	conn, err := sqlx.Open(driver, dsn)
 	if err != nil {
 		return nil, err
@@ -38,7 +37,6 @@ type Engine struct {
 
 // Exec executes insert & update type queries and returns sql.Result and error
 func (e *Engine) Exec(query *Query) (sql.Result, error) {
-
 	stmt, err := e.db.Prepare(query.SQL())
 	if err != nil {
 		return nil, err

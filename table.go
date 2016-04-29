@@ -45,7 +45,6 @@ func (t *Table) Name() string {
 
 // SQL generates create table syntax of table
 func (t *Table) SQL() string {
-
 	cols := []string{}
 	for _, v := range t.columns {
 		cols = append(cols, v.SQL(t.builder.Adapter()))
@@ -102,7 +101,6 @@ type ref struct {
 
 // AddRef appends a new reference struct that will be lazily built as a foreign key constraint
 func (t *Table) AddRef(col string, refTable string, refCol string) {
-
 	if len(t.refs) > 0 {
 		for k, ref := range t.refs {
 			if refTable == ref.refTable {

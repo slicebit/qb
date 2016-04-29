@@ -7,7 +7,6 @@ import (
 
 // Tag is the base abstraction of qbit tag
 type Tag struct {
-
 	// contains default, null, notnull, unique, primary_key, foreign_key(table.column), check(condition > 0)
 	Constraints []string
 
@@ -20,7 +19,6 @@ type Tag struct {
 
 // ParseTag parses raw qbit tag and builds a Tag object
 func ParseTag(rawTag string) (*Tag, error) {
-
 	rawTag = strings.Trim(rawTag, " ")
 
 	tag := &Tag{

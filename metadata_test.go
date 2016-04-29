@@ -10,7 +10,6 @@ type UserMetadata struct {
 }
 
 func TestMetadata(t *testing.T) {
-
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
 	builder := NewBuilder(engine.Driver())
 	metadata := NewMetaData(engine, builder)
@@ -23,7 +22,6 @@ type UserMetadataError struct {
 }
 
 func TestMetadataAddError(t *testing.T) {
-
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
 	builder := NewBuilder("postgres")
 	metadata := NewMetaData(engine, builder)
@@ -33,7 +31,6 @@ func TestMetadataAddError(t *testing.T) {
 }
 
 func TestMetadataAddTable(t *testing.T) {
-
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
 	builder := NewBuilder("postgres")
 	metadata := NewMetaData(engine, builder)

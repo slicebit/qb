@@ -7,7 +7,6 @@ import (
 )
 
 func TestEngine(t *testing.T) {
-
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
 
 	assert.Equal(t, err, nil)
@@ -17,14 +16,12 @@ func TestEngine(t *testing.T) {
 }
 
 func TestInvalidEngine(t *testing.T) {
-
 	engine, err := NewEngine("invalid", "")
 	assert.NotEqual(t, err, nil)
 	assert.Equal(t, engine, (*Engine)(nil))
 }
 
 func TestEngineExec(t *testing.T) {
-
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
 
 	query := NewBuilder(engine.Driver()).
@@ -40,7 +37,6 @@ func TestEngineExec(t *testing.T) {
 }
 
 func TestEngineFail(t *testing.T) {
-
 	engine, err := NewEngine("sqlite3", "./qb_test.db")
 	assert.Nil(t, err)
 
