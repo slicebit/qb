@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"sync"
 	"testing"
 	"time"
-	"sync"
 )
 
 type SqliteTestSuite struct {
@@ -23,11 +23,11 @@ func (suite *SqliteTestSuite) SetupTest() {
 	engine, err := NewEngine("sqlite3", "./qb_test.db")
 
 	suite.session = &Session{
-		queries: []*Query{},
-		mapper : NewMapper(builder),
+		queries:  []*Query{},
+		mapper:   NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
-		builder: builder,
-		mutex: &sync.Mutex{},
+		builder:  builder,
+		mutex:    &sync.Mutex{},
 	}
 
 	assert.Nil(suite.T(), err)
@@ -125,15 +125,6 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.session.Metadata().DropAll())
-
-	// fail model
-	type FailModel struct {
-		ID int64 `qb:"type:notype"`
-	}
-
-	assert.Panics(suite.T(), func() {
-		suite.session.Add(FailModel{})
-	})
 }
 
 func TestSqliteTestSuite(t *testing.T) {

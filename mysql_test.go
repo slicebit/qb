@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"sync"
 	"testing"
 	"time"
-	"sync"
 )
 
 type MysqlTestSuite struct {
@@ -23,11 +23,11 @@ func (suite *MysqlTestSuite) SetupTest() {
 	engine, err := NewEngine("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
 
 	suite.session = &Session{
-		queries: []*Query{},
-		mapper : NewMapper(builder),
+		queries:  []*Query{},
+		mapper:   NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
-		builder: builder,
-		mutex: &sync.Mutex{},
+		builder:  builder,
+		mutex:    &sync.Mutex{},
 	}
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.session)
@@ -124,16 +124,6 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.session.Metadata().DropAll())
-
-	// fail model
-	type FailModel struct {
-		ID int64 `qb:"type:notype"`
-	}
-
-	assert.Panics(suite.T(), func() {
-		suite.session.Add(FailModel{})
-	})
-
 }
 
 func TestMysqlTestSuite(t *testing.T) {

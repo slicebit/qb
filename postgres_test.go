@@ -2,12 +2,12 @@ package qb
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"sync"
 	"testing"
 	"time"
-	"fmt"
-	"sync"
 )
 
 type PostgresTestSuite struct {
@@ -20,14 +20,14 @@ func (suite *PostgresTestSuite) SetupTest() {
 	builder := NewBuilder("postgres")
 	builder.SetEscaping(true)
 
-	engine, err := NewEngine("postgres",  "user=postgres dbname=qb_test sslmode=disable")
+	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 
 	suite.session = &Session{
-		queries: []*Query{},
-		mapper: NewMapper(builder),
+		queries:  []*Query{},
+		mapper:   NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
-		builder: builder,
-		mutex: &sync.Mutex{},
+		builder:  builder,
+		mutex:    &sync.Mutex{},
 	}
 
 	assert.Nil(suite.T(), err)
@@ -129,15 +129,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.session.Metadata().DropAll())
-
-	// fail model
-	type FailModel struct {
-		ID int64 `qb:"type:notype"`
-	}
-
-	assert.Panics(suite.T(), func() {
-		suite.session.Add(FailModel{})
-	})
 }
 
 func TestPostgresTestSuite(t *testing.T) {

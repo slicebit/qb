@@ -124,28 +124,3 @@ func (t *Table) AddIndex(columns ...string) {
 	indexName := fmt.Sprintf("index_%s", strings.Join(columns, "_"))
 	t.indices = append(t.indices, NewIndex(t.name, indexName, columns...))
 }
-
-// Insert creates an insert statement for the table name
-func (t *Table) Insert(kv map[string]interface{}) *Builder {
-
-	keys := []string{}
-	values := []interface{}{}
-
-	for k, v := range kv {
-		keys = append(keys, k)
-		values = append(values, v)
-	}
-
-	// TODO: Validate column name
-	return t.builder.Insert(t.name).Values(kv)
-}
-
-// Update creates an update statement for the table name
-func (t *Table) Update(kv map[string]interface{}) *Builder {
-	return t.builder.Update(t.Name()).Set(kv)
-}
-
-// Delete creates a delete statement for the table name
-func (t *Table) Delete() *Builder {
-	return t.builder.Delete(t.Name())
-}

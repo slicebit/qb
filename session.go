@@ -21,7 +21,7 @@ func New(driver string, dsn string) (*Session, error) {
 		mapper:   NewMapper(builder),
 		metadata: NewMetaData(engine, builder),
 		builder:  builder,
-		mutex: &sync.Mutex{},
+		mutex:    &sync.Mutex{},
 	}, nil
 }
 
@@ -32,7 +32,7 @@ type Session struct {
 	metadata *MetaData
 	tx       *sql.Tx
 	builder  *Builder
-	mutex *sync.Mutex
+	mutex    *sync.Mutex
 }
 
 func (s *Session) add(query *Query) {
@@ -99,7 +99,6 @@ func (s *Session) Delete(model interface{}) {
 
 // Add adds a single model to the session. The query must be insert or update
 func (s *Session) Add(model interface{}) {
-
 	rawMap := s.mapper.ToMap(model)
 
 	kv := map[string]interface{}{}
@@ -108,7 +107,8 @@ func (s *Session) Add(model interface{}) {
 		kv[s.mapper.ColName(k)] = v
 	}
 
-	q := s.metadata.Table(s.mapper.ModelName(model)).Insert(kv).Query()
+	q := s.builder.Insert(s.mapper.ModelName(model)).Values(kv).Query()
+
 	s.add(q)
 }
 
