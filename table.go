@@ -106,8 +106,8 @@ func (t *Table) AddRef(col string, refTable string, refCol string) {
 	if len(t.refs) > 0 {
 		for k, ref := range t.refs {
 			if refTable == ref.refTable {
-				t.refs[k].cols = append(t.refs[k].cols, fmt.Sprintf("%s", col))
-				t.refs[k].refCols = append(t.refs[k].refCols, fmt.Sprintf("%s", refCol))
+				t.refs[k].cols = append(t.refs[k].cols, col)
+				t.refs[k].refCols = append(t.refs[k].refCols, refCol)
 				return
 			}
 		}
