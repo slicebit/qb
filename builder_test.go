@@ -14,6 +14,11 @@ type BuilderTestSuite struct {
 
 func (suite *BuilderTestSuite) SetupTest() {
 	suite.builder = NewBuilder("mysql")
+	assert.Equal(suite.T(), suite.builder.Adapter().Driver(), "mysql")
+	suite.builder.SetEscaping(false)
+	assert.Equal(suite.T(), suite.builder.Escaping(), false)
+	suite.builder.SetLogFlags(LQuery | LBindings)
+	assert.Equal(suite.T(), suite.builder.LogFlags(), LQuery | LBindings)
 }
 
 func (suite *BuilderTestSuite) TestBuilderInit() {
@@ -48,6 +53,17 @@ func (suite *BuilderTestSuite) TestBuilderSelectSingleCondition() {
 
 	assert.Equal(suite.T(), query.SQL(), "SELECT id, email, name\nFROM user\nWHERE id = ?;")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{5})
+}
+
+func (suite *BuilderTestSuite) TestBuilderSelectFromMultiTables() {
+	query := suite.builder.
+		Select("id", "email").
+		From("user", "email e").
+		Where(suite.builder.Eq("id", 10)).
+		Query()
+
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, email\nFROM user, email e\nWHERE id = ?;")
+	assert.Equal(suite.T(), query.Bindings(), []interface{}{10})
 }
 
 func (suite *BuilderTestSuite) TestBuilderSelectOrderByMultiConditionWithAnd() {
@@ -175,7 +191,7 @@ func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
 		Update("user").
 		Set(
 			map[string]interface{}{
-				"email": "a@b.c",
+				"user.email": "a@b.c",
 				"name":  "Aras",
 			}).
 		Where("id = ?", 5).
@@ -204,11 +220,11 @@ func (suite *BuilderTestSuite) TestBuilderInnerJoin() {
 	query := suite.builder.
 		Select("id", "name", "email").
 		From("user").
-		InnerJoin("email", "user.id = email.id").
+		InnerJoin("email e", "user.id = e.id").
 		Where("id = ?", 5).
 		Query()
 
-	assert.Equal(suite.T(), query.SQL(), "SELECT id, name, email\nFROM user\nINNER JOIN email ON user.id = email.id\nWHERE id = ?;")
+	assert.Equal(suite.T(), query.SQL(), "SELECT id, name, email\nFROM user\nINNER JOIN email e ON user.id = e.id\nWHERE id = ?;")
 	assert.Equal(suite.T(), query.Bindings(), []interface{}{5})
 }
 
@@ -311,6 +327,14 @@ func (suite *BuilderTestSuite) TestBuilderDropTable() {
 		Query()
 
 	assert.Equal(suite.T(), query.SQL(), "DROP TABLE user;")
+}
+
+func (suite *BuilderTestSuite) TestBuilderCreateIndex() {
+	query := suite.builder.
+		CreateIndex("index_user_id", "user", "id").
+		Query()
+
+	assert.Equal(suite.T(), query.SQL(), "CREATE INDEX index_user_id ON user(id);")
 }
 
 func TestBuilderSuite(t *testing.T) {
