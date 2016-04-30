@@ -2,27 +2,56 @@ package qb
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
+)
+
+const (
+	LDefault = iota
+	// log query flag
+	LQuery
+	// log bindings flag
+	LBindings
 )
 
 // NewBuilder generates a new builder struct
 func NewBuilder(driver string) *Builder {
 	return &Builder{
-		query:   NewQuery(),
-		adapter: NewAdapter(driver),
+		query:    NewQuery(),
+		adapter:  NewAdapter(driver),
+		logger:   log.New(os.Stdout, "", 0),
+		logFlags: LDefault,
 	}
 }
 
 // Builder is a struct that holds an active query that it is used for building common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
-	query   *Query
-	adapter Adapter
+	query    *Query
+	adapter  Adapter
+	logger   *log.Logger
+	logFlags int
+}
+
+// SetLogFlags sets the builder log flags
+func (b *Builder) SetLogFlags(logFlags int) {
+	b.logFlags = logFlags
+}
+
+// LogFlags returns the log flags
+func (b *Builder) LogFlags() int {
+	return b.logFlags
 }
 
 // SetEscaping sets the escaping parameter of current adapter
 func (b *Builder) SetEscaping(escaping bool) {
 	b.adapter.SetEscaping(escaping)
+}
+
+// Escaping functions returns if escaping is available
+func (b *Builder) Escaping() bool {
+	return b.adapter.Escaping()
 }
 
 // Adapter returns the active adapter of builder
@@ -41,7 +70,15 @@ func (b *Builder) Reset() {
 func (b *Builder) Query() *Query {
 	query := b.query
 	b.Reset()
-	//fmt.Printf("\n%s\n%s\n", query.SQL(), query.Bindings())
+	if b.logFlags == LQuery || b.logFlags == (LQuery|LBindings) {
+		b.logger.Printf("%s", query.SQL())
+	}
+	if b.logFlags == LBindings || b.logFlags == (LQuery|LBindings) {
+		b.logger.Printf("%s", query.Bindings())
+	}
+	if b.logFlags != LDefault {
+		b.logger.Println()
+	}
 	return query
 }
 
@@ -314,8 +351,6 @@ func (b *Builder) Ste(key string, value interface{}) string {
 func (b *Builder) And(expressions ...string) string {
 	if len(expressions) == 0 {
 		return ""
-	} else if len(expressions) == 1 {
-		return expressions[0]
 	}
 	return fmt.Sprintf("(%s)", strings.Join(expressions, " AND "))
 }
@@ -375,6 +410,6 @@ func (b *Builder) Drop(colName string) *Builder {
 
 // CreateIndex generates an index on columns
 func (b *Builder) CreateIndex(indexName string, tableName string, columns ...string) *Builder {
-	b.query.AddClause(fmt.Sprintf("CREATE INDEX %s ON %s (%s)", indexName, tableName, strings.Join(b.adapter.EscapeAll(columns), ",")))
+	b.query.AddClause(fmt.Sprintf("CREATE INDEX %s ON %s(%s)", indexName, tableName, strings.Join(b.adapter.EscapeAll(columns), ",")))
 	return b
 }
