@@ -36,17 +36,16 @@ type Session struct {
 
 func (s *Session) add(query *Query) {
 	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	var err error
 	if s.tx == nil {
 		s.queries = []*Query{}
 		s.tx, err = s.metadata.Engine().DB().Begin()
 		if err != nil {
-			s.mutex.Unlock()
 			panic(err)
 		}
 	}
 	s.queries = append(s.queries, query)
-	s.mutex.Unlock()
 }
 
 // Engine returns the current sqlx wrapped engine
