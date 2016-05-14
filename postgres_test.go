@@ -78,7 +78,46 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.session.Commit()
 	assert.Nil(suite.T(), err)
 
-	// find user
+	query := suite.session.Builder().Insert("user").Values(map[string]interface{}{
+		"id":       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"email":    "jack@nicholson.com",
+		"full_name": "Jack Nicholson",
+		"bio":      sql.NullString{},
+	}).Query()
+
+	_, err = suite.session.Engine().Exec(query)
+	assert.NotNil(suite.T(), err)
+	fmt.Println("Duplicate error; ", err)
+
+	query = suite.session.Builder().Insert("user").Values(map[string]interface{}{
+		"id":       "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
+		"email":    "jack@nicholson2.com",
+		"full_name": "Jack Nicholson",
+		"bio":      sql.NullString{},
+	}).Query()
+
+	_, err = suite.session.Engine().Exec(query)
+	assert.Nil(suite.T(), err)
+
+	err = suite.session.Rollback()
+	assert.NotNil(suite.T(), err)
+
+	// find user using QueryRow()
+	query = suite.session.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Query()
+	row := suite.session.Engine().QueryRow(query)
+	assert.NotNil(suite.T(), row)
+
+	// find user using Query()
+	query = suite.session.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Query()
+	rows, err := suite.session.Engine().Query(query)
+	assert.Nil(suite.T(), err)
+	rowLength := 0
+	for rows.Next() {
+		rowLength++
+	}
+	assert.Equal(suite.T(), rowLength, 1)
+
+	// find user using session api's Find()
 	var user User
 
 	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
