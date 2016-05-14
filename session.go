@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strings"
 	"sync"
+	"errors"
 )
 
 // New generates a new Session given engine and returns session pointer
@@ -121,13 +122,25 @@ func (s *Session) Commit() error {
 	for _, q := range s.queries {
 		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
 		if err != nil {
+			s.tx = nil
+			s.queries = []*Query{}
 			return err
 		}
 	}
 
 	err := s.tx.Commit()
 	s.tx = nil
+	s.queries = []*Query{}
 	return err
+}
+
+// Rollback rollbacks the current transaction
+func (s *Session) Rollback() error {
+	if (s.tx != nil) {
+		return s.tx.Rollback()
+	}
+
+	return errors.New("Current transaction is nil")
 }
 
 // Find returns a row given model properties

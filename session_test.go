@@ -13,6 +13,34 @@ func TestSession(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestSessionCommitError(t *testing.T) {
+	session, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	defer session.Close()
+	assert.Nil(t, err)
+	query := session.Builder().Insert("user").Values(map[string]interface{}{}).Query()
+	session.AddQuery(query)
+	err = session.Rollback()
+	assert.Nil(t, err)
+	session.AddQuery(query)
+	err = session.Commit()
+	assert.NotNil(t, err)
+}
+
+func TestSessionAddError(t *testing.T) {
+	session, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	assert.Nil(t, err)
+	session.Builder().SetEscaping(true)
+	type User struct {
+		ID string `qb:"constraints:primary_key"`
+	}
+	err = session.Metadata().CreateAll()
+	assert.Nil(t, err)
+	session.Close()
+	defer assert.Panics(t, func() {
+		session.Add(&User{ID: "hello"})
+	})
+}
+
 func TestSessionFail(t *testing.T) {
 	session, err := New("unknown", "invalid")
 	assert.Nil(t, session)
