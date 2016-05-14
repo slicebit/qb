@@ -10,11 +10,36 @@ type UserMetadata struct {
 }
 
 func TestMetadata(t *testing.T) {
-	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
+	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	builder := NewBuilder(engine.Driver())
 	metadata := NewMetaData(engine, builder)
 
 	metadata.Add(UserMetadata{})
+}
+
+func TestMetadataCreateAllDropAllError(t *testing.T) {
+	type User struct {
+		ID string `qb:"type:uuid; constraints:primary_key"`
+	}
+	qb, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	qb.Builder().SetEscaping(true)
+	assert.Nil(t, err)
+	qb.Metadata().Add(&User{})
+	err = qb.Metadata().CreateAll()
+	assert.Nil(t, err)
+
+	qbNew, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	qbNew.Builder().SetEscaping(true)
+	assert.Nil(t, err)
+	qbNew.Metadata().Add(&User{})
+	err = qbNew.Metadata().CreateAll()
+	assert.NotNil(t, err)
+
+	err = qb.Metadata().DropAll()
+	assert.Nil(t, err)
+
+	err = qb.Metadata().DropAll()
+	assert.NotNil(t, err)
 }
 
 type UserMetadataError struct {
