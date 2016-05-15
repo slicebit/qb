@@ -18,7 +18,7 @@ func (suite *BuilderTestSuite) SetupTest() {
 	suite.builder.SetEscaping(false)
 	assert.Equal(suite.T(), suite.builder.Escaping(), false)
 	suite.builder.SetLogFlags(LQuery | LBindings)
-	assert.Equal(suite.T(), suite.builder.LogFlags(), LQuery | LBindings)
+	assert.Equal(suite.T(), suite.builder.LogFlags(), LQuery|LBindings)
 }
 
 func (suite *BuilderTestSuite) TestBuilderInit() {
@@ -192,7 +192,7 @@ func (suite *BuilderTestSuite) TestBuilderBasicUpdate() {
 		Set(
 			map[string]interface{}{
 				"user.email": "a@b.c",
-				"name":  "Aras",
+				"name":       "Aras",
 			}).
 		Where("id = ?", 5).
 		Query()

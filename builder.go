@@ -103,7 +103,7 @@ func (b *Builder) Values(m map[string]interface{}) *Builder {
 
 	placeholders := []string{}
 
-	for _ = range values {
+	for range values {
 		placeholders = append(placeholders, b.adapter.Placeholder())
 	}
 	clause := fmt.Sprintf("VALUES (%s)", strings.Join(placeholders, ", "))

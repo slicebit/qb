@@ -42,7 +42,7 @@ func escapeAll(adapter Adapter, strings []string) []string {
 // common placeholders
 func placeholders(adapter Adapter, values ...interface{}) []string {
 	placeholders := []string{}
-	for _ = range values {
+	for range values {
 		placeholders = append(placeholders, adapter.Placeholder())
 	}
 	return placeholders

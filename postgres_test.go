@@ -79,10 +79,10 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Nil(suite.T(), err)
 
 	query := suite.session.Builder().Insert("user").Values(map[string]interface{}{
-		"id":       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-		"email":    "jack@nicholson.com",
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
-		"bio":      sql.NullString{},
+		"bio":       sql.NullString{},
 	}).Query()
 
 	_, err = suite.session.Engine().Exec(query)
@@ -90,10 +90,10 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	fmt.Println("Duplicate error; ", err)
 
 	query = suite.session.Builder().Insert("user").Values(map[string]interface{}{
-		"id":       "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
-		"email":    "jack@nicholson2.com",
+		"id":        "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
+		"email":     "jack@nicholson2.com",
 		"full_name": "Jack Nicholson",
-		"bio":      sql.NullString{},
+		"bio":       sql.NullString{},
 	}).Query()
 
 	_, err = suite.session.Engine().Exec(query)
