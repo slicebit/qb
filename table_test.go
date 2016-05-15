@@ -31,7 +31,7 @@ func TestTable(t *testing.T) {
 				"email",
 				NewType("VARCHAR(512)"),
 				[]Constraint{
-					Constraint{"UNIQUE"},
+					{"UNIQUE"},
 					NotNull(),
 				},
 			),

@@ -2,9 +2,9 @@ package qb
 
 import (
 	"database/sql"
+	"errors"
 	"strings"
 	"sync"
-	"errors"
 )
 
 // New generates a new Session given engine and returns session pointer
@@ -136,7 +136,7 @@ func (s *Session) Commit() error {
 
 // Rollback rollbacks the current transaction
 func (s *Session) Rollback() error {
-	if (s.tx != nil) {
+	if s.tx != nil {
 		return s.tx.Rollback()
 	}
 
