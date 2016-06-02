@@ -23,9 +23,9 @@ func (suite *SqliteTestSuite) SetupTest() {
 	engine, err := NewEngine("sqlite3", "./qb_test.db")
 
 	suite.session = &Session{
-		queries:  []*Query{},
-		mapper:   NewMapper(builder),
-		metadata: NewMetaData(engine, builder),
+		queries:  []*QueryElem{},
+		mapper:   Mapper(builder.Adapter()),
+		metadata: MetaData(engine, builder),
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}
@@ -44,7 +44,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	}
 
 	type Session struct {
-		ID        int       `qb:"type:integer; constraints:primary_key, autoincrement"`
+		ID        int       `qb:"type:integer; constraints:primary_key"`
 		UserID    string    `qb:"type:varchar(40); constraints:ref(user.id)"`
 		AuthToken string    `qb:"type:varchar(40); constraints:notnull, unique"`
 		CreatedAt time.Time `qb:"constraints:notnull"`

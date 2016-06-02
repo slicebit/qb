@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Tag is the base abstraction of qbit tag
+// Tag is the base abstraction of qb tag
 type Tag struct {
 	// contains default, null, notnull, unique, primary_key, foreign_key(table.column), check(condition > 0)
 	Constraints []string
@@ -17,16 +17,16 @@ type Tag struct {
 	Ignore bool
 }
 
-// ParseTag parses raw qbit tag and builds a Tag object
-func ParseTag(rawTag string) (*Tag, error) {
-	rawTag = strings.Trim(rawTag, " ")
+// ParseTag parses raw qb tag and builds a Tag object
+func ParseTag(rawTag string) (Tag, error) {
+	rawTag = strings.Replace(rawTag, " ", "", -1)
 
-	tag := &Tag{
+	tag := Tag{
 		Constraints: []string{},
 	}
 
 	if rawTag == "" {
-		return tag, nil
+		return Tag{}, nil
 	}
 
 	tags := strings.Split(rawTag, ";")
@@ -41,11 +41,11 @@ func ParseTag(rawTag string) (*Tag, error) {
 
 		} else if tagKeyVal[0] == "-" {
 			tag.Ignore = true
-			return tag, nil
+			return Tag{Ignore: true}, nil
 		}
 
 		if len(tagKeyVal) != 2 {
-			return nil, fmt.Errorf("Invalid tag key length, tag: %v", tag)
+			return Tag{}, fmt.Errorf("Invalid tag key length, tag: %v", tag)
 		}
 
 		if tagKeyVal[0] == "type" {

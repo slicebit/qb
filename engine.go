@@ -36,7 +36,7 @@ type Engine struct {
 }
 
 // Exec executes insert & update type queries and returns sql.Result and error
-func (e *Engine) Exec(query *Query) (sql.Result, error) {
+func (e *Engine) Exec(query *QueryElem) (sql.Result, error) {
 	stmt, err := e.db.Prepare(query.SQL())
 	if err != nil {
 		return nil, err
@@ -51,22 +51,22 @@ func (e *Engine) Exec(query *Query) (sql.Result, error) {
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
-func (e *Engine) QueryRow(query *Query) *sql.Row {
+func (e *Engine) QueryRow(query *QueryElem) *sql.Row {
 	return e.db.QueryRow(query.SQL(), query.Bindings()...)
 }
 
 // Query wraps *sql.DB.Query()
-func (e *Engine) Query(query *Query) (*sql.Rows, error) {
+func (e *Engine) Query(query *QueryElem) (*sql.Rows, error) {
 	return e.db.Query(query.SQL(), query.Bindings()...)
 }
 
 // Get maps the single row to a model
-func (e *Engine) Get(query *Query, model interface{}) error {
+func (e *Engine) Get(query *QueryElem, model interface{}) error {
 	return e.db.Get(model, query.SQL(), query.Bindings()...)
 }
 
 // Select maps multiple rows to a model array
-func (e *Engine) Select(query *Query, model interface{}) error {
+func (e *Engine) Select(query *QueryElem, model interface{}) error {
 	return e.db.Select(model, query.SQL(), query.Bindings()...)
 }
 

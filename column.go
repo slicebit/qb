@@ -1,41 +1,19 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
-// NewColumn creates and returns a table column
-func NewColumn(name string, t *Type, constraints []Constraint) Column {
-	return Column{
-		Name:        name,
-		Type:        t,
-		Constraints: constraints,
-	}
+// Column generates a ColumnElem given name and type
+func Column(name string, t TypeElem) ColumnElem {
+	return ColumnElem{name, t}
 }
 
-// Column is the base abstraction for table struct columns
-type Column struct {
-	Name        string
-	Type        *Type
-	Constraints []Constraint
+// ColumnElem is the definition of any columns defined in a table
+type ColumnElem struct {
+	Name string
+	Type TypeElem
 }
 
-// SQL returns column as an sql statement
-func (c *Column) SQL(adapter Adapter) string {
-	constraints := []string{}
-	for _, v := range c.Constraints {
-		constraints = append(constraints, v.Name)
-	}
-
-	colPieces := []string{
-		fmt.Sprintf("%s", adapter.Escape(c.Name)),
-		c.Type.SQL,
-	}
-
-	if len(constraints) > 0 {
-		colPieces = append(colPieces, strings.Join(constraints, " "))
-	}
-
-	return fmt.Sprintf("%s", strings.Join(colPieces, " "))
+// String returns the column element as an sql clause
+func (c ColumnElem) String(adapter Adapter) string {
+	return fmt.Sprintf("%s %s", adapter.Escape(c.Name), c.Type.String())
 }

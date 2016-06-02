@@ -287,8 +287,8 @@ func (suite *BuilderTestSuite) TestBuilderCreateTable() {
 				"username VARCHAR(255) NOT NULL",
 			},
 			[]string{
-				Constraint{"UNIQUE(email, name)"}.Name,
-				Constraint{"UNIQUE(username)"}.Name,
+				ConstraintElem{"UNIQUE(email, name)"}.Name,
+				ConstraintElem{"UNIQUE(username)"}.Name,
 			},
 		).Query()
 

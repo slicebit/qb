@@ -12,7 +12,7 @@ type UserMetadata struct {
 func TestMetadata(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	builder := NewBuilder(engine.Driver())
-	metadata := NewMetaData(engine, builder)
+	metadata := MetaData(engine, builder)
 
 	metadata.Add(UserMetadata{})
 }
@@ -49,7 +49,7 @@ type UserMetadataError struct {
 func TestMetadataAddError(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
 	builder := NewBuilder("postgres")
-	metadata := NewMetaData(engine, builder)
+	metadata := MetaData(engine, builder)
 
 	assert.Panics(t, func() { metadata.Add(UserMetadataError{}) })
 	assert.Equal(t, len(metadata.Tables()), 0)
@@ -58,27 +58,21 @@ func TestMetadataAddError(t *testing.T) {
 func TestMetadataAddTable(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
 	builder := NewBuilder("postgres")
-	metadata := NewMetaData(engine, builder)
+	metadata := MetaData(engine, builder)
 
-	table := NewTable(
-		builder,
-		"user",
-		[]Column{
-			NewColumn("id", NewType("BIGINT"), []Constraint{}),
-		},
-	)
+	table := Table("user", Column("id", BigInt()))
 
 	metadata.AddTable(table)
 
-	assert.Equal(t, metadata.Tables(), []*Table{table})
+	assert.Equal(t, metadata.Tables(), []TableElem{table})
 
-	assert.Equal(t, metadata.Table("user").Name(), "user")
+	assert.Equal(t, metadata.Table("user").Name, "user")
 }
 
 func TestMetadataTable(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=root dbname=pqtest")
 	builder := NewBuilder("postgres")
-	metadata := NewMetaData(engine, builder)
+	metadata := MetaData(engine, builder)
 
 	assert.Nil(t, metadata.Table("invalid-table"))
 }
@@ -86,7 +80,7 @@ func TestMetadataTable(t *testing.T) {
 func TestMetadataFailCreateDropAll(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test")
 	builder := NewBuilder("postgres")
-	metadata := NewMetaData(engine, builder)
+	metadata := MetaData(engine, builder)
 	metadata.Engine().DB().Close()
 	assert.NotNil(t, metadata.CreateAll())
 	assert.NotNil(t, metadata.DropAll())

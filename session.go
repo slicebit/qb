@@ -17,9 +17,9 @@ func New(driver string, dsn string) (*Session, error) {
 	builder := NewBuilder(engine.Driver())
 
 	return &Session{
-		queries:  []*Query{},
-		mapper:   NewMapper(builder),
-		metadata: NewMetaData(engine, builder),
+		queries:  []*QueryElem{},
+		mapper:   Mapper(builder.Adapter()),
+		metadata: MetaData(engine, builder),
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}, nil
@@ -27,20 +27,20 @@ func New(driver string, dsn string) (*Session, error) {
 
 // Session is the composition of engine connection & orm mappings
 type Session struct {
-	queries  []*Query
-	mapper   *Mapper
-	metadata *MetaData
+	queries  []*QueryElem
+	mapper   MapperElem
+	metadata *MetaDataElem
 	tx       *sql.Tx
 	builder  *Builder
 	mutex    *sync.Mutex
 }
 
-func (s *Session) add(query *Query) {
+func (s *Session) add(query *QueryElem) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	var err error
 	if s.tx == nil {
-		s.queries = []*Query{}
+		s.queries = []*QueryElem{}
 		s.tx, err = s.metadata.Engine().DB().Begin()
 		if err != nil {
 			panic(err)
@@ -65,17 +65,17 @@ func (s *Session) Builder() *Builder {
 }
 
 // AddQuery adds a query given the query pointer retrieved from Query() function
-func (s *Session) AddQuery(query *Query) {
+func (s *Session) AddQuery(query *QueryElem) {
 	s.add(query)
 }
 
 // Query returns the active query built by session
-func (s *Session) Query() *Query {
+func (s *Session) Query() *QueryElem {
 	return s.builder.Query()
 }
 
 // Metadata returns the metadata of session
-func (s *Session) Metadata() *MetaData {
+func (s *Session) Metadata() *MetaDataElem {
 	return s.metadata
 }
 
@@ -123,14 +123,14 @@ func (s *Session) Commit() error {
 		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
 		if err != nil {
 			s.tx = nil
-			s.queries = []*Query{}
+			s.queries = []*QueryElem{}
 			return err
 		}
 	}
 
 	err := s.tx.Commit()
 	s.tx = nil
-	s.queries = []*Query{}
+	s.queries = []*QueryElem{}
 	return err
 }
 
@@ -150,8 +150,8 @@ func (s *Session) Find(model interface{}) *Session {
 
 	sqlColNames := []string{}
 	for k := range rModelMap {
-		col, err := s.metadata.Table(tName).Column(s.mapper.ColName(k))
-		if err != nil {
+		col := s.metadata.Table(tName).C(s.mapper.ColName(k))
+		if col.Name == "" {
 			continue
 		}
 		sqlColNames = append(sqlColNames, col.Name)

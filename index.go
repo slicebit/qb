@@ -1,35 +1,26 @@
 package qb
 
-// CompositeIndex is the container for multiple column indices
-type CompositeIndex struct{}
+import (
+	"fmt"
+	"strings"
+)
 
-// NewIndex generates a new Index struct given column array
-func NewIndex(table string, name string, columns ...string) *Index {
-	return &Index{
-		table:   table,
-		columns: columns,
-		name:    name,
+type CompositeIndex string
+
+func Index(table string, cols ...string) IndexElem {
+	return IndexElem{
+		Table: table,
+		Name: fmt.Sprintf("i_%s", strings.Join(cols, "_")),
+		Columns: cols,
 	}
 }
 
-// Index is the struct for generating table indices
-type Index struct {
-	table   string
-	columns []string
-	name    string
+type IndexElem struct {
+	Table string
+	Name    string
+	Columns []string
 }
 
-// Table returns the table property of index
-func (i *Index) Table() string {
-	return i.table
-}
-
-// Columns returns the columns property of index
-func (i *Index) Columns() []string {
-	return i.columns
-}
-
-// Name returns the name property of index
-func (i *Index) Name() string {
-	return i.name
+func (i IndexElem) String(adapter Adapter) string {
+	return fmt.Sprintf("CREATE INDEX %s ON %s(%s);", adapter.Escape(i.Name), adapter.Escape(i.Table), strings.Join(adapter.EscapeAll(i.Columns), ", "))
 }

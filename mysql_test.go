@@ -22,9 +22,9 @@ func (suite *MysqlTestSuite) SetupTest() {
 	engine, err := NewEngine("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
 
 	suite.session = &Session{
-		queries:  []*Query{},
-		mapper:   NewMapper(builder),
-		metadata: NewMetaData(engine, builder),
+		queries:  []*QueryElem{},
+		mapper:   Mapper(builder.Adapter()),
+		metadata: MetaData(engine, builder),
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}

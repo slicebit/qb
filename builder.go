@@ -18,7 +18,7 @@ const (
 // NewBuilder generates a new builder struct
 func NewBuilder(driver string) *Builder {
 	return &Builder{
-		query:    NewQuery(),
+		query:    Query(),
 		adapter:  NewAdapter(driver),
 		logger:   log.New(os.Stdout, "", 0),
 		logFlags: LDefault,
@@ -28,7 +28,7 @@ func NewBuilder(driver string) *Builder {
 // Builder is a struct that holds an active query that it is used for building common sql queries
 // it has all the common functions except multiple statements & table crudders
 type Builder struct {
-	query    *Query
+	query    *QueryElem
 	adapter  Adapter
 	logger   *log.Logger
 	logFlags int
@@ -61,13 +61,13 @@ func (b *Builder) Adapter() Adapter {
 
 // Reset clears query bindings and its errors
 func (b *Builder) Reset() {
-	b.query = NewQuery()
+	b.query = Query()
 	b.adapter.Reset()
 }
 
 // Query returns the active query and resets the query.
 // The query clauses and returns the sql and bindings
-func (b *Builder) Query() *Query {
+func (b *Builder) Query() *QueryElem {
 	query := b.query
 	b.Reset()
 	if b.logFlags == LQuery || b.logFlags == (LQuery|LBindings) {

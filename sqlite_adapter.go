@@ -1,7 +1,5 @@
 package qb
 
-import "fmt"
-
 // SqliteAdapter is a type of adapter that can be used with sqlite driver
 type SqliteAdapter struct {
 	escaping bool
@@ -9,9 +7,6 @@ type SqliteAdapter struct {
 
 // Escape wraps the string with escape characters of the adapter
 func (a *SqliteAdapter) Escape(str string) string {
-	if a.escaping {
-		return fmt.Sprintf("`%s`", str)
-	}
 	return str
 }
 
@@ -42,7 +37,8 @@ func (a *SqliteAdapter) Placeholders(values ...interface{}) []string {
 
 // AutoIncrement generates auto increment sql of current adapter
 func (a *SqliteAdapter) AutoIncrement() string {
-	return "AUTOINCREMENT"
+	//return "AUTOINCREMENT"
+	return ""
 }
 
 // Reset does nothing for the default driver

@@ -1,30 +1,31 @@
 package qb
 
-// NewMetaData creates a new MetaData object and returns
-func NewMetaData(engine *Engine, builder *Builder) *MetaData {
-	return &MetaData{
-		tables:  []*Table{},
+// TODO: Metadata should not use builder, it should only use adapter
+// MetaData creates a new MetaData object and returns
+func MetaData(engine *Engine, builder *Builder) *MetaDataElem {
+	return &MetaDataElem{
+		tables:  []TableElem{},
 		engine:  engine,
-		mapper:  NewMapper(builder),
+		mapper:  Mapper(builder.Adapter()),
 		builder: builder,
 	}
 }
 
-// MetaData is the container for database structs and tables
-type MetaData struct {
-	tables  []*Table
+// MetaDataElem is the container for database structs and tables
+type MetaDataElem struct {
+	tables  []TableElem
 	engine  *Engine
-	mapper  *Mapper
+	mapper  MapperElem
 	builder *Builder
 }
 
 // Engine returns the currently bound engine of metadata
-func (m *MetaData) Engine() *Engine {
+func (m *MetaDataElem) Engine() *Engine {
 	return m.engine
 }
 
 // Add retrieves the struct and converts it using mapper and appends to tables slice
-func (m *MetaData) Add(model interface{}) {
+func (m *MetaDataElem) Add(model interface{}) {
 	table, err := m.mapper.ToTable(model)
 	if err != nil {
 		panic(err)
@@ -34,15 +35,15 @@ func (m *MetaData) Add(model interface{}) {
 }
 
 // AddTable appends table to tables slice
-func (m *MetaData) AddTable(table *Table) {
+func (m *MetaDataElem) AddTable(table TableElem) {
 	m.tables = append(m.tables, table)
 }
 
 // Table returns the metadata registered table object. It returns nil if table is not found
-func (m *MetaData) Table(name string) *Table {
+func (m *MetaDataElem) Table(name string) *TableElem {
 	for _, t := range m.tables {
-		if t.name == name {
-			return t
+		if t.Name == name {
+			return &t
 		}
 	}
 
@@ -50,19 +51,19 @@ func (m *MetaData) Table(name string) *Table {
 }
 
 // Tables returns the current tables slice
-func (m *MetaData) Tables() []*Table {
+func (m *MetaDataElem) Tables() []TableElem {
 	return m.tables
 }
 
 // CreateAll creates all the tables added to metadata
-func (m *MetaData) CreateAll() error {
+func (m *MetaDataElem) CreateAll() error {
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
 		return err
 	}
 
 	for _, t := range m.tables {
-		_, err = tx.Exec(t.SQL())
+		_, err = tx.Exec(t.Create(m.builder.Adapter()))
 		if err != nil {
 			return err
 		}
@@ -73,14 +74,14 @@ func (m *MetaData) CreateAll() error {
 }
 
 // DropAll drops all the tables which is added to metadata
-func (m *MetaData) DropAll() error {
+func (m *MetaDataElem) DropAll() error {
 	tx, err := m.engine.DB().Begin()
 	if err != nil {
 		return err
 	}
 
 	for i := len(m.tables) - 1; i >= 0; i-- {
-		drop := m.builder.DropTable(m.tables[i].Name()).Query()
+		drop := m.builder.DropTable(m.tables[i].Name).Query()
 		_, err = tx.Exec(drop.SQL())
 		if err != nil {
 			return err

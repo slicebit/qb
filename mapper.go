@@ -10,18 +10,17 @@ import (
 const tagPrefix = "qb"
 
 // NewMapper creates a new mapper struct and returns it as a mapper pointer
-func NewMapper(builder *Builder) *Mapper {
-	return &Mapper{
-		builder: builder,
-	}
+func Mapper(adapter Adapter) MapperElem {
+	return MapperElem{adapter: adapter}
 }
 
 // Mapper is the generic struct for struct to table mapping
-type Mapper struct {
-	builder *Builder
+type MapperElem struct {
+	//builder *Builder
+	adapter Adapter
 }
 
-func (m *Mapper) extractValue(value string) string {
+func (m MapperElem) extractValue(value string) string {
 	hasParams := strings.Contains(value, "(") && strings.Contains(value, ")")
 
 	if hasParams {
@@ -34,13 +33,13 @@ func (m *Mapper) extractValue(value string) string {
 }
 
 // ToRawMap converts a model struct to map without changing the field names.
-func (m *Mapper) ToRawMap(model interface{}) map[string]interface{} {
+func (m MapperElem) ToRawMap(model interface{}) map[string]interface{} {
 	return structs.Map(model)
 }
 
 // ToMap converts a model struct to a map. Uninitialized fields are ignored.
 // Fields are renamed using qb conventions
-func (m *Mapper) ToMap(model interface{}) map[string]interface{} {
+func (m MapperElem) ToMap(model interface{}) map[string]interface{} {
 	fields := structs.Fields(model)
 	kv := map[string]interface{}{}
 	for _, f := range fields {
@@ -54,186 +53,174 @@ func (m *Mapper) ToMap(model interface{}) map[string]interface{} {
 }
 
 // ModelName returns the sql table name of model
-func (m *Mapper) ModelName(model interface{}) string {
+func (m MapperElem) ModelName(model interface{}) string {
 	return snaker.CamelToSnake(structs.Name(model))
 }
 
 // ColName returns the sql column name of model
-func (m *Mapper) ColName(col string) string {
+func (m MapperElem) ColName(col string) string {
 	return snaker.CamelToSnake(col)
 }
 
 // ToType returns the type mapping of column.
 // If tagType is, then colType would automatically be resolved.
 // If tagType is not "", then automatic type resolving would be overridden by tagType
-func (m *Mapper) ToType(colType string, tagType string) *Type {
+func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 	// convert tagType
 	if tagType != "" {
 		tagType = strings.ToUpper(tagType)
-		return &Type{tagType}
+		return Type(tagType)
 	}
 	// convert default type
 	switch colType {
 	case "string":
-		return &Type{"VARCHAR(255)"}
+		return Varchar().Size(255)
 	case "int":
-		return &Type{"INT"}
+		return Int()
 	case "int8":
-		return &Type{"SMALLINT"}
+		return SmallInt()
 	case "int16":
-		return &Type{"SMALLINT"}
+		return SmallInt()
 	case "int32":
-		return &Type{"INT"}
+		return Int()
 	case "int64":
-		return &Type{"BIGINT"}
+		return BigInt()
 	case "uint":
-		if m.builder.Adapter().SupportsUnsigned() {
-			return &Type{"INT UNSIGNED"}
+		if m.adapter.SupportsUnsigned() {
+			return Type("INT UNSIGNED")
 		}
-		return &Type{"BIGINT"}
+		return BigInt()
 	case "uint8":
-		if m.builder.Adapter().SupportsUnsigned() {
-			return &Type{"TINYINT UNSIGNED"}
+		if m.adapter.SupportsUnsigned() {
+			return Type("TINYINT UNSIGNED")
 		}
-		return &Type{"SMALLINT"}
+		return SmallInt()
 	case "uint16":
-		if m.builder.Adapter().SupportsUnsigned() {
-			return &Type{"SMALLINT UNSIGNED"}
+		if m.adapter.SupportsUnsigned() {
+			return Type("SMALLINT UNSIGNED")
 		}
-		return &Type{"INT"}
+		return Int()
 	case "uint32":
-		if m.builder.Adapter().SupportsUnsigned() {
-			return &Type{"INT UNSIGNED"}
+		if m.adapter.SupportsUnsigned() {
+			return Type("INT UNSIGNED")
 		}
-		return &Type{"BIGINT"}
+		return BigInt()
 	case "uint64":
-		if m.builder.Adapter().SupportsUnsigned() {
-			return &Type{"BIGINT UNSIGNED"}
+		if m.adapter.SupportsUnsigned() {
+			return Type("BIGINT UNSIGNED")
 		}
-		return &Type{"BIGINT"}
+		return BigInt()
 	case "float32":
-		return &Type{"FLOAT"} // TODO: Not sure
+		return Float() // TODO: Not sure
 	case "float64":
-		return &Type{"FLOAT"} // TODO: Not sure
+		return Float() // TODO: Not sure
 	case "bool":
-		return &Type{"BOOLEAN"}
+		return Boolean()
 	case "time.Time":
-		return &Type{"TIMESTAMP"}
+		return Timestamp()
 	case "*time.Time":
-		return &Type{"TIMESTAMP"}
+		return Timestamp()
 	default:
-		return &Type{"VARCHAR"}
+		return Varchar().Size(255)
 	}
 }
 
 // ToTable parses struct and converts it to a new table
-func (m *Mapper) ToTable(model interface{}) (*Table, error) {
+func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 	modelName := m.ModelName(model)
 
-	table := NewTable(m.builder, modelName, []Column{})
-
-	//fmt.Printf("model name: %s\n\n", modelName)
-
-	var col Column
-	var rawTag string
+	colClauses := []Clause{}
+	tableClauses := []Clause{}
 
 	for _, f := range structs.Fields(model) {
 
-		colName := m.ColName(f.Name())
-		colType := fmt.Sprintf("%T", f.Value())
-
-		rawTag = f.Tag(tagPrefix)
-
-		constraints := []Constraint{}
-		//fmt.Println()
-		//fmt.Printf("field name: %s\n", colName)
-		//fmt.Printf("field raw tag: %s\n", rawTag)
-		//fmt.Printf("field type name: %T\n", f.Value())
-		//fmt.Printf("field constraints: %v\n", constraints)
-		//fmt.Println()
-
-		// clean trailing spaces of tag
-		rawTag = strings.Replace(f.Tag(tagPrefix), " ", "", -1)
-
-		// parse tag
-		tag, err := ParseTag(rawTag)
+		tag, err := ParseTag(f.Tag(tagPrefix))
 		if err != nil {
-			return nil, err
+			return TableElem{}, err
 		}
 
 		if tag.Ignore {
 			continue
 		}
 
+		colName := m.ColName(f.Name())
+		colType := m.ToType(fmt.Sprintf("%T", f.Value()), tag.Type)
+
 		// convert tag into constraints
-		var constraint Constraint
 		for _, v := range tag.Constraints {
 			if v == "null" {
-				constraint = Null()
+				colType = colType.Null()
 			} else if v == "notnull" || v == "not_null" {
-				constraint = NotNull()
+				colType = colType.NotNull()
 			} else if v == "unique" {
-				constraint = Constraint{
-					Name: "UNIQUE",
-				}
+				colType = colType.Unique()
 			} else if v == "auto_increment" || v == "autoincrement" {
-				c := m.builder.Adapter().AutoIncrement()
+				c := m.adapter.AutoIncrement()
 
 				// it doesn't support auto increment
 				if c == "" {
 					continue
 				} else {
-					constraint = Constraint{
-						Name: c,
-					}
+					colType = colType.Constraint(c)
 				}
 			} else if strings.Contains(v, "default") {
-				constraint = Default(m.extractValue(v))
+				colType = colType.Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
-				if m.builder.Adapter().SupportsInlinePrimaryKey() {
-					constraint = Constraint{
-						Name: "PRIMARY KEY",
+				// TODO: Possible performance issue, fix this when possible, maybe table.AddPrimary option should be thought
+				pkDefined := false
+				for i, tc := range tableClauses {
+					switch tc.(type) {
+					case PrimaryKeyConstraint:
+						pk := tc.(PrimaryKeyConstraint)
+						pk.Columns = append(pk.Columns, colName)
+						tableClauses[i] = pk
+						pkDefined = true
+						break
 					}
-				} else {
-					table.AddPrimary(colName)
+				}
+				if pkDefined {
 					continue
 				}
+				tableClauses = append(tableClauses, PrimaryKey(colName))
 			} else if strings.Contains(v, "ref") && strings.Contains(v, "(") && strings.Contains(v, ")") {
-				tc := strings.Split(m.extractValue(v), ".")
-				table.AddRef(colName, tc[0], tc[1])
-				continue
+				// TODO: Possible performance issue, fix this when possible, maybe table.AddRef option should be thought
+				fkp := strings.Split(m.extractValue(v), ".")
+				fkDefined := false
+				for i, tc := range tableClauses {
+					switch tc.(type) {
+					case ForeignKeyConstraints:
+						fk := tc.(ForeignKeyConstraints)
+						fk = fk.Ref(colName, fkp[0], fkp[1])
+						tableClauses[i] = fk
+						fkDefined = true
+						break
+					}
+				}
+
+				if fkDefined {
+					continue
+				}
+
+				tableClauses = append(tableClauses, ForeignKey().Ref(colName, fkp[0], fkp[1]))
 			} else if strings.Contains(v, "index") {
 				if strings.Contains(f.Name(), "CompositeIndex") {
 					is := strings.Split(v, ":")
 					cols := strings.Split(is[1], ",")
-					table.AddIndex(cols...)
+					tableClauses = append(tableClauses, Index(modelName, cols...))
 				} else {
-					table.AddIndex(colName)
+					tableClauses = append(tableClauses, Index(modelName, colName))
 				}
-				continue
 			} else {
-				return nil, fmt.Errorf("Invalid constraint: %s", v)
+				return TableElem{}, fmt.Errorf("Invalid constraint: %s", v)
 			}
-			constraints = append(constraints, constraint)
 		}
-
-		//fmt.Printf("field tag.Type: %s\n", tag.Type)
-		//fmt.Printf("field tag.Constraints: %v\n", tag.Constraints)
 
 		if strings.Contains(f.Name(), "CompositeIndex") {
 			continue
 		}
 
-		col = Column{
-			Name:        colName,
-			Constraints: constraints,
-			Type:        m.ToType(colType, tag.Type),
-		}
-
-		table.AddColumn(col)
-
-		//fmt.Println()
+		colClauses = append(colClauses, Column(colName, colType))
 	}
 
-	return table, nil
+	return Table(modelName, append(colClauses, tableClauses...)...), nil
 }
