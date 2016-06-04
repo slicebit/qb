@@ -3,7 +3,13 @@ sudo: true
 go:
     - tip
 install:
-    - go get -u -t -v .
+    - go get -u github.com/fatih/structs
+    - go get -u github.com/go-sql-driver/mysql
+    - go get -u github.com/jmoiron/sqlx
+    - go get -u github.com/lib/pq
+    - go get -u github.com/mattn/go-sqlite3
+    - go get -u github.com/serenize/snaker
+    - go get -u github.com/stretchr/testify
     - go get golang.org/x/tools/cmd/cover
     - go get github.com/mattn/goveralls
 script:
