@@ -159,5 +159,6 @@ func main() {
 
 Credits
 -------
-- [Aras Can Akin](http://github.com/aacanakin)
+- [Aras Can Akin](https://github.com/aacanakin)
 - [aodin](https://github.com/aodin)
+- [Shawn Smith](https://github.com/shawnps)
