@@ -32,8 +32,10 @@ func TestSessionAddError(t *testing.T) {
 	type User struct {
 		ID string `qb:"constraints:primary_key"`
 	}
+	session.AddTable(User{})
 	err = session.CreateAll()
 	assert.Nil(t, err)
+
 	session.Close()
 	defer assert.Panics(t, func() {
 		session.Add(&User{ID: "hello"})
