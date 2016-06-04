@@ -22,7 +22,7 @@ What's New (0.2)
 The new table api design provides functionality for generating table objects like in the sqlalchemy's expression api.
 Here's a full example to define a table;
 ```go
-db, err := qb.New("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
+    db, err := qb.New("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
 	if err != nil {
 		panic(err)
 	}
