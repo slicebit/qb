@@ -9,12 +9,12 @@ import (
 
 const tagPrefix = "qb"
 
-// NewMapper creates a new mapper struct and returns it as a mapper pointer
+// Mapper creates a new mapper struct and returns it as a mapper pointer
 func Mapper(adapter Adapter) MapperElem {
 	return MapperElem{adapter: adapter}
 }
 
-// Mapper is the generic struct for struct to table mapping
+// MapperElem is the generic struct for struct to table mapping
 type MapperElem struct {
 	//builder *Builder
 	adapter Adapter

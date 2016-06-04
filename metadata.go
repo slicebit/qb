@@ -1,7 +1,7 @@
 package qb
 
+// MetaData creates a new MetaData object and returns it as a pointer
 // TODO: Metadata should not use builder, it should only use adapter
-// MetaData creates a new MetaData object and returns
 func MetaData(engine *Engine, builder *Builder) *MetaDataElem {
 	return &MetaDataElem{
 		tables:  []TableElem{},

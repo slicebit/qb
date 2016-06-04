@@ -66,7 +66,7 @@ func ForeignKey() ForeignKeyConstraints {
 	return ForeignKeyConstraints{[]Reference{}}
 }
 
-// ForeignKeyConstraint is the definition of foreign key in any table
+// ForeignKeyConstraints is the definition of foreign keys in any table
 type ForeignKeyConstraints struct {
 	Refs []Reference
 }

@@ -7,7 +7,7 @@ import (
 
 const defaultDelimiter = "\n"
 
-// NewQuery creates a new query and returns its pointer
+// Query creates a new query and returns its pointer
 func Query() *QueryElem {
 	return &QueryElem{
 		clauses:      []string{},
