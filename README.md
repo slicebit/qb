@@ -17,6 +17,60 @@ qb is a database toolkit for easier db usage in go. It is inspired from python's
 -------------
 The documentation is hosted in [readme.io](https://qb.readme.io) which has great support for markdown docs. Currently, the docs is about 80% - 90% complete. The doc files will be added to this repo soon. Moreover, you can check the godoc from [here](https://godoc.org/github.com/aacanakin/qb). Contributions & Feedbacks in docs are welcome.
 
+What's New (0.2)
+----------------
+The new table api design provides functionality for generating table objects like in the sqlalchemy's expression api.
+Here's a full example to define a table;
+```go
+db, err := qb.New("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
+	if err != nil {
+		panic(err)
+	}
+
+	usersTable := qb.Table(
+		"users",
+		qb.Column("id", qb.Varchar().Size(40)),
+		qb.Column("facebook_id", qb.BigInt()),
+		qb.Column("email", qb.Varchar().Size(40).Unique()),
+		qb.Column("device_id", qb.Varchar().Size(255).Unique()),
+		qb.Column("session_id", qb.Varchar().Size(40)),
+		qb.Column("auth_token", qb.Varchar().Size(40)),
+		qb.Column("role_id", qb.Varchar().Size(40)),
+		qb.PrimaryKey("id"),
+		qb.ForeignKey().
+			Ref("session_id", "sessions", "id").
+			Ref("auth_token", "sessions", "auth_token").
+			Ref("role_id", "roles", "id"),
+		qb.UniqueKey("email", "device_id"),
+	).Index("email", "device_id").Index("facebook_id")
+
+	fmt.Println(usersTable.Create(db.Builder().Adapter()), "\n")
+
+	db.Metadata().AddTable(usersTable)
+	err = db.Metadata().CreateAll(db.Engine())
+	if err != nil {
+		panic(err)
+	}
+	
+	// prints
+	//CREATE TABLE users (
+    //	session_id VARCHAR(40),
+    //	auth_token VARCHAR(40),
+    //	role_id VARCHAR(40),
+    //	id VARCHAR(40),
+    //	facebook_id BIGINT,
+    //	email VARCHAR(40) UNIQUE,
+    //	device_id VARCHAR(255) UNIQUE,
+    //	PRIMARY KEY(id),
+    //	FOREIGN KEY(session_id, auth_token) REFERENCES sessions(id, auth_token),
+    //	FOREIGN KEY(role_id) REFERENCES roles(id),
+    //	CONSTRAINT u_email_device_id UNIQUE(email, device_id)
+    //);
+    //CREATE INDEX i_email_device_id ON users(email, device_id);
+    //CREATE INDEX i_facebook_id ON users(facebook_id);
+	
+```
+
 Features
 --------
 - Support for postgres, mysql & sqlite3
@@ -101,3 +155,8 @@ func main() {
 
 }
 ```
+
+Credits
+-------
+[Aras Can Akin](http://github.com/aacanakin)
+[aodin](https://github.com/aodin)
