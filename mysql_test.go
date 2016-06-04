@@ -16,16 +16,16 @@ type MysqlTestSuite struct {
 
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
-	builder := NewBuilder("mysql")
-	builder.SetEscaping(true)
 
 	engine, err := NewEngine("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
+	builder := NewBuilder(engine.Driver())
+	builder.SetEscaping(true)
 
 	suite.session = &Session{
 		queries:  []*QueryElem{},
 		engine:   engine,
 		mapper:   Mapper(builder.Adapter()),
-		metadata: MetaData(engine, builder),
+		metadata: MetaData(builder),
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}

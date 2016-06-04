@@ -25,7 +25,7 @@ func (suite *SqliteTestSuite) SetupTest() {
 	suite.session = &Session{
 		queries:  []*QueryElem{},
 		mapper:   Mapper(builder.Adapter()),
-		metadata: MetaData(engine, builder),
+		metadata: MetaData(builder),
 		engine:   engine,
 		builder:  builder,
 		mutex:    &sync.Mutex{},

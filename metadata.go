@@ -2,7 +2,7 @@ package qb
 
 // MetaData creates a new MetaData object and returns it as a pointer
 // TODO: Metadata should not use builder, it should only use adapter
-func MetaData(engine *Engine, builder *Builder) *MetaDataElem {
+func MetaData(builder *Builder) *MetaDataElem {
 	return &MetaDataElem{
 		tables:  []TableElem{},
 		mapper:  Mapper(builder.Adapter()),

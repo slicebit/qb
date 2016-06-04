@@ -26,7 +26,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 		queries:  []*QueryElem{},
 		mapper:   Mapper(builder.Adapter()),
 		engine:   engine,
-		metadata: MetaData(engine, builder),
+		metadata: MetaData(builder),
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}

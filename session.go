@@ -20,7 +20,7 @@ func New(driver string, dsn string) (*Session, error) {
 		queries:  []*QueryElem{},
 		engine:   engine,
 		mapper:   Mapper(builder.Adapter()),
-		metadata: MetaData(engine, builder),
+		metadata: MetaData(builder),
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}, nil
