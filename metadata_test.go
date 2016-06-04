@@ -75,9 +75,15 @@ func TestMetadataTable(t *testing.T) {
 }
 
 func TestMetadataFailCreateDropAll(t *testing.T) {
-	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test")
-	builder := NewBuilder("postgres")
+	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	builder := NewBuilder(engine.Driver())
 	metadata := MetaData(builder)
-	assert.NotNil(t, metadata.CreateAll(engine))
-	assert.NotNil(t, metadata.DropAll(engine))
+
+	var err error
+
+	err = metadata.CreateAll(engine)
+	assert.NotNil(t, err)
+
+	err = metadata.DropAll(engine)
+	assert.NotNil(t, err)
 }

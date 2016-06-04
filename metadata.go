@@ -1,5 +1,7 @@
 package qb
 
+import "errors"
+
 // MetaData creates a new MetaData object and returns it as a pointer
 // TODO: Metadata should not use builder, it should only use adapter
 func MetaData(builder *Builder) *MetaDataElem {
@@ -63,6 +65,11 @@ func (m *MetaDataElem) CreateAll(engine *Engine) error {
 	}
 
 	err = tx.Commit()
+
+	if len(m.tables) == 0 {
+		return errors.New("Metadata is empty")
+	}
+
 	return err
 }
 
@@ -82,5 +89,9 @@ func (m *MetaDataElem) DropAll(engine *Engine) error {
 	}
 
 	err = tx.Commit()
+
+	if len(m.tables) == 0 {
+		return errors.New("Metadata is empty")
+	}
 	return err
 }
