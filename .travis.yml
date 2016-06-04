@@ -3,7 +3,7 @@ sudo: true
 go:
     - tip
 install:
-    - go get -u -t -v github.com/aacanakin/qb
+    - go get -u -t -v .
     - go get golang.org/x/tools/cmd/cover
     - go get github.com/mattn/goveralls
 script:
