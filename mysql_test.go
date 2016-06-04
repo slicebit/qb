@@ -23,6 +23,7 @@ func (suite *MysqlTestSuite) SetupTest() {
 
 	suite.session = &Session{
 		queries:  []*QueryElem{},
+		engine:   engine,
 		mapper:   Mapper(builder.Adapter()),
 		metadata: MetaData(engine, builder),
 		builder:  builder,
@@ -51,10 +52,10 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	var err error
 
-	suite.session.Metadata().Add(User{})
-	suite.session.Metadata().Add(Session{})
+	suite.session.AddTable(User{})
+	suite.session.AddTable(Session{})
 
-	err = suite.session.Metadata().CreateAll()
+	err = suite.session.CreateAll()
 	assert.Nil(suite.T(), err)
 
 	// add sample user & session
@@ -121,7 +122,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	// drop tables
-	assert.Nil(suite.T(), suite.session.Metadata().DropAll())
+	assert.Nil(suite.T(), suite.session.DropAll())
 }
 
 func TestMysqlTestSuite(t *testing.T) {

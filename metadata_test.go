@@ -25,20 +25,20 @@ func TestMetadataCreateAllDropAllError(t *testing.T) {
 	qb.Builder().SetEscaping(true)
 	assert.Nil(t, err)
 	qb.Metadata().Add(&User{})
-	err = qb.Metadata().CreateAll()
+	err = qb.Metadata().CreateAll(qb.Engine())
 	assert.Nil(t, err)
 
 	qbNew, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	qbNew.Builder().SetEscaping(true)
 	assert.Nil(t, err)
-	qbNew.Metadata().Add(&User{})
-	err = qbNew.Metadata().CreateAll()
+	qbNew.AddTable(&User{})
+	err = qbNew.Metadata().CreateAll(qbNew.Engine())
 	assert.NotNil(t, err)
 
-	err = qb.Metadata().DropAll()
+	err = qb.Metadata().DropAll(qb.Engine())
 	assert.Nil(t, err)
 
-	err = qb.Metadata().DropAll()
+	err = qbNew.Metadata().DropAll(qbNew.Engine())
 	assert.NotNil(t, err)
 }
 
@@ -81,7 +81,6 @@ func TestMetadataFailCreateDropAll(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test")
 	builder := NewBuilder("postgres")
 	metadata := MetaData(engine, builder)
-	metadata.Engine().DB().Close()
-	assert.NotNil(t, metadata.CreateAll())
-	assert.NotNil(t, metadata.DropAll())
+	assert.NotNil(t, metadata.CreateAll(engine))
+	assert.NotNil(t, metadata.DropAll(engine))
 }

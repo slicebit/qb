@@ -26,6 +26,7 @@ func (suite *SqliteTestSuite) SetupTest() {
 		queries:  []*QueryElem{},
 		mapper:   Mapper(builder.Adapter()),
 		metadata: MetaData(engine, builder),
+		engine:   engine,
 		builder:  builder,
 		mutex:    &sync.Mutex{},
 	}
@@ -53,10 +54,10 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	var err error
 
-	suite.session.Metadata().Add(User{})
-	suite.session.Metadata().Add(Session{})
+	suite.session.AddTable(User{})
+	suite.session.AddTable(Session{})
 
-	err = suite.session.Metadata().CreateAll()
+	err = suite.session.CreateAll()
 	assert.Nil(suite.T(), err)
 
 	// add sample user & session
@@ -123,7 +124,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	assert.Nil(suite.T(), err)
 
 	// drop tables
-	assert.Nil(suite.T(), suite.session.Metadata().DropAll())
+	assert.Nil(suite.T(), suite.session.DropAll())
 }
 
 func TestSqliteTestSuite(t *testing.T) {

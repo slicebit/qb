@@ -18,6 +18,7 @@ func New(driver string, dsn string) (*Session, error) {
 
 	return &Session{
 		queries:  []*QueryElem{},
+		engine:   engine,
 		mapper:   Mapper(builder.Adapter()),
 		metadata: MetaData(engine, builder),
 		builder:  builder,
@@ -28,6 +29,7 @@ func New(driver string, dsn string) (*Session, error) {
 // Session is the composition of engine connection & orm mappings
 type Session struct {
 	queries  []*QueryElem
+	engine   *Engine
 	mapper   MapperElem
 	metadata *MetaDataElem
 	tx       *sql.Tx
@@ -41,7 +43,7 @@ func (s *Session) add(query *QueryElem) {
 	var err error
 	if s.tx == nil {
 		s.queries = []*QueryElem{}
-		s.tx, err = s.metadata.Engine().DB().Begin()
+		s.tx, err = s.engine.DB().Begin()
 		if err != nil {
 			panic(err)
 		}
@@ -49,14 +51,29 @@ func (s *Session) add(query *QueryElem) {
 	s.queries = append(s.queries, query)
 }
 
+// AddTable adds a model to metadata that is mapped into table object
+func (s *Session) AddTable(model interface{}) {
+	s.metadata.Add(model)
+}
+
+// CreateAll creates all tables that are registered to metadata
+func (s *Session) CreateAll() error {
+	return s.metadata.CreateAll(s.engine)
+}
+
+// DropAll drops all tables that are registered to metadata
+func (s *Session) DropAll() error {
+	return s.metadata.DropAll(s.engine)
+}
+
 // Engine returns the current sqlx wrapped engine
 func (s *Session) Engine() *Engine {
-	return s.metadata.Engine()
+	return s.engine
 }
 
 // Close closes engine db (sqlx) connection
 func (s *Session) Close() {
-	s.metadata.Engine().DB().Close()
+	s.engine.DB().Close()
 }
 
 // Builder returns query builder
@@ -98,15 +115,7 @@ func (s *Session) Delete(model interface{}) {
 // Add adds a single model to the session. The query must be insert or update
 func (s *Session) Add(model interface{}) {
 	m := s.mapper.ToMap(model, false)
-
-	//kv := map[string]interface{}{}
-	//
-	//for k, v := range rawMap {
-	//	kv[s.mapper.ColName(k)] = v
-	//}
-
 	q := s.builder.Insert(s.mapper.ModelName(model)).Values(m).Query()
-
 	s.add(q)
 }
 
@@ -174,14 +183,14 @@ func (s *Session) Find(model interface{}) *Session {
 // The interface should be struct pointer instead of struct
 func (s *Session) One(model interface{}) error {
 	query := s.builder.Query()
-	return s.metadata.Engine().Get(query, model)
+	return s.engine.Get(query, model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
 func (s *Session) All(models interface{}) error {
 	query := s.builder.Query()
-	return s.metadata.Engine().Select(query, models)
+	return s.engine.Select(query, models)
 }
 
 // builder overrides for session

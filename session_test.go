@@ -8,7 +8,6 @@ import (
 func TestSession(t *testing.T) {
 	session, err := New("postgres", "user=root dbname=qb_test")
 	defer session.Close()
-	assert.Equal(t, session.Metadata().Engine(), session.Engine())
 	assert.NotNil(t, session)
 	assert.Nil(t, err)
 }
@@ -33,7 +32,7 @@ func TestSessionAddError(t *testing.T) {
 	type User struct {
 		ID string `qb:"constraints:primary_key"`
 	}
-	err = session.Metadata().CreateAll()
+	err = session.CreateAll()
 	assert.Nil(t, err)
 	session.Close()
 	defer assert.Panics(t, func() {

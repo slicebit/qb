@@ -5,7 +5,6 @@ package qb
 func MetaData(engine *Engine, builder *Builder) *MetaDataElem {
 	return &MetaDataElem{
 		tables:  []TableElem{},
-		engine:  engine,
 		mapper:  Mapper(builder.Adapter()),
 		builder: builder,
 	}
@@ -14,14 +13,8 @@ func MetaData(engine *Engine, builder *Builder) *MetaDataElem {
 // MetaDataElem is the container for database structs and tables
 type MetaDataElem struct {
 	tables  []TableElem
-	engine  *Engine
 	mapper  MapperElem
 	builder *Builder
-}
-
-// Engine returns the currently bound engine of metadata
-func (m *MetaDataElem) Engine() *Engine {
-	return m.engine
 }
 
 // Add retrieves the struct and converts it using mapper and appends to tables slice
@@ -56,8 +49,8 @@ func (m *MetaDataElem) Tables() []TableElem {
 }
 
 // CreateAll creates all the tables added to metadata
-func (m *MetaDataElem) CreateAll() error {
-	tx, err := m.engine.DB().Begin()
+func (m *MetaDataElem) CreateAll(engine *Engine) error {
+	tx, err := engine.DB().Begin()
 	if err != nil {
 		return err
 	}
@@ -74,8 +67,8 @@ func (m *MetaDataElem) CreateAll() error {
 }
 
 // DropAll drops all the tables which is added to metadata
-func (m *MetaDataElem) DropAll() error {
-	tx, err := m.engine.DB().Begin()
+func (m *MetaDataElem) DropAll(engine *Engine) error {
+	tx, err := engine.DB().Begin()
 	if err != nil {
 		return err
 	}
