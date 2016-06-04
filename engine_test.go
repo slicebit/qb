@@ -25,10 +25,10 @@ func TestEngineExec(t *testing.T) {
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
 
 	query := NewBuilder(engine.Driver()).
-	Insert("user").
-	Values(map[string]interface{}{
-		"full_name": "Aras Can Akin",
-	}).Query()
+		Insert("user").
+		Values(map[string]interface{}{
+			"full_name": "Aras Can Akin",
+		}).Query()
 	assert.Equal(t, err, nil)
 
 	res, err := engine.Exec(query)
@@ -41,10 +41,10 @@ func TestEngineFail(t *testing.T) {
 	assert.Nil(t, err)
 
 	query := NewBuilder(engine.Driver()).
-	Insert("user").
-	Values(map[string]interface{}{
-		"full_name": "Aras Can Akin",
-	}).Query()
+		Insert("user").
+		Values(map[string]interface{}{
+			"full_name": "Aras Can Akin",
+		}).Query()
 
 	_, err = engine.Exec(query)
 	assert.NotNil(t, err)

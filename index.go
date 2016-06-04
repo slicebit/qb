@@ -9,14 +9,14 @@ type CompositeIndex string
 
 func Index(table string, cols ...string) IndexElem {
 	return IndexElem{
-		Table: table,
-		Name: fmt.Sprintf("i_%s", strings.Join(cols, "_")),
+		Table:   table,
+		Name:    fmt.Sprintf("i_%s", strings.Join(cols, "_")),
 		Columns: cols,
 	}
 }
 
 type IndexElem struct {
-	Table string
+	Table   string
 	Name    string
 	Columns []string
 }
