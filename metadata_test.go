@@ -5,18 +5,6 @@ import (
 	"testing"
 )
 
-type UserMetadata struct {
-	ID int
-}
-
-func TestMetadata(t *testing.T) {
-	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
-	builder := NewBuilder(engine.Driver())
-	metadata := MetaData(builder)
-
-	metadata.Add(UserMetadata{})
-}
-
 func TestMetadataCreateAllDropAllError(t *testing.T) {
 	type User struct {
 		ID string `qb:"type:uuid; constraints:primary_key"`
@@ -86,4 +74,13 @@ func TestMetadataFailCreateDropAll(t *testing.T) {
 
 	err = metadata.DropAll(engine)
 	assert.NotNil(t, err)
+}
+
+func TestMetadataWithNoConnection(t *testing.T) {
+	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	engine.DB().Close()
+
+	metadata := MetaData(NewBuilder(engine.Driver()))
+	assert.NotNil(t, metadata.CreateAll(engine))
+	assert.NotNil(t, metadata.DropAll(engine))
 }
