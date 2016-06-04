@@ -81,14 +81,14 @@ func (s *Session) Metadata() *MetaDataElem {
 
 // Delete adds a single delete query to the session
 func (s *Session) Delete(model interface{}) {
-	kv := s.mapper.ToMap(model)
+	kv := s.mapper.ToMap(model, false)
 
 	tName := s.mapper.ModelName(model)
 
 	d := s.builder.Delete(tName)
 	ands := []string{}
 	for k, v := range kv {
-		ands = append(ands, s.Eq(s.mapper.ColName(k), v))
+		ands = append(ands, s.Eq(k, v))
 	}
 
 	del := d.Where(d.And(ands...)).Query()
@@ -97,15 +97,15 @@ func (s *Session) Delete(model interface{}) {
 
 // Add adds a single model to the session. The query must be insert or update
 func (s *Session) Add(model interface{}) {
-	rawMap := s.mapper.ToMap(model)
+	m := s.mapper.ToMap(model, false)
 
-	kv := map[string]interface{}{}
+	//kv := map[string]interface{}{}
+	//
+	//for k, v := range rawMap {
+	//	kv[s.mapper.ColName(k)] = v
+	//}
 
-	for k, v := range rawMap {
-		kv[s.mapper.ColName(k)] = v
-	}
-
-	q := s.builder.Insert(s.mapper.ModelName(model)).Values(kv).Query()
+	q := s.builder.Insert(s.mapper.ModelName(model)).Values(m).Query()
 
 	s.add(q)
 }
@@ -146,29 +146,27 @@ func (s *Session) Rollback() error {
 // Find returns a row given model properties
 func (s *Session) Find(model interface{}) *Session {
 	tName := s.mapper.ModelName(model)
-	rModelMap := s.mapper.ToRawMap(model)
+	modelMap := s.mapper.ToMap(model, true)
 
 	sqlColNames := []string{}
-	for k := range rModelMap {
-		col := s.metadata.Table(tName).C(s.mapper.ColName(k))
-		if col.Name == "" {
-			continue
-		}
-		sqlColNames = append(sqlColNames, col.Name)
+	for k := range modelMap {
+		sqlColNames = append(sqlColNames, k)
 	}
-
-	s.builder.Select(s.builder.Adapter().EscapeAll(sqlColNames)...).From(tName)
-
-	modelMap := s.mapper.ToMap(model)
 
 	ands := []string{}
-	bindings := []interface{}{}
 
-	for k, v := range modelMap {
-		ands = append(ands, s.builder.Eq(s.mapper.ColName(k), v))
+	for k := range modelMap {
+		if modelMap[k] == nil {
+			continue
+		}
+		ands = append(ands, s.builder.Eq(k, modelMap[k]))
 	}
 
-	s.builder.Where(s.builder.And(ands...), bindings...)
+	s.builder.
+		Select(s.builder.Adapter().EscapeAll(sqlColNames)...).
+		From(tName).
+		Where(s.builder.And(ands...))
+
 	return s
 }
 

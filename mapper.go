@@ -32,22 +32,34 @@ func (m MapperElem) extractValue(value string) string {
 	return ""
 }
 
-// ToRawMap converts a model struct to map without changing the field names.
-func (m MapperElem) ToRawMap(model interface{}) map[string]interface{} {
-	return structs.Map(model)
-}
-
-// ToMap converts a model struct to a map. Uninitialized fields are ignored.
-// Fields are renamed using qb conventions
-func (m MapperElem) ToMap(model interface{}) map[string]interface{} {
+// ToMap converts a model struct to a map. Uninitialized fields are optionally ignored if includeZeroFields is true.
+// Fields are renamed using qb conventions. db tag overrides column names
+func (m MapperElem) ToMap(model interface{}, includeZeroFields bool) map[string]interface{} {
 	fields := structs.Fields(model)
 	kv := map[string]interface{}{}
 	for _, f := range fields {
-		if f.IsZero() {
+		isZero := f.IsZero()
+		if isZero && !includeZeroFields {
 			continue
 		}
 
-		kv[m.ColName(f.Name())] = f.Value()
+		if strings.Contains(f.Tag("qb"), "-") {
+			continue
+		}
+
+		var val interface{}
+		if f.IsZero() {
+			val = nil
+		} else {
+			val = f.Value()
+		}
+
+		dbTag := ParseDBTag(f.Tag("db"))
+		if dbTag != "" {
+			kv[dbTag] = val
+		} else {
+			kv[snaker.CamelToSnake(f.Name())] = val
+		}
 	}
 	return kv
 }
@@ -55,11 +67,6 @@ func (m MapperElem) ToMap(model interface{}) map[string]interface{} {
 // ModelName returns the sql table name of model
 func (m MapperElem) ModelName(model interface{}) string {
 	return snaker.CamelToSnake(structs.Name(model))
-}
-
-// ColName returns the sql column name of model
-func (m MapperElem) ColName(col string) string {
-	return snaker.CamelToSnake(col)
 }
 
 // ToType returns the type mapping of column.
@@ -143,7 +150,14 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			continue
 		}
 
-		colName := m.ColName(f.Name())
+		dbTag := ParseDBTag(f.Tag("db"))
+		var colName string
+		if dbTag != "" {
+			colName = dbTag
+		} else {
+			colName = snaker.CamelToSnake(f.Name())
+		}
+
 		colType := m.ToType(fmt.Sprintf("%T", f.Value()), tag.Type)
 
 		// convert tag into constraints

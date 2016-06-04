@@ -61,3 +61,9 @@ func ParseTag(rawTag string) (Tag, error) {
 
 	return tag, nil
 }
+
+// ParseDBTag parses the "db" tag that can be used in custom column name mapping
+func ParseDBTag(rawTag string) string {
+	rawTag = strings.Replace(rawTag, " ", "", -1)
+	return rawTag
+}

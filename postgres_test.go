@@ -18,6 +18,7 @@ type PostgresTestSuite struct {
 func (suite *PostgresTestSuite) SetupTest() {
 	builder := NewBuilder("postgres")
 	builder.SetEscaping(true)
+	builder.SetLogFlags(LQuery | LBindings)
 
 	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 
@@ -35,7 +36,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 
 func (suite *PostgresTestSuite) TestPostgres() {
 	type User struct {
-		ID          string         `qb:"type:uuid; constraints:primary_key"`
+		ID          string         `db:"_id" qb:"type:uuid; constraints:primary_key"`
 		Email       string         `qb:"constraints:unique, notnull"`
 		FullName    string         `qb:"constraints:notnull"`
 		Bio         sql.NullString `qb:"type:text; constraints:null"`
@@ -45,7 +46,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	type Session struct {
 		ID             int64     `qb:"type:bigserial; constraints:primary_key"`
-		UserID         string    `qb:"type:uuid; constraints:ref(user.id)"`
+		UserID         string    `qb:"type:uuid; constraints:ref(user._id)"`
 		AuthToken      string    `qb:"type:uuid; constraints:notnull, unique; index"`
 		CreatedAt      time.Time `qb:"constraints:notnull"`
 		ExpiresAt      time.Time `qb:"constraints:notnull"`
@@ -79,7 +80,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Nil(suite.T(), err)
 
 	query := suite.session.Builder().Insert("user").Values(map[string]interface{}{
-		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"_id":       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
 		"bio":       sql.NullString{},
@@ -90,7 +91,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	fmt.Println("Duplicate error; ", err)
 
 	query = suite.session.Builder().Insert("user").Values(map[string]interface{}{
-		"id":        "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
+		"_id":       "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
 		"email":     "jack@nicholson2.com",
 		"full_name": "Jack Nicholson",
 		"bio":       sql.NullString{},
@@ -130,8 +131,8 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	sessions := []Session{}
 	err = suite.session.Select("s.user_id", "s.id", "s.auth_token", "s.created_at", "s.expires_at").
 		From("user u").
-		InnerJoin("session s", "u.id = s.user_id").
-		Where("u.id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+		InnerJoin("session s", "u._id = s.user_id").
+		Where("u._id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
 		All(&sessions)
 
 	assert.Nil(suite.T(), err)
@@ -147,7 +148,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		Set(map[string]interface{}{
 			"bio": nil,
 		}).
-		Where(suite.session.Eq("id", "b6f8bfe3-a830-441a-a097-1777e6bfae95")).
+		Where(suite.session.Eq("_id", "b6f8bfe3-a830-441a-a097-1777e6bfae95")).
 		Query()
 
 	suite.session.AddQuery(update)

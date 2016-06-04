@@ -83,9 +83,33 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 	assert.Contains(t, ddl, "id BIGINT")
 	assert.Contains(t, ddl, ")")
 
-	assert.Equal(t, mapper.ToRawMap(User{5}), map[string]interface{}{"ID": int64(5)})
+	fmt.Println(ddl, "\n")
+}
 
-	fmt.Println(table.Create(adapter), "\n")
+func TestMapperWithDBTag(t *testing.T) {
+	type User struct {
+		ID    string `db:"_id" qb:"type:varchar(36); constraints:primary_key"`
+		Email string `qb:"constraints:unique, notnull"`
+	}
+
+	adapter := NewAdapter("mysql")
+	mapper := Mapper(adapter)
+	table, err := mapper.ToTable(User{})
+	assert.Nil(t, err)
+	ddl := table.Create(adapter)
+
+	assert.Contains(t, ddl, "CREATE TABLE user (")
+	assert.Contains(t, ddl, "_id VARCHAR(36)")
+	assert.Contains(t, ddl, "email VARCHAR(255) UNIQUE NOT NULL")
+	assert.Contains(t, ddl, "PRIMARY KEY(_id)")
+
+	m := mapper.ToMap(User{ID: "cba0667d-8c76-4999-9a55-84ffe572fb23", Email: "aras@slicebit.com"}, false)
+	assert.Equal(t, m, map[string]interface{}{
+		"_id":   "cba0667d-8c76-4999-9a55-84ffe572fb23",
+		"email": "aras@slicebit.com",
+	})
+
+	fmt.Println(ddl, "\n")
 }
 
 func TestMapperPostgresAutoIncrement(t *testing.T) {
@@ -138,7 +162,7 @@ func TestNonZeroStruct(t *testing.T) {
 	}
 
 	mapper := Mapper(NewAdapter("mysql"))
-	m := mapper.ToMap(User{5})
+	m := mapper.ToMap(User{5}, false)
 	assert.Equal(t, m, map[string]interface{}{"id": 5})
 }
 
@@ -150,9 +174,7 @@ func TestMapperUtilFuncs(t *testing.T) {
 
 	mapper := Mapper(NewAdapter("mysql"))
 
-	assert.Equal(t, mapper.ColName("CreatedAt"), "created_at")
-
-	kv := mapper.ToMap(UserErr{})
+	kv := mapper.ToMap(UserErr{}, false)
 	assert.Equal(t, kv, map[string]interface{}{})
 }
 
