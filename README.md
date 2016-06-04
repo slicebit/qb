@@ -7,7 +7,8 @@
 
 **This project is currently pre 1.**
 
-It can currently have potential bugs. Currently, there are no tests having concurrency race condition tests. It can currently crash especially in concurrency. Moreover, before 1.x releases, each major release could break backwards compatibility.
+Currently, it's not feature complete. It can have potential bugs. There are no tests having concurrency race condition tests. It can crash especially in concurrency. 
+Before 1.x releases, each major release could break backwards compatibility.
 
 About qb
 --------
