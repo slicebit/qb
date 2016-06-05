@@ -1,4 +1,4 @@
-[logo]: https://github.com/aacanakin/qb/raw/master/qb_logo_128.png "qb: the database toolkit for go"
+![alt text](https://github.com/aacanakin/qb/raw/master/qb_logo_128.png "qb: the database toolkit for go")
 
 # qb - the database toolkit for go
 
