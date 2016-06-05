@@ -90,6 +90,11 @@ Installation with glide;
 glide get github.com/aacanakin/qb
 ```
 
+0.1 installation with glide;
+```sh
+glide get github.com/aacanakin/qb#0.1
+```
+
 Installation using go get;
 ```sh
 go get -u github.com/aacanakin/qb
