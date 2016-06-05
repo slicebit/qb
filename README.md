@@ -1,3 +1,4 @@
+[logo]: https://github.com/aacanakin/qb/raw/master/qb_logo_128.png "qb: the database toolkit for go"
 
 # qb - the database toolkit for go
 
@@ -164,6 +165,7 @@ func main() {
 
 Credits
 -------
-- [Aras Can Akin](https://github.com/aacanakin)
+- [Aras Can Akın](https://github.com/aacanakin)
+- [Onur Şentüre](https://github.com/onursenture)
 - [aodin](https://github.com/aodin)
 - [Shawn Smith](https://github.com/shawnps)
