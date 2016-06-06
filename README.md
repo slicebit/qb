@@ -117,7 +117,7 @@ import (
 )
 
 type User struct {
-	ID       string `qb:"type:uuid; constraints:primary_key"`
+	ID       string `db:"_id" qb:"type:uuid; constraints:primary_key"`
 	Email    string `qb:"constraints:unique, notnull"`
 	FullName string `qb:"constraints:notnull"`
 	Bio      string `qb:"type:text; constraints:null"`
@@ -133,10 +133,10 @@ func main() {
 	defer db.Close()
 
 	// add table to metadata
-	db.Metadata().Add(User{})
+	db.AddTable(User{})
 
 	// create all tables registered to metadata
-	db.Metadata().CreateAll()
+	db.CreateAll()
 
 	userID, _ := uuid.NewV4()
 	db.Add(&User{
@@ -158,7 +158,7 @@ func main() {
 	fmt.Println("email", user.Email)
 	fmt.Println("full_name", user.FullName)
 
-	db.Metadata().DropAll() // drops all tables
+	db.DropAll() // drops all tables
 
 }
 ```
