@@ -167,5 +167,5 @@ Credits
 -------
 - [Aras Can Akın](https://github.com/aacanakin)
 - [Onur Şentüre](https://github.com/onursenture)
-- [aodin](https://github.com/aodin)
+- [Aaron O. Ellis](https://github.com/aodin)
 - [Shawn Smith](https://github.com/shawnps)
