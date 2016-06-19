@@ -75,7 +75,7 @@ Here's a full example to define a table;
 
 Features
 --------
-- Support for postgres, mysql & sqlite3
+- Support for postgres(9.5.+), mysql & sqlite3
 - Simplistic query builder with no real magic
 - Struct to table ddl mapper where initial table migrations can happen
 - Expression builder which can be built almost any sql statements
