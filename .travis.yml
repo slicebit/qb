@@ -18,6 +18,8 @@ script:
 before_script:
   - mysql -e 'create database IF NOT EXISTS qb_test;'
   - psql -c 'create database qb_test;' -U postgres
+addons:
+        postgresql: "9.5"
 services:
   - mysql
   - postgresql
