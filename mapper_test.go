@@ -33,13 +33,13 @@ func TestMapper(t *testing.T) {
 		CompositeIndex  `qb:"index:full_name, password"`
 	}
 
-	adapter := NewAdapter("mysql")
-	mapper := Mapper(adapter)
+	dialect := NewDialect("mysql")
+	mapper := Mapper(dialect)
 
 	userTable, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
 
-	ddl := userTable.Create(adapter)
+	ddl := userTable.Create(dialect)
 	fmt.Println(ddl, "\n")
 
 	assert.Contains(t, ddl, "CREATE TABLE user (")
@@ -73,11 +73,11 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 		ID int64 `qb:"constraints:auto_increment"`
 	}
 
-	adapter := NewAdapter("sqlite3")
-	mapper := Mapper(adapter)
+	dialect := NewDialect("sqlite3")
+	mapper := Mapper(dialect)
 	table, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
-	ddl := table.Create(adapter)
+	ddl := table.Create(dialect)
 
 	assert.Contains(t, ddl, "CREATE TABLE user (")
 	assert.Contains(t, ddl, "id BIGINT")
@@ -92,11 +92,11 @@ func TestMapperWithDBTag(t *testing.T) {
 		Email string `qb:"constraints:unique, notnull"`
 	}
 
-	adapter := NewAdapter("mysql")
-	mapper := Mapper(adapter)
+	dialect := NewDialect("mysql")
+	mapper := Mapper(dialect)
 	table, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
-	ddl := table.Create(adapter)
+	ddl := table.Create(dialect)
 
 	assert.Contains(t, ddl, "CREATE TABLE user (")
 	assert.Contains(t, ddl, "_id VARCHAR(36)")
@@ -117,12 +117,12 @@ func TestMapperPostgresAutoIncrement(t *testing.T) {
 		ID int64 `qb:"constraints:auto_increment"`
 	}
 
-	adapter := NewAdapter("postgres")
-	mapper := Mapper(adapter)
+	dialect := NewDialect("postgres")
+	mapper := Mapper(dialect)
 	table, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
 
-	ddl := table.Create(adapter)
+	ddl := table.Create(dialect)
 	assert.NotContains(t, ddl, "AUTOINCREMENT")
 	assert.NotContains(t, ddl, "AUTO INCREMENT")
 }
@@ -133,8 +133,8 @@ func TestMapperError(t *testing.T) {
 		Email string `qb:"wrongtag:"`
 	}
 
-	adapter := NewAdapter("postgres")
-	mapper := Mapper(adapter)
+	dialect := NewDialect("postgres")
+	mapper := Mapper(dialect)
 
 	userErrTable, err := mapper.ToTable(UserErr{})
 
@@ -147,8 +147,8 @@ func TestMapperInvalidConstraint(t *testing.T) {
 		ID string `qb:"constraints:invalid_constraint"`
 	}
 
-	adapter := NewAdapter("mysql")
-	mapper := Mapper(adapter)
+	dialect := NewDialect("mysql")
+	mapper := Mapper(dialect)
 
 	invalidConstraintTable, err := mapper.ToTable(InvalidConstraint{})
 
@@ -161,7 +161,7 @@ func TestNonZeroStruct(t *testing.T) {
 		ID int
 	}
 
-	mapper := Mapper(NewAdapter("mysql"))
+	mapper := Mapper(NewDialect("mysql"))
 	m := mapper.ToMap(User{5}, false)
 	assert.Equal(t, m, map[string]interface{}{"id": 5})
 }
@@ -172,16 +172,16 @@ func TestMapperUtilFuncs(t *testing.T) {
 		Email string `qb:"wrongtag:"`
 	}
 
-	mapper := Mapper(NewAdapter("mysql"))
+	mapper := Mapper(NewDialect("mysql"))
 
 	kv := mapper.ToMap(UserErr{}, false)
 	assert.Equal(t, kv, map[string]interface{}{})
 }
 
 func TestMapperTypes(t *testing.T) {
-	sqliteMapper := Mapper(NewAdapter("sqlite3"))
-	postgresMapper := Mapper(NewAdapter("postgres"))
-	mysqlMapper := Mapper(NewAdapter("mysql"))
+	sqliteMapper := Mapper(NewDialect("sqlite3"))
+	postgresMapper := Mapper(NewDialect("postgres"))
+	mysqlMapper := Mapper(NewDialect("mysql"))
 
 	assert.Equal(t, sqliteMapper.ToType("string", ""), Varchar().Size(255))
 	assert.Equal(t, postgresMapper.ToType("string", ""), Varchar().Size(255))

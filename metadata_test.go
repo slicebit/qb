@@ -6,20 +6,21 @@ import (
 )
 
 func TestMetadataCreateAllDropAllError(t *testing.T) {
-	type User struct {
+	type Account struct {
 		ID string `qb:"type:uuid; constraints:primary_key"`
 	}
 	qb, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
-	qb.Builder().SetEscaping(true)
+
+	qb.Dialect().SetEscaping(true)
 	assert.Nil(t, err)
-	qb.Metadata().Add(&User{})
+	qb.AddTable(&Account{})
 	err = qb.Metadata().CreateAll(qb.Engine())
 	assert.Nil(t, err)
 
 	qbNew, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
-	qbNew.Builder().SetEscaping(true)
+	qbNew.Dialect().SetEscaping(true)
 	assert.Nil(t, err)
-	qbNew.AddTable(&User{})
+	qbNew.AddTable(&Account{})
 	err = qbNew.Metadata().CreateAll(qbNew.Engine())
 	assert.NotNil(t, err)
 
@@ -35,16 +36,16 @@ type UserMetadataError struct {
 }
 
 func TestMetadataAddError(t *testing.T) {
-	builder := NewBuilder("postgres")
-	metadata := MetaData(builder)
+	dialect := NewDialect("postgres")
+	metadata := MetaData(dialect)
 
 	assert.Panics(t, func() { metadata.Add(UserMetadataError{}) })
 	assert.Equal(t, len(metadata.Tables()), 0)
 }
 
 func TestMetadataAddTable(t *testing.T) {
-	builder := NewBuilder("postgres")
-	metadata := MetaData(builder)
+	dialect := NewDialect("postgres")
+	metadata := MetaData(dialect)
 
 	table := Table("user", Column("id", BigInt()))
 
@@ -56,16 +57,16 @@ func TestMetadataAddTable(t *testing.T) {
 }
 
 func TestMetadataTable(t *testing.T) {
-	builder := NewBuilder("postgres")
-	metadata := MetaData(builder)
+	dialect := NewDialect("postgres")
+	metadata := MetaData(dialect)
 
-	assert.Nil(t, metadata.Table("invalid-table"))
+	assert.Panics(t, func() { metadata.Table("invalid-table") })
 }
 
 func TestMetadataFailCreateDropAll(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
-	builder := NewBuilder(engine.Driver())
-	metadata := MetaData(builder)
+	dialect := NewDialect(engine.Driver())
+	metadata := MetaData(dialect)
 
 	var err error
 
@@ -80,7 +81,7 @@ func TestMetadataWithNoConnection(t *testing.T) {
 	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
 	engine.DB().Close()
 
-	metadata := MetaData(NewBuilder(engine.Driver()))
+	metadata := MetaData(NewDialect(engine.Driver()))
 	assert.NotNil(t, metadata.CreateAll(engine))
 	assert.NotNil(t, metadata.DropAll(engine))
 }

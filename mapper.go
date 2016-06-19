@@ -10,14 +10,13 @@ import (
 const tagPrefix = "qb"
 
 // Mapper creates a new mapper struct and returns it as a mapper pointer
-func Mapper(adapter Adapter) MapperElem {
-	return MapperElem{adapter: adapter}
+func Mapper(adapter Dialect) MapperElem {
+	return MapperElem{dialect: adapter}
 }
 
 // MapperElem is the generic struct for struct to table mapping
 type MapperElem struct {
-	//builder *Builder
-	adapter Adapter
+	dialect Dialect
 }
 
 func (m MapperElem) extractValue(value string) string {
@@ -38,12 +37,16 @@ func (m MapperElem) ToMap(model interface{}, includeZeroFields bool) map[string]
 	fields := structs.Fields(model)
 	kv := map[string]interface{}{}
 	for _, f := range fields {
-		isZero := f.IsZero()
-		if isZero && !includeZeroFields {
+		if strings.Contains(f.Tag("qb"), "-") {
 			continue
 		}
 
-		if strings.Contains(f.Tag("qb"), "-") {
+		if f.Name() == "qb.CompositeIndex" || f.Name() == "CompositeIndex" {
+			continue
+		}
+
+		isZero := f.IsZero()
+		if isZero && !includeZeroFields {
 			continue
 		}
 
@@ -93,27 +96,27 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 	case "int64":
 		return BigInt()
 	case "uint":
-		if m.adapter.SupportsUnsigned() {
+		if m.dialect.SupportsUnsigned() {
 			return Type("INT UNSIGNED")
 		}
 		return BigInt()
 	case "uint8":
-		if m.adapter.SupportsUnsigned() {
+		if m.dialect.SupportsUnsigned() {
 			return Type("TINYINT UNSIGNED")
 		}
 		return SmallInt()
 	case "uint16":
-		if m.adapter.SupportsUnsigned() {
+		if m.dialect.SupportsUnsigned() {
 			return Type("SMALLINT UNSIGNED")
 		}
 		return Int()
 	case "uint32":
-		if m.adapter.SupportsUnsigned() {
+		if m.dialect.SupportsUnsigned() {
 			return Type("INT UNSIGNED")
 		}
 		return BigInt()
 	case "uint64":
-		if m.adapter.SupportsUnsigned() {
+		if m.dialect.SupportsUnsigned() {
 			return Type("BIGINT UNSIGNED")
 		}
 		return BigInt()
@@ -136,8 +139,8 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 	modelName := m.ModelName(model)
 
-	colClauses := []Clause{}
-	tableClauses := []Clause{}
+	colClauses := []TableClause{}
+	constraintClauses := []TableClause{}
 
 	for _, f := range structs.Fields(model) {
 
@@ -169,7 +172,7 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			} else if v == "unique" {
 				colType = colType.Unique()
 			} else if v == "auto_increment" || v == "autoincrement" {
-				c := m.adapter.AutoIncrement()
+				c := m.dialect.AutoIncrement()
 
 				// it doesn't support auto increment
 				if c == "" {
@@ -182,12 +185,12 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			} else if strings.Contains(v, "primary_key") {
 				// TODO: Possible performance issue, fix this when possible, maybe table.AddPrimary option should be thought
 				pkDefined := false
-				for i, tc := range tableClauses {
+				for i, tc := range constraintClauses {
 					switch tc.(type) {
 					case PrimaryKeyConstraint:
 						pk := tc.(PrimaryKeyConstraint)
 						pk.Columns = append(pk.Columns, colName)
-						tableClauses[i] = pk
+						constraintClauses[i] = pk
 						pkDefined = true
 						break
 					}
@@ -195,17 +198,17 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 				if pkDefined {
 					continue
 				}
-				tableClauses = append(tableClauses, PrimaryKey(colName))
+				constraintClauses = append(constraintClauses, PrimaryKey(colName))
 			} else if strings.Contains(v, "ref") && strings.Contains(v, "(") && strings.Contains(v, ")") {
 				// TODO: Possible performance issue, fix this when possible, maybe table.AddRef option should be thought
 				fkp := strings.Split(m.extractValue(v), ".")
 				fkDefined := false
-				for i, tc := range tableClauses {
+				for i, tc := range constraintClauses {
 					switch tc.(type) {
 					case ForeignKeyConstraints:
 						fk := tc.(ForeignKeyConstraints)
 						fk = fk.Ref(colName, fkp[0], fkp[1])
-						tableClauses[i] = fk
+						constraintClauses[i] = fk
 						fkDefined = true
 						break
 					}
@@ -215,14 +218,14 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 					continue
 				}
 
-				tableClauses = append(tableClauses, ForeignKey().Ref(colName, fkp[0], fkp[1]))
+				constraintClauses = append(constraintClauses, ForeignKey().Ref(colName, fkp[0], fkp[1]))
 			} else if strings.Contains(v, "index") {
 				if strings.Contains(f.Name(), "CompositeIndex") {
 					is := strings.Split(v, ":")
 					cols := strings.Split(is[1], ",")
-					tableClauses = append(tableClauses, Index(modelName, cols...))
+					constraintClauses = append(constraintClauses, Index(modelName, cols...))
 				} else {
-					tableClauses = append(tableClauses, Index(modelName, colName))
+					constraintClauses = append(constraintClauses, Index(modelName, colName))
 				}
 			} else {
 				return TableElem{}, fmt.Errorf("Invalid constraint: %s", v)
@@ -236,5 +239,5 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 		colClauses = append(colClauses, Column(colName, colType))
 	}
 
-	return Table(modelName, append(colClauses, tableClauses...)...), nil
+	return Table(modelName, append(colClauses, constraintClauses...)...), nil
 }

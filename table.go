@@ -6,7 +6,7 @@ import (
 )
 
 // Table generates table struct given name and clauses
-func Table(name string, clauses ...Clause) TableElem {
+func Table(name string, clauses ...TableClause) TableElem {
 	table := TableElem{
 		Name:                  name,
 		Columns:               map[string]ColumnElem{},
@@ -18,6 +18,7 @@ func Table(name string, clauses ...Clause) TableElem {
 		switch clause.(type) {
 		case ColumnElem:
 			col := clause.(ColumnElem)
+			col.Table = name
 			table.Columns[col.Name] = col
 			break
 		case PrimaryKeyConstraint:
@@ -48,6 +49,15 @@ type TableElem struct {
 	Indices               []IndexElem
 }
 
+// All returns all columns of table as a column slice
+func (t TableElem) All() []Clause {
+	cols := []Clause{}
+	for _, v := range t.Columns {
+		cols = append(cols, v)
+	}
+	return cols
+}
+
 // Index appends an IndexElem to current table without giving table name
 func (t TableElem) Index(cols ...string) TableElem {
 	t.Indices = append(t.Indices, Index(t.Name, cols...))
@@ -55,9 +65,9 @@ func (t TableElem) Index(cols ...string) TableElem {
 }
 
 // Create generates create table syntax and returns it as a query struct
-func (t TableElem) Create(adapter Adapter) string {
-	query := Query()
-	query.AddClause(fmt.Sprintf("CREATE TABLE %s (", adapter.Escape(t.Name)))
+func (t TableElem) Create(adapter Dialect) string {
+	stmt := Statement()
+	stmt.AddClause(fmt.Sprintf("CREATE TABLE %s (", adapter.Escape(t.Name)))
 
 	colClauses := []string{}
 	for _, col := range t.Columns {
@@ -76,11 +86,11 @@ func (t TableElem) Create(adapter Adapter) string {
 		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.UniqueKeyConstraint.String(adapter)))
 	}
 
-	query.AddClause(strings.Join(colClauses, ",\n"))
+	stmt.AddClause(strings.Join(colClauses, ",\n"))
 
-	query.AddClause(")")
+	stmt.AddClause(")")
 
-	ddl := query.SQL()
+	ddl := stmt.SQL()
 
 	indexSqls := []string{}
 	for _, index := range t.Indices {
@@ -94,11 +104,26 @@ func (t TableElem) Create(adapter Adapter) string {
 	return strings.Join(sqls, "\n")
 }
 
+// PrimaryCols returns the columns that are primary key to the table
+func (t TableElem) PrimaryCols() []ColumnElem {
+	uniqueCols := []ColumnElem{}
+	pkCols := t.PrimaryKeyConstraint.Columns
+	for _, pkCol := range pkCols {
+		uniqueCols = append(uniqueCols, t.C(pkCol))
+	}
+	//for _, col := range t.Columns {
+	//	if col.Type.IsUnique() {
+	//		uniqueCols = append(uniqueCols, col)
+	//	}
+	//}
+	return uniqueCols
+}
+
 // Drop generates drop table syntax and returns it as a query struct
-func (t TableElem) Drop(adapter Adapter) string {
-	query := Query()
-	query.AddClause(fmt.Sprintf("DROP TABLE %s", adapter.Escape(t.Name)))
-	return query.SQL()
+func (t TableElem) Drop(adapter Dialect) string {
+	stmt := Statement()
+	stmt.AddClause(fmt.Sprintf("DROP TABLE %s", adapter.Escape(t.Name)))
+	return stmt.SQL()
 }
 
 // C returns the column name given col

@@ -12,7 +12,7 @@ type TableTestSuite struct {
 }
 
 func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
-	adapter := NewAdapter("mysql")
+	adapter := NewDialect("mysql")
 	usersTable := Table("users", Column("id", Varchar().Size(40)))
 
 	ddl := usersTable.Create(adapter)
@@ -36,7 +36,7 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 			Ref("role_id", "roles", "id"),
 	)
 
-	ddl := usersTable.Create(NewAdapter("mysql"))
+	ddl := usersTable.Create(NewDialect("mysql"))
 	fmt.Println(ddl, "\n")
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "auth_token VARCHAR(40)")
@@ -58,7 +58,7 @@ func (suite *TableTestSuite) TestTableUniqueCompositeUnique() {
 		UniqueKey("email", "device_id"),
 	)
 
-	ddl := usersTable.Create(NewAdapter("mysql"))
+	ddl := usersTable.Create(NewDialect("mysql"))
 	fmt.Println(ddl, "\n")
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
@@ -77,7 +77,7 @@ func (suite *TableTestSuite) TestTableIndex() {
 		Index("users", "email"),
 		Index("users", "id", "email"),
 	)
-	ddl := usersTable.Create(NewAdapter("postgres"))
+	ddl := usersTable.Create(NewDialect("postgres"))
 	fmt.Println(ddl, "\n")
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
@@ -87,13 +87,13 @@ func (suite *TableTestSuite) TestTableIndex() {
 	assert.Contains(suite.T(), ddl, "CREATE INDEX i_email ON users(email)")
 	assert.Contains(suite.T(), ddl, "CREATE INDEX i_id_email ON users(id, email);")
 
-	assert.Equal(suite.T(), usersTable.C("id"), ColumnElem{Name: "id", Type: Varchar().Size(40)})
+	assert.Equal(suite.T(), usersTable.C("id"), ColumnElem{Name: "id", Type: Varchar().Size(40), Table: "users"})
 	assert.Zero(suite.T(), usersTable.C("nonExisting"))
 }
 
 func (suite *TableTestSuite) TestTableIndexChain() {
 	usersTable := Table("users", Column("id", Varchar().Size(40))).Index("id")
-	ddl := usersTable.Create(NewAdapter("mysql"))
+	ddl := usersTable.Create(NewDialect("mysql"))
 	fmt.Println(ddl, "\n")
 	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);\nCREATE INDEX i_id ON users(id);")
 }

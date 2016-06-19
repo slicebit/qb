@@ -77,6 +77,7 @@ type TypeElem struct {
 	constraints []ConstraintElem
 	size        int
 	precision   []int
+	unique      bool
 }
 
 // String returns the clause as string
@@ -145,6 +146,7 @@ func (t TypeElem) NotNull() TypeElem {
 // Unique adds a unique constraint to column type
 func (t TypeElem) Unique() TypeElem {
 	t.constraints = append(t.constraints, Unique())
+	t.unique = true
 	return t
 }
 

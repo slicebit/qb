@@ -4,35 +4,23 @@ import (
 	"database/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"sync"
 	"testing"
 	"time"
 )
 
 type SqliteTestSuite struct {
 	suite.Suite
-	session *Session
+	db *Session
 }
 
 func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
-	builder := NewBuilder("sqlite3")
-	builder.SetEscaping(true)
-
-	engine, err := NewEngine("sqlite3", "./qb_test.db")
-
-	suite.session = &Session{
-		queries:  []*QueryElem{},
-		mapper:   Mapper(builder.Adapter()),
-		metadata: MetaData(builder),
-		engine:   engine,
-		builder:  builder,
-		mutex:    &sync.Mutex{},
-	}
+	suite.db, err = New("sqlite3", "./qb_test.db")
+	suite.db.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), suite.session)
+	assert.NotNil(suite.T(), suite.db)
 }
 
 func (suite *SqliteTestSuite) TestSqlite() {
@@ -54,14 +42,14 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	var err error
 
-	suite.session.AddTable(User{})
-	suite.session.AddTable(Session{})
+	suite.db.AddTable(User{})
+	suite.db.AddTable(Session{})
 
-	err = suite.session.CreateAll()
+	err = suite.db.CreateAll()
 	assert.Nil(suite.T(), err)
 
 	// add sample user & session
-	suite.session.AddAll(
+	suite.db.AddAll(
 		&User{
 			ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			Email:    "jack@nicholson.com",
@@ -75,13 +63,13 @@ func (suite *SqliteTestSuite) TestSqlite() {
 		},
 	)
 
-	err = suite.session.Commit()
+	err = suite.db.Commit()
 	assert.Nil(suite.T(), err)
 
 	// find user
 	var user User
 
-	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
+	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 
 	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
@@ -89,10 +77,14 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	// select using join
 	sessions := []Session{}
-	err = suite.session.Select("s.id", "s.user_id", "s.auth_token").
-		From("session s").
-		InnerJoin("user u", "u.id = s.user_id").
-		Where("s.user_id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+	err = suite.db.
+		Query(
+			suite.db.T("session").C("id"),
+			suite.db.T("session").C("user_id"),
+			suite.db.T("session").C("auth_token"),
+		).
+		InnerJoin(suite.db.T("user"), suite.db.T("session").C("user_id"), suite.db.T("user").C("id")).
+		Filter(suite.db.T("user").C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95")).
 		All(&sessions)
 
 	assert.Nil(suite.T(), err)
@@ -102,29 +94,22 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	assert.Equal(suite.T(), sessions[0].UserID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
 	assert.Equal(suite.T(), sessions[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
 
-	// update user
-	update := suite.session.
-		Update("user").
-		Set(map[string]interface{}{
-			"bio": nil,
-		}).
-		Where("id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
-		Query()
+	user.Bio = sql.NullString{String: "nil", Valid: false}
+	suite.db.Add(user)
 
-	suite.session.AddQuery(update)
-	err = suite.session.Commit()
+	err = suite.db.Commit()
 	assert.Nil(suite.T(), err)
 
-	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
+	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
 
 	// delete session
-	suite.session.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
-	err = suite.session.Commit()
+	suite.db.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
+	err = suite.db.Commit()
 	assert.Nil(suite.T(), err)
 
 	// drop tables
-	assert.Nil(suite.T(), suite.session.DropAll())
+	assert.Nil(suite.T(), suite.db.DropAll())
 }
 
 func TestSqliteTestSuite(t *testing.T) {

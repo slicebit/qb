@@ -1,14 +1,17 @@
 package qb
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // MetaData creates a new MetaData object and returns it as a pointer
-// TODO: Metadata should not use builder, it should only use adapter
-func MetaData(builder *Builder) *MetaDataElem {
+// TODO: Metadata should not use builder, it should only use dialect
+func MetaData(dialect Dialect) *MetaDataElem {
 	return &MetaDataElem{
 		tables:  []TableElem{},
-		mapper:  Mapper(builder.Adapter()),
-		builder: builder,
+		mapper:  Mapper(dialect),
+		dialect: dialect,
 	}
 }
 
@@ -16,7 +19,7 @@ func MetaData(builder *Builder) *MetaDataElem {
 type MetaDataElem struct {
 	tables  []TableElem
 	mapper  MapperElem
-	builder *Builder
+	dialect Dialect
 }
 
 // Add retrieves the struct and converts it using mapper and appends to tables slice
@@ -35,14 +38,14 @@ func (m *MetaDataElem) AddTable(table TableElem) {
 }
 
 // Table returns the metadata registered table object. It returns nil if table is not found
-func (m *MetaDataElem) Table(name string) *TableElem {
+func (m *MetaDataElem) Table(name string) TableElem {
 	for _, t := range m.tables {
 		if t.Name == name {
-			return &t
+			return t
 		}
 	}
 
-	return nil
+	panic(fmt.Errorf("Table %s not found", name))
 }
 
 // Tables returns the current tables slice
@@ -58,7 +61,7 @@ func (m *MetaDataElem) CreateAll(engine *Engine) error {
 	}
 
 	for _, t := range m.tables {
-		_, err = tx.Exec(t.Create(m.builder.Adapter()))
+		_, err = tx.Exec(t.Create(m.dialect))
 		if err != nil {
 			return err
 		}
@@ -67,7 +70,7 @@ func (m *MetaDataElem) CreateAll(engine *Engine) error {
 	err = tx.Commit()
 
 	if len(m.tables) == 0 {
-		return errors.New("Metadata is empty")
+		return errors.New("Metadata is empty. You need to register tables by calling db.AddTable(model{})")
 	}
 
 	return err
@@ -81,8 +84,8 @@ func (m *MetaDataElem) DropAll(engine *Engine) error {
 	}
 
 	for i := len(m.tables) - 1; i >= 0; i-- {
-		drop := m.builder.DropTable(m.tables[i].Name).Query()
-		_, err = tx.Exec(drop.SQL())
+		drop := m.tables[i].Drop(m.dialect)
+		_, err = tx.Exec(drop)
 		if err != nil {
 			return err
 		}

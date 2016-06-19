@@ -52,10 +52,10 @@ type PrimaryKeyConstraint struct {
 }
 
 // String returns the primary key constraints as an sql clause
-func (c PrimaryKeyConstraint) String(adapter Adapter) string {
+func (c PrimaryKeyConstraint) String(dialect Dialect) string {
 	cols := []string{}
 	for _, col := range c.Columns {
-		cols = append(cols, adapter.Escape(col))
+		cols = append(cols, dialect.Escape(col))
 	}
 
 	return fmt.Sprintf("PRIMARY KEY(%s)", strings.Join(cols, ", "))
@@ -71,7 +71,7 @@ type ForeignKeyConstraints struct {
 	Refs []Reference
 }
 
-func (c ForeignKeyConstraints) String(adapter Adapter) string {
+func (c ForeignKeyConstraints) String(adapter Dialect) string {
 	clauses := []string{}
 	for _, ref := range c.Refs {
 		clauses = append(clauses, fmt.Sprintf(
@@ -124,6 +124,6 @@ type UniqueKeyConstraint struct {
 }
 
 // String generates composite unique indices as sql clause
-func (c UniqueKeyConstraint) String(adapter Adapter) string {
-	return fmt.Sprintf("CONSTRAINT %s UNIQUE(%s)", c.name, strings.Join(c.cols, ", "))
+func (c UniqueKeyConstraint) String(dialect Dialect) string {
+	return fmt.Sprintf("CONSTRAINT %s UNIQUE(%s)", c.name, strings.Join(dialect.EscapeAll(c.cols), ", "))
 }

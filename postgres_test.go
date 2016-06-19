@@ -5,34 +5,24 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"sync"
 	"testing"
 	"time"
 )
 
 type PostgresTestSuite struct {
 	suite.Suite
-	session *Session
+	db *Session
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
-	builder := NewBuilder("postgres")
-	builder.SetEscaping(true)
-	builder.SetLogFlags(LQuery | LBindings)
 
-	engine, err := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	var err error
 
-	suite.session = &Session{
-		queries:  []*QueryElem{},
-		mapper:   Mapper(builder.Adapter()),
-		engine:   engine,
-		metadata: MetaData(builder),
-		builder:  builder,
-		mutex:    &sync.Mutex{},
-	}
+	suite.db, err = New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	suite.db.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), suite.session)
+	assert.NotNil(suite.T(), suite.db)
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {
@@ -56,14 +46,14 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	var err error
 
-	suite.session.AddTable(User{})
-	suite.session.AddTable(Session{})
+	suite.db.AddTable(User{})
+	suite.db.AddTable(Session{})
 
-	err = suite.session.CreateAll()
+	err = suite.db.CreateAll()
 	assert.Nil(suite.T(), err)
 
 	// add sample user & session
-	suite.session.AddAll(
+	suite.db.AddAll(
 		&User{
 			ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 			Email:    "jack@nicholson.com",
@@ -77,41 +67,51 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		},
 	)
 
-	err = suite.session.Commit()
+	err = suite.db.Commit()
 	assert.Nil(suite.T(), err)
 
-	query := suite.session.Builder().Insert("user").Values(map[string]interface{}{
+	statement := Insert(suite.db.T("user")).Values(map[string]interface{}{
 		"_id":       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
 		"bio":       sql.NullString{},
-	}).Query()
+	}).Build(suite.db.Dialect())
 
-	_, err = suite.session.Engine().Exec(query)
+	suite.db.Dialect().Reset()
+
+	_, err = suite.db.Engine().Exec(statement)
 	assert.NotNil(suite.T(), err)
 	fmt.Println("Duplicate error; ", err)
 
-	query = suite.session.Builder().Insert("user").Values(map[string]interface{}{
-		"_id":       "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
-		"email":     "jack@nicholson2.com",
-		"full_name": "Jack Nicholson",
-		"bio":       sql.NullString{},
-	}).Query()
+	statement = Insert(suite.db.T("user")).
+		Values(map[string]interface{}{
+			"_id":       "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
+			"email":     "jack@nicholson2.com",
+			"full_name": "Jack Nicholson",
+			"bio":       sql.NullString{},
+		}).Build(suite.db.Dialect())
 
-	_, err = suite.session.Engine().Exec(query)
+	suite.db.Dialect().Reset()
+
+	fmt.Println("<statement>")
+	fmt.Println(statement.SQL())
+	fmt.Println(statement.Bindings())
+	fmt.Println("</statement>")
+
+	_, err = suite.db.Engine().Exec(statement)
 	assert.Nil(suite.T(), err)
 
-	err = suite.session.Rollback()
+	err = suite.db.Rollback()
 	assert.NotNil(suite.T(), err)
 
 	// find user using QueryRow()
-	query = suite.session.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Query()
-	row := suite.session.Engine().QueryRow(query)
+	statement = suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Statement()
+	row := suite.db.Engine().QueryRow(statement)
 	assert.NotNil(suite.T(), row)
 
 	// find user using Query()
-	query = suite.session.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Query()
-	rows, err := suite.session.Engine().Query(query)
+	statement = suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Statement()
+	rows, err := suite.db.Engine().Query(statement)
 	assert.Nil(suite.T(), err)
 	rowLength := 0
 	for rows.Next() {
@@ -122,7 +122,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// find user using session api's Find()
 	var user User
 
-	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
+	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 
 	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
 	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
@@ -130,10 +130,15 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// select using join
 	sessions := []Session{}
-	err = suite.session.Select("s.user_id", "s.id", "s.auth_token", "s.created_at", "s.expires_at").
-		From("user u").
-		InnerJoin("session s", "u._id = s.user_id").
-		Where("u._id = ?", "b6f8bfe3-a830-441a-a097-1777e6bfae95").
+
+	err = suite.db.Query(
+		suite.db.T("session").C("user_id"),
+		suite.db.T("session").C("id"),
+		suite.db.T("session").C("auth_token"),
+		suite.db.T("session").C("created_at"),
+		suite.db.T("session").C("expires_at")).
+		InnerJoin(suite.db.T("user"), suite.db.T("session").C("user_id"), suite.db.T("user").C("_id")).
+		Filter(suite.db.T("session").C("user_id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95")).
 		All(&sessions)
 
 	assert.Nil(suite.T(), err)
@@ -144,28 +149,22 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Equal(suite.T(), sessions[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
 
 	// update user
-	update := suite.session.
-		Update("user").
-		Set(map[string]interface{}{
-			"bio": nil,
-		}).
-		Where(suite.session.Eq("_id", "b6f8bfe3-a830-441a-a097-1777e6bfae95")).
-		Query()
+	user.Bio = sql.NullString{String: "nil", Valid:false}
+	suite.db.Add(user)
 
-	suite.session.AddQuery(update)
-	err = suite.session.Commit()
+	err = suite.db.Commit()
 	assert.Nil(suite.T(), err)
 
-	suite.session.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
+	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
 
 	// delete session
-	suite.session.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
-	err = suite.session.Commit()
+	suite.db.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
+	err = suite.db.Commit()
 	assert.Nil(suite.T(), err)
 
 	// drop tables
-	assert.Nil(suite.T(), suite.session.DropAll())
+	assert.Nil(suite.T(), suite.db.DropAll())
 }
 
 func TestPostgresTestSuite(t *testing.T) {

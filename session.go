@@ -3,7 +3,7 @@ package qb
 import (
 	"database/sql"
 	"errors"
-	"strings"
+	"fmt"
 	"sync"
 )
 
@@ -14,41 +14,51 @@ func New(driver string, dsn string) (*Session, error) {
 		return nil, err
 	}
 
-	builder := NewBuilder(engine.Driver())
+	dialect := NewDialect(driver)
 
 	return &Session{
-		queries:  []*QueryElem{},
-		engine:   engine,
-		mapper:   Mapper(builder.Adapter()),
-		metadata: MetaData(builder),
-		builder:  builder,
-		mutex:    &sync.Mutex{},
+		statements: []*Stmt{},
+		engine:     engine,
+		dialect:    dialect,
+		mapper:     Mapper(dialect),
+		metadata:   MetaData(dialect),
+		mutex:      &sync.Mutex{},
 	}, nil
 }
 
 // Session is the composition of engine connection & orm mappings
 type Session struct {
-	queries  []*QueryElem
-	engine   *Engine
-	mapper   MapperElem
-	metadata *MetaDataElem
-	tx       *sql.Tx
-	builder  *Builder
-	mutex    *sync.Mutex
+	builder    Builder
+	filters    []Conditional
+	statements []*Stmt
+	engine     *Engine
+	mapper     MapperElem
+	metadata   *MetaDataElem
+	dialect    Dialect
+	tx         *sql.Tx
+	mutex      *sync.Mutex
 }
 
-func (s *Session) add(query *QueryElem) {
+func (s *Session) add(statement *Stmt) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	var err error
 	if s.tx == nil {
-		s.queries = []*QueryElem{}
 		s.tx, err = s.engine.DB().Begin()
+		s.statements = []*Stmt{}
 		if err != nil {
 			panic(err)
 		}
 	}
-	s.queries = append(s.queries, query)
+	s.statements = append(s.statements, statement)
+}
+
+// Metadata Wrappers
+
+// T returns the table given name as string
+// It is for Query() function parameter generation
+func (s *Session) T(name string) TableElem {
+	return s.metadata.Table(name)
 }
 
 // AddTable adds a model to metadata that is mapped into table object
@@ -66,6 +76,8 @@ func (s *Session) DropAll() error {
 	return s.metadata.DropAll(s.engine)
 }
 
+// Engine wrappers
+
 // Engine returns the current sqlx wrapped engine
 func (s *Session) Engine() *Engine {
 	return s.engine
@@ -76,19 +88,14 @@ func (s *Session) Close() {
 	s.engine.DB().Close()
 }
 
-// Builder returns query builder
-func (s *Session) Builder() *Builder {
-	return s.builder
+// AddStatement adds a statement given the query pointer retrieved from Build() function
+func (s *Session) AddStatement(statement *Stmt) {
+	s.add(statement)
 }
 
-// AddQuery adds a query given the query pointer retrieved from Query() function
-func (s *Session) AddQuery(query *QueryElem) {
-	s.add(query)
-}
-
-// Query returns the active query built by session
-func (s *Session) Query() *QueryElem {
-	return s.builder.Query()
+// Dialect returns the current dialect of session
+func (s *Session) Dialect() Dialect {
+	return s.dialect
 }
 
 // Metadata returns the metadata of session
@@ -96,27 +103,33 @@ func (s *Session) Metadata() *MetaDataElem {
 	return s.metadata
 }
 
-// Delete adds a single delete query to the session
+// Session Api
+
+// Delete adds a single delete statement to the session
 func (s *Session) Delete(model interface{}) {
 	kv := s.mapper.ToMap(model, false)
 
-	tName := s.mapper.ModelName(model)
+	tableName := s.mapper.ModelName(model)
 
-	d := s.builder.Delete(tName)
-	ands := []string{}
+	d := Delete(s.metadata.Table(tableName))
+	conditions := []Conditional{}
 	for k, v := range kv {
-		ands = append(ands, s.Eq(k, v))
+		conditions = append(conditions, Eq(s.metadata.Table(tableName).C(k), v))
 	}
 
-	del := d.Where(d.And(ands...)).Query()
-	s.add(del)
+	stmt := d.Where(And(conditions...)).Build(s.dialect)
+	s.add(stmt)
 }
 
 // Add adds a single model to the session. The query must be insert or update
 func (s *Session) Add(model interface{}) {
 	m := s.mapper.ToMap(model, false)
-	q := s.builder.Insert(s.mapper.ModelName(model)).Values(m).Query()
-	s.add(q)
+	tableName := s.mapper.ModelName(model)
+	ups := Upsert(s.metadata.Table(tableName)).Values(m)
+	statement := ups.Build(s.dialect)
+
+	s.dialect.Reset()
+	s.add(statement)
 }
 
 // AddAll adds multiple models an adds an insert statement to current queries
@@ -128,18 +141,18 @@ func (s *Session) AddAll(models ...interface{}) {
 
 // Commit commits the current transaction with queries
 func (s *Session) Commit() error {
-	for _, q := range s.queries {
-		_, err := s.tx.Exec(q.SQL(), q.Bindings()...)
+	for _, statement := range s.statements {
+		_, err := s.tx.Exec(statement.SQL(), statement.Bindings()...)
 		if err != nil {
 			s.tx = nil
-			s.queries = []*QueryElem{}
+			s.statements = []*Stmt{}
 			return err
 		}
 	}
 
 	err := s.tx.Commit()
 	s.tx = nil
-	s.queries = []*QueryElem{}
+	s.statements = []*Stmt{}
 	return err
 }
 
@@ -154,207 +167,216 @@ func (s *Session) Rollback() error {
 
 // Find returns a row given model properties
 func (s *Session) Find(model interface{}) *Session {
-	tName := s.mapper.ModelName(model)
+	table := s.mapper.ModelName(model)
 	modelMap := s.mapper.ToMap(model, true)
 
-	sqlColNames := []string{}
+	cols := []Clause{}
 	for k := range modelMap {
-		sqlColNames = append(sqlColNames, k)
+		cols = append(cols, s.T(table).C(k))
 	}
 
-	ands := []string{}
+	ands := []Conditional{}
 
 	for k := range modelMap {
 		if modelMap[k] == nil {
 			continue
 		}
-		ands = append(ands, s.builder.Eq(k, modelMap[k]))
+		ands = append(ands, Eq(s.metadata.Table(table).C(k), modelMap[k]))
 	}
 
-	s.builder.
-		Select(s.builder.Adapter().EscapeAll(sqlColNames)...).
-		From(tName).
-		Where(s.builder.And(ands...))
-
+	s.builder = Select(cols...).From(s.T(table)).Where(And(ands...))
 	return s
 }
+
+// Statement builds the active query and returns it as a Stmt
+func (s *Session) Statement() *Stmt {
+	if s.isSelect() {
+		if len(s.filters) > 0 {
+			s.builder = (s.builder.(SelectStmt)).Where(And(s.filters...))
+		}
+	}
+
+	statement := s.builder.Build(s.dialect)
+	s.dialect.Reset()
+	s.filters = []Conditional{}
+	s.builder = nil
+	return statement
+}
+
+// Query starts a select statement given columns
+func (s *Session) Query(clauses ...Clause) *Session {
+	if len(clauses) == 0 {
+		panic(fmt.Errorf("You must enter one or more column or aggregate paramater(s)"))
+	} else {
+		var table string
+		for _, v := range clauses {
+			if s.isCol(v) {
+				table = (v.(ColumnElem)).Table
+			}
+		}
+		s.builder = Select(clauses...)
+		if table != "" {
+			s.builder = (s.builder.(SelectStmt)).From(s.T(table))
+		}
+	}
+	return s
+}
+
+// isCol returns if the clause is ColumnElem type
+func (s *Session) isCol(clause Clause) bool {
+	switch clause.(type) {
+	case ColumnElem:
+		return true
+	default:
+		return false
+	}
+}
+
+// isSelect returns if the current builder is *Session
+func (s *Session) isSelect() bool {
+	switch s.builder.(type) {
+	case SelectStmt:
+		return true
+	default:
+		return false
+	}
+}
+
+// Filter appends a filter to the current select statement
+// NOTE: It currently only builds AndClause within the filters
+// TODO: Add OR able filters
+func (s *Session) Filter(conditional Conditional) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Filter()"))
+	}
+
+	s.filters = append(s.filters, conditional)
+	return s
+}
+
+// From wraps select's From
+// NOTE: You only need to set if Query() parameters are not columns
+// No columns are in aggregate clauses
+func (s *Session) From(table TableElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling From()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).From(table)
+	return s
+}
+
+// InnerJoin wraps select's InnerJoin
+func (s *Session) InnerJoin(table TableElem, fromCol ColumnElem, col ColumnElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling InnerJoin()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).InnerJoin(table, fromCol, col)
+	return s
+}
+
+// CrossJoin wraps select's CrossJoin
+func (s *Session) CrossJoin(table TableElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling CrossJoin()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).CrossJoin(table)
+	return s
+}
+
+// LeftJoin wraps select's LeftJoin
+func (s *Session) LeftJoin(table TableElem, fromCol ColumnElem, col ColumnElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling LeftJoin()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).LeftJoin(table, fromCol, col)
+	return s
+}
+
+// RightJoin wraps select's RightJoin
+func (s *Session) RightJoin(table TableElem, fromCol ColumnElem, col ColumnElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling RightJoin()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).RightJoin(table, fromCol, col)
+	return s
+}
+
+// GroupBy wraps the select's GroupBy
+func (s *Session) GroupBy(cols ...ColumnElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling GroupBy()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).GroupBy(cols...)
+	return s
+}
+
+// Having wraps the select's Having
+func (s *Session) Having(aggregate AggregateClause, op string, value interface{}) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Having()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).Having(aggregate, op, value)
+	return s
+}
+
+// OrderBy wraps the select's OrderBy
+func (s *Session) OrderBy(cols ...ColumnElem) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling OrderBy()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).OrderBy(cols...).Asc()
+	return s
+}
+
+// Asc wraps the select's Asc
+func (s *Session) Asc() *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) & OrderBy() before calling Asc()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).Asc()
+	return s
+}
+
+// Desc wraps the select's Desc
+func (s *Session) Desc() *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) & OrderBy() before calling Desc()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).Desc()
+	return s
+}
+
+// Limit wraps the select's Limit
+func (s *Session) Limit(offset int, count int) *Session {
+	if !s.isSelect() {
+		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Limit()"))
+	}
+
+	s.builder = (s.builder.(SelectStmt)).Limit(offset, count)
+	return s
+}
+
+// Active query select & (insert/delete/update) ... returning ... finishers
 
 // One returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
 func (s *Session) One(model interface{}) error {
-	query := s.builder.Query()
-	return s.engine.Get(query, model)
+	return s.engine.Get(s.Statement(), model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
 func (s *Session) All(models interface{}) error {
-	query := s.builder.Query()
-	return s.engine.Select(query, models)
-}
-
-// builder overrides for session
-
-// Update generates "update %s" statement
-func (s *Session) Update(table string) *Session {
-	s.builder.Update(table)
-	return s
-}
-
-// Set generates "set a = placeholder" statement for each key a and add bindings for map value
-func (s *Session) Set(m map[string]interface{}) *Session {
-	s.builder.Set(m)
-	return s
-}
-
-// Select generates "select %s" statement
-func (s *Session) Select(columns ...string) *Session {
-	s.builder.Select(columns...)
-	return s
-}
-
-// From generates "from %s" statement for each table name
-func (s *Session) From(tables ...string) *Session {
-	s.builder.From(tables...)
-	return s
-}
-
-// InnerJoin generates "inner join %s on %s" statement for each expression
-func (s *Session) InnerJoin(table string, expressions ...string) *Session {
-	s.builder.InnerJoin(table, expressions...)
-	return s
-}
-
-// CrossJoin generates "cross join %s" statement for table
-func (s *Session) CrossJoin(table string) *Session {
-	s.builder.CrossJoin(table)
-	return s
-}
-
-// LeftOuterJoin generates "left outer join %s on %s" statement for each expression
-func (s *Session) LeftOuterJoin(table string, expressions ...string) *Session {
-	s.builder.LeftOuterJoin(table, expressions...)
-	return s
-}
-
-// RightOuterJoin generates "right outer join %s on %s" statement for each expression
-func (s *Session) RightOuterJoin(table string, expressions ...string) *Session {
-	s.builder.RightOuterJoin(table, expressions...)
-	return s
-}
-
-// FullOuterJoin generates "full outer join %s on %s" for each expression
-func (s *Session) FullOuterJoin(table string, expressions ...string) *Session {
-	s.builder.FullOuterJoin(table, expressions...)
-	return s
-}
-
-// Where generates "where %s" for the expression and adds bindings for each value
-func (s *Session) Where(expression string, bindings ...interface{}) *Session {
-	expression = strings.Replace(expression, "?", s.builder.Adapter().Placeholder(), -1)
-	s.builder.Where(expression, bindings...)
-	return s
-}
-
-// OrderBy generates "order by %s" for each expression
-func (s *Session) OrderBy(expressions ...string) *Session {
-	s.builder.OrderBy(expressions...)
-	return s
-}
-
-// GroupBy generates "group by %s" for each column
-func (s *Session) GroupBy(columns ...string) *Session {
-	s.builder.GroupBy(columns...)
-	return s
-}
-
-// Having generates "having %s" for each expression
-func (s *Session) Having(expressions ...string) *Session {
-	s.builder.Having(expressions...)
-	return s
-}
-
-// Limit generates limit %d offset %d for offset and count
-func (s *Session) Limit(offset int, count int) *Session {
-	s.builder.Limit(offset, count)
-	return s
-}
-
-// aggregates
-
-// Avg function generates "avg(%s)" statement for column
-func (s *Session) Avg(column string) string {
-	return s.builder.Avg(column)
-}
-
-// Count function generates "count(%s)" statement for column
-func (s *Session) Count(column string) string {
-	return s.builder.Count(column)
-}
-
-// Sum function generates "sum(%s)" statement for column
-func (s *Session) Sum(column string) string {
-	return s.builder.Sum(column)
-}
-
-// Min function generates "min(%s)" statement for column
-func (s *Session) Min(column string) string {
-	return s.builder.Min(column)
-}
-
-// Max function generates "max(%s)" statement for column
-func (s *Session) Max(column string) string {
-	return s.builder.Max(column)
-}
-
-// expressions
-
-// NotIn function generates "%s not in (%s)" for key and adds bindings for each value
-func (s *Session) NotIn(key string, values ...interface{}) string {
-	return s.builder.NotIn(key, values...)
-}
-
-// In function generates "%s in (%s)" for key and adds bindings for each value
-func (s *Session) In(key string, values ...interface{}) string {
-	return s.builder.In(key, values...)
-}
-
-// NotEq function generates "%s != placeholder" for key and adds binding for value
-func (s *Session) NotEq(key string, value interface{}) string {
-	return s.builder.NotEq(key, value)
-}
-
-// Eq function generates "%s = placeholder" for key and adds binding for value
-func (s *Session) Eq(key string, value interface{}) string {
-	return s.builder.Eq(key, value)
-}
-
-// Gt function generates "%s > placeholder" for key and adds binding for value
-func (s *Session) Gt(key string, value interface{}) string {
-	return s.builder.Gt(key, value)
-}
-
-// Gte function generates "%s >= placeholder" for key and adds binding for value
-func (s *Session) Gte(key string, value interface{}) string {
-	return s.builder.Gte(key, value)
-}
-
-// St function generates "%s < placeholder" for key and adds binding for value
-func (s *Session) St(key string, value interface{}) string {
-	return s.builder.St(key, value)
-}
-
-// Ste function generates "%s <= placeholder" for key and adds binding for value
-func (s *Session) Ste(key string, value interface{}) string {
-	return s.builder.Ste(key, value)
-}
-
-// And function generates " AND " between any number of expressions
-func (s *Session) And(expressions ...string) string {
-	return s.builder.And(expressions...)
-}
-
-// Or function generates " OR " between any number of expressions
-func (s *Session) Or(expressions ...string) string {
-	return s.builder.Or(expressions...)
+	statement := s.Statement()
+	return s.engine.Select(statement, models)
 }

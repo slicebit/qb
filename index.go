@@ -25,6 +25,6 @@ type IndexElem struct {
 }
 
 // String returns the index element as an sql clause
-func (i IndexElem) String(adapter Adapter) string {
+func (i IndexElem) String(adapter Dialect) string {
 	return fmt.Sprintf("CREATE INDEX %s ON %s(%s);", adapter.Escape(i.Name), adapter.Escape(i.Table), strings.Join(adapter.EscapeAll(i.Columns), ", "))
 }

@@ -23,29 +23,40 @@ func TestInvalidEngine(t *testing.T) {
 
 func TestEngineExec(t *testing.T) {
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
+	dialect := NewDialect(engine.Driver())
 
-	query := NewBuilder(engine.Driver()).
-		Insert("user").
+	usersTable := Table(
+		"users",
+		Column("full_name", Varchar().NotNull()),
+	)
+
+	statement := Insert(usersTable).
 		Values(map[string]interface{}{
-			"full_name": "Aras Can Akin",
-		}).Query()
+			"full_name": "Al Pacino",
+		}).Build(dialect)
+
 	assert.Equal(t, err, nil)
 
-	res, err := engine.Exec(query)
+	res, err := engine.Exec(statement)
 	assert.Equal(t, res, nil)
 	assert.NotNil(t, err)
 }
 
 func TestEngineFail(t *testing.T) {
 	engine, err := NewEngine("sqlite3", "./qb_test.db")
+	dialect := NewDialect(engine.Driver())
 	assert.Nil(t, err)
 
-	query := NewBuilder(engine.Driver()).
-		Insert("user").
-		Values(map[string]interface{}{
-			"full_name": "Aras Can Akin",
-		}).Query()
+	usersTable := Table(
+		"users",
+		Column("full_name", Varchar().NotNull()),
+	)
 
-	_, err = engine.Exec(query)
+	statement := Insert(usersTable).
+		Values(map[string]interface{}{
+			"full_name": "Robert De Niro",
+		}).Build(dialect)
+
+	_, err = engine.Exec(statement)
 	assert.NotNil(t, err)
 }

@@ -6,22 +6,22 @@ import (
 	"testing"
 )
 
-type AdapterTestSuite struct {
+type DialectTestSuite struct {
 	suite.Suite
-	postgres Adapter
-	mysql    Adapter
-	sqlite   Adapter
-	def      Adapter
+	postgres Dialect
+	mysql    Dialect
+	sqlite   Dialect
+	def      Dialect
 }
 
-func (suite *AdapterTestSuite) SetupTest() {
-	suite.postgres = NewAdapter("postgres")
-	suite.mysql = NewAdapter("mysql")
-	suite.sqlite = NewAdapter("sqlite3")
-	suite.def = NewAdapter("default")
+func (suite *DialectTestSuite) SetupTest() {
+	suite.postgres = NewDialect("postgres")
+	suite.mysql = NewDialect("mysql")
+	suite.sqlite = NewDialect("sqlite3")
+	suite.def = NewDialect("default")
 }
 
-func (suite *AdapterTestSuite) TestDefaultAdapter() {
+func (suite *DialectTestSuite) TestDefaultDialect() {
 	assert.Equal(suite.T(), suite.def.SupportsUnsigned(), false)
 	assert.Equal(suite.T(), suite.def.AutoIncrement(), "AUTO INCREMENT")
 	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
@@ -32,12 +32,11 @@ func (suite *AdapterTestSuite) TestDefaultAdapter() {
 	assert.Equal(suite.T(), suite.def.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.def.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.def.Placeholders(5, 10), []string{"?", "?"})
-	assert.Equal(suite.T(), suite.def.SupportsInlinePrimaryKey(), false)
 	assert.Equal(suite.T(), suite.def.Driver(), "")
 	suite.def.Reset() // does nothing
 }
 
-func (suite *AdapterTestSuite) TestMysqlAdapter() {
+func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), suite.mysql.SupportsUnsigned(), true)
 	assert.Equal(suite.T(), suite.mysql.AutoIncrement(), "AUTO_INCREMENT")
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "test")
@@ -48,12 +47,11 @@ func (suite *AdapterTestSuite) TestMysqlAdapter() {
 	assert.Equal(suite.T(), suite.mysql.EscapeAll([]string{"test"}), []string{"`test`"})
 	assert.Equal(suite.T(), suite.mysql.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.mysql.Placeholders(5, 10), []string{"?", "?"})
-	assert.Equal(suite.T(), suite.mysql.SupportsInlinePrimaryKey(), false)
 	assert.Equal(suite.T(), suite.mysql.Driver(), "mysql")
 	suite.mysql.Reset() // does nothing
 }
 
-func (suite *AdapterTestSuite) TestPostgresAdapter() {
+func (suite *DialectTestSuite) TestPostgresDialect() {
 	assert.Equal(suite.T(), suite.postgres.SupportsUnsigned(), false)
 	assert.Equal(suite.T(), suite.postgres.AutoIncrement(), "")
 	assert.Equal(suite.T(), suite.postgres.Escape("test"), "test")
@@ -67,11 +65,10 @@ func (suite *AdapterTestSuite) TestPostgresAdapter() {
 	suite.postgres.Reset()
 	assert.Equal(suite.T(), suite.postgres.Placeholder(), "$1")
 	assert.Equal(suite.T(), suite.postgres.Placeholders(5, 10), []string{"$2", "$3"})
-	assert.Equal(suite.T(), suite.postgres.SupportsInlinePrimaryKey(), true)
 	assert.Equal(suite.T(), suite.postgres.Driver(), "postgres")
 }
 
-func (suite *AdapterTestSuite) TestSqliteAdapter() {
+func (suite *DialectTestSuite) TestSqliteDialect() {
 	assert.Equal(suite.T(), suite.sqlite.SupportsUnsigned(), false)
 	assert.Equal(suite.T(), suite.sqlite.AutoIncrement(), "")
 	//assert.Equal(suite.T(), suite.sqlite.AutoIncrement(), "AUTOINCREMENT")
@@ -83,11 +80,10 @@ func (suite *AdapterTestSuite) TestSqliteAdapter() {
 	assert.Equal(suite.T(), suite.sqlite.EscapeAll([]string{"test"}), []string{"test"})
 	assert.Equal(suite.T(), suite.sqlite.Placeholder(), "?")
 	assert.Equal(suite.T(), suite.sqlite.Placeholders(5, 10), []string{"?", "?"})
-	assert.Equal(suite.T(), suite.sqlite.SupportsInlinePrimaryKey(), true)
 	assert.Equal(suite.T(), suite.sqlite.Driver(), "sqlite3")
 	suite.sqlite.Reset() // does nothing
 }
 
 func TestAdapterTestSuite(t *testing.T) {
-	suite.Run(t, new(AdapterTestSuite))
+	suite.Run(t, new(DialectTestSuite))
 }
