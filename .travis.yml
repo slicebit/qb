@@ -20,6 +20,12 @@ before_script:
   - psql -c 'create database qb_test;' -U postgres
 addons:
         postgresql: "9.5"
+before_install:
+- sudo /etc/init.d/postgresql stop
+- wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+- sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main 9.5" >> /etc/apt/sources.list.d/postgresql.list'
+- sudo apt-get update
+- sudo apt-get install postgresql-9.5
 services:
   - mysql
-  - postgresql: "9.5"
+  - postgresql
