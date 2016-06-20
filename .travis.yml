@@ -1,7 +1,10 @@
 language: go
-sudo: true
+
+sudo: required
+
 go:
     - tip
+
 install:
     - go get -u github.com/fatih/structs
     - go get -u github.com/go-sql-driver/mysql
@@ -12,14 +15,26 @@ install:
     - go get -u github.com/stretchr/testify
     - go get golang.org/x/tools/cmd/cover
     - go get github.com/mattn/goveralls
+
 script:
     - go test -v -covermode=count -coverprofile=coverage.out
     - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken 0yIEy3NVX2lXn3KxYzHjkla7EWGjvmLAp
-before_script:
-  - mysql -e 'create database IF NOT EXISTS qb_test;'
-  - psql -c 'create database qb_test;' -U postgres
+
 services:
   - mysql
-  - postgresql
+
 addons:
-    postgresql: "9.5"
+    apt:
+        sources:
+        - precise-pgdg-9.5
+        packages:
+        - postgresql-9.5
+        - postgresql-contrib-9.5
+    postgresql: 9.5
+
+before_script:
+  - mysql -e 'create database IF NOT EXISTS qb_test;'
+  - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
+  - sudo /etc/init.d/postgresql restart
+  - psql -U postgres -c 'create database "qb_test";'
+  - psql -U postgres travis-db-test -c 'create extension "uuid-ossp";'
