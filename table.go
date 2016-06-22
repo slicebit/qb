@@ -106,17 +106,12 @@ func (t TableElem) Create(adapter Dialect) string {
 
 // PrimaryCols returns the columns that are primary key to the table
 func (t TableElem) PrimaryCols() []ColumnElem {
-	uniqueCols := []ColumnElem{}
+	primaryCols := []ColumnElem{}
 	pkCols := t.PrimaryKeyConstraint.Columns
 	for _, pkCol := range pkCols {
-		uniqueCols = append(uniqueCols, t.C(pkCol))
+		primaryCols = append(primaryCols, t.C(pkCol))
 	}
-	//for _, col := range t.Columns {
-	//	if col.Type.IsUnique() {
-	//		uniqueCols = append(uniqueCols, col)
-	//	}
-	//}
-	return uniqueCols
+	return primaryCols
 }
 
 // Drop generates drop table syntax and returns it as a query struct
