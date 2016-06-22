@@ -98,6 +98,58 @@ func (suite *TableTestSuite) TestTableIndexChain() {
 	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);\nCREATE INDEX i_id ON users(id);")
 }
 
+func (suite *TableTestSuite) TestTableStarters() {
+	usersTable := Table(
+		"users",
+		Column("id", Varchar().Size(40)),
+		Column("email", Varchar().Size(40).Unique()),
+		PrimaryKey("id"),
+	)
+	sqlite := NewDialect("sqlite3")
+
+	ins := usersTable.
+		Insert().
+		Values(map[string]interface{}{
+			"id":    "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
+			"email": "al@pacino.com",
+		}).
+		Build(sqlite)
+
+	assert.Contains(suite.T(), ins.SQL(), "INSERT INTO users")
+	assert.Contains(suite.T(), ins.SQL(), "id")
+	assert.Contains(suite.T(), ins.SQL(), "email")
+	assert.Contains(suite.T(), ins.SQL(), "VALUES(?, ?)")
+	assert.Contains(suite.T(), ins.Bindings(), "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")
+	assert.Contains(suite.T(), ins.Bindings(), "al@pacino.com")
+
+	up := usersTable.
+		Update().
+		Values(map[string]interface{}{
+			"email": "al@pacino.com",
+		}).
+		Where(usersTable.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
+		Build(sqlite)
+
+	assert.Equal(suite.T(), up.SQL(), "UPDATE users\nSET email = ?\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), up.Bindings(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+
+	del := usersTable.
+		Delete().
+		Where(usersTable.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
+		Build(sqlite)
+
+	assert.Equal(suite.T(), del.SQL(), "DELETE FROM users\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), del.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+
+	sel := usersTable.
+		Select(usersTable.C("id"), usersTable.C("email")).
+		Where(usersTable.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
+		Build(sqlite)
+
+	assert.Equal(suite.T(), sel.SQL(), "SELECT id, email\nFROM users\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), sel.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+}
+
 func TestTableTestSuite(t *testing.T) {
 	suite.Run(t, new(TableTestSuite))
 }

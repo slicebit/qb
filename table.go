@@ -125,3 +125,25 @@ func (t TableElem) Drop(adapter Dialect) string {
 func (t TableElem) C(name string) ColumnElem {
 	return t.Columns[name]
 }
+
+// query starters
+
+// Insert starts an insert statement by setting the table parameter
+func (t TableElem) Insert() InsertStmt {
+	return Insert(t)
+}
+
+// Update starts an update statement by setting the table parameter
+func (t TableElem) Update() UpdateStmt {
+	return Update(t)
+}
+
+// Delete starts a delete statement by setting the table parameter
+func (t TableElem) Delete() DeleteStmt {
+	return Delete(t)
+}
+
+// Select starts a select statement by setting from table
+func (t TableElem) Select(clauses ...Clause) SelectStmt {
+	return Select(clauses...).From(t)
+}
