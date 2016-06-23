@@ -108,7 +108,7 @@ func (t TableElem) Create(dialect Dialect) string {
 func (t TableElem) Build(dialect Dialect) *Stmt {
 	sql := t.Create(dialect)
 	statement := Statement()
-	statement.AddClause(sql)
+	statement.AddClause(strings.Trim(sql, ";")) // TODO: Remove this ugly hack
 	return statement
 }
 

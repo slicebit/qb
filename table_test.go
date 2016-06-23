@@ -19,6 +19,10 @@ func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
 	fmt.Println(ddl, "\n")
 	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);")
 
+	statement := usersTable.Build(dialect)
+	assert.Equal(suite.T(), statement.SQL(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);")
+	assert.Equal(suite.T(), statement.Bindings(), []interface{}{})
+
 	assert.Equal(suite.T(), usersTable.Drop(dialect), "DROP TABLE users;")
 }
 
