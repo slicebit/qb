@@ -23,8 +23,8 @@ type InsertStmt struct {
 }
 
 // Values accepts map[string]interface{} and forms the values map of insert statement
-func (s InsertStmt) Values(vals map[string]interface{}) InsertStmt {
-	for k, v := range vals {
+func (s InsertStmt) Values(values map[string]interface{}) InsertStmt {
+	for k, v := range values {
 		s.values[k] = v
 	}
 	return s
