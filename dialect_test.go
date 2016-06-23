@@ -84,6 +84,6 @@ func (suite *DialectTestSuite) TestSqliteDialect() {
 	suite.sqlite.Reset() // does nothing
 }
 
-func TestAdapterTestSuite(t *testing.T) {
+func TestDialectTestSuite(t *testing.T) {
 	suite.Run(t, new(DialectTestSuite))
 }

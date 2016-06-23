@@ -10,8 +10,8 @@ import (
 const tagPrefix = "qb"
 
 // Mapper creates a new mapper struct and returns it as a mapper pointer
-func Mapper(adapter Dialect) MapperElem {
-	return MapperElem{dialect: adapter}
+func Mapper(dialect Dialect) MapperElem {
+	return MapperElem{dialect: dialect}
 }
 
 // MapperElem is the generic struct for struct to table mapping

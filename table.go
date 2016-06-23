@@ -65,36 +65,36 @@ func (t TableElem) Index(cols ...string) TableElem {
 }
 
 // Create generates create table syntax and returns it as a query struct
-func (t TableElem) Create(adapter Dialect) string {
-	stmt := Statement()
-	stmt.AddClause(fmt.Sprintf("CREATE TABLE %s (", adapter.Escape(t.Name)))
+func (t TableElem) Create(dialect Dialect) string {
+	statement := Statement()
+	statement.AddClause(fmt.Sprintf("CREATE TABLE %s (", dialect.Escape(t.Name)))
 
 	colClauses := []string{}
 	for _, col := range t.Columns {
-		colClauses = append(colClauses, fmt.Sprintf("\t%s", col.String(adapter)))
+		colClauses = append(colClauses, fmt.Sprintf("\t%s", col.String(dialect)))
 	}
 
 	if len(t.PrimaryKeyConstraint.Columns) > 0 {
-		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.PrimaryKeyConstraint.String(adapter)))
+		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.PrimaryKeyConstraint.String(dialect)))
 	}
 
 	if len(t.ForeignKeyConstraints.Refs) > 0 {
-		colClauses = append(colClauses, t.ForeignKeyConstraints.String(adapter))
+		colClauses = append(colClauses, t.ForeignKeyConstraints.String(dialect))
 	}
 
 	if t.UniqueKeyConstraint.name != "" {
-		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.UniqueKeyConstraint.String(adapter)))
+		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.UniqueKeyConstraint.String(dialect)))
 	}
 
-	stmt.AddClause(strings.Join(colClauses, ",\n"))
+	statement.AddClause(strings.Join(colClauses, ",\n"))
 
-	stmt.AddClause(")")
+	statement.AddClause(")")
 
-	ddl := stmt.SQL()
+	ddl := statement.SQL()
 
 	indexSqls := []string{}
 	for _, index := range t.Indices {
-		iClause := index.String(adapter)
+		iClause := index.String(dialect)
 		indexSqls = append(indexSqls, iClause)
 	}
 
@@ -115,9 +115,9 @@ func (t TableElem) PrimaryCols() []ColumnElem {
 }
 
 // Drop generates drop table syntax and returns it as a query struct
-func (t TableElem) Drop(adapter Dialect) string {
+func (t TableElem) Drop(dialect Dialect) string {
 	stmt := Statement()
-	stmt.AddClause(fmt.Sprintf("DROP TABLE %s", adapter.Escape(t.Name)))
+	stmt.AddClause(fmt.Sprintf("DROP TABLE %s", dialect.Escape(t.Name)))
 	return stmt.SQL()
 }
 

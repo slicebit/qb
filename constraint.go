@@ -26,7 +26,7 @@ func Unique() ConstraintElem {
 	return ConstraintElem{"UNIQUE"}
 }
 
-// Constraint generates a custom constraint due to variation of adapters
+// Constraint generates a custom constraint due to variation of dialects
 func Constraint(name string) ConstraintElem {
 	return ConstraintElem{name}
 }
@@ -71,14 +71,14 @@ type ForeignKeyConstraints struct {
 	Refs []Reference
 }
 
-func (c ForeignKeyConstraints) String(adapter Dialect) string {
+func (c ForeignKeyConstraints) String(dialect Dialect) string {
 	clauses := []string{}
 	for _, ref := range c.Refs {
 		clauses = append(clauses, fmt.Sprintf(
 			"\tFOREIGN KEY(%s) REFERENCES %s(%s)",
-			strings.Join(adapter.EscapeAll(ref.Cols), ", "),
-			adapter.Escape(ref.RefTable),
-			strings.Join(adapter.EscapeAll(ref.RefCols), ", "),
+			strings.Join(dialect.EscapeAll(ref.Cols), ", "),
+			dialect.Escape(ref.RefTable),
+			strings.Join(dialect.EscapeAll(ref.RefCols), ", "),
 		))
 	}
 

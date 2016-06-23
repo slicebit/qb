@@ -12,14 +12,14 @@ type TableTestSuite struct {
 }
 
 func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
-	adapter := NewDialect("mysql")
+	dialect := NewDialect("mysql")
 	usersTable := Table("users", Column("id", Varchar().Size(40)))
 
-	ddl := usersTable.Create(adapter)
+	ddl := usersTable.Create(dialect)
 	fmt.Println(ddl, "\n")
 	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);")
 
-	assert.Equal(suite.T(), usersTable.Drop(adapter), "DROP TABLE users;")
+	assert.Equal(suite.T(), usersTable.Drop(dialect), "DROP TABLE users;")
 }
 
 func (suite *TableTestSuite) TestTablePrimaryForeignKey() {

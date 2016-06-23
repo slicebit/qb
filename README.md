@@ -46,7 +46,7 @@ Here's a full example to define a table;
 		qb.UniqueKey("email", "device_id"),
 	).Index("email", "device_id").Index("facebook_id")
 
-	fmt.Println(usersTable.Create(db.Builder().Adapter()), "\n")
+	fmt.Println(usersTable.Create(db.Dialect()), "\n")
 
 	db.Metadata().AddTable(usersTable)
 	err = db.Metadata().CreateAll(db.Engine())
