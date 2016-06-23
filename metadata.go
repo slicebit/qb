@@ -6,7 +6,6 @@ import (
 )
 
 // MetaData creates a new MetaData object and returns it as a pointer
-// TODO: Metadata should not use builder, it should only use dialect
 func MetaData(dialect Dialect) *MetaDataElem {
 	return &MetaDataElem{
 		tables:  []TableElem{},
