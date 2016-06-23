@@ -27,14 +27,14 @@ func TestDelete(t *testing.T) {
 		Where(Eq(users.C("id"), 5)).
 		Build(sqlite)
 
-	assert.Equal(t, statement.SQL(), "DELETE FROM users\nWHERE (users.id = ?);")
+	assert.Equal(t, statement.SQL(), "DELETE FROM users\nWHERE users.id = ?;")
 	assert.Equal(t, statement.Bindings(), []interface{}{5})
 
 	statement = Delete(users).
 		Where(Eq(users.C("id"), 5)).
 		Build(mysql)
 
-	assert.Equal(t, statement.SQL(), "DELETE FROM `users`\nWHERE (`users`.`id` = ?);")
+	assert.Equal(t, statement.SQL(), "DELETE FROM `users`\nWHERE `users`.`id` = ?;")
 	assert.Equal(t, statement.Bindings(), []interface{}{5})
 
 	statement = Delete(users).
@@ -42,7 +42,7 @@ func TestDelete(t *testing.T) {
 		Returning(users.C("id")).
 		Build(postgres)
 
-	assert.Equal(t, statement.SQL(), "DELETE FROM \"users\"\nWHERE (\"users\".\"id\" = $1)\nRETURNING \"id\";")
+	assert.Equal(t, statement.SQL(), "DELETE FROM \"users\"\nWHERE \"users\".\"id\" = $1\nRETURNING \"id\";")
 	assert.Equal(t, statement.Bindings(), []interface{}{5})
 
 	statement = Delete(users).Build(sqlite)

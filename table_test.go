@@ -145,7 +145,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), upd.SQL(), "UPDATE users\nSET email = ?\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), upd.SQL(), "UPDATE users\nSET email = ?\nWHERE users.id = ?;")
 	assert.Equal(suite.T(), upd.Bindings(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
 
 	del := users.
@@ -153,7 +153,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), del.SQL(), "DELETE FROM users\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), del.SQL(), "DELETE FROM users\nWHERE users.id = ?;")
 	assert.Equal(suite.T(), del.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
 
 	sel := users.
@@ -161,7 +161,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), sel.SQL(), "SELECT id, email\nFROM users\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), sel.SQL(), "SELECT id, email\nFROM users\nWHERE users.id = ?;")
 	assert.Equal(suite.T(), sel.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
 }
 

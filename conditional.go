@@ -74,16 +74,16 @@ func (c Conditional) Build(dialect Dialect) (string, []interface{}) {
 
 	switch c.Op {
 	case "IN":
-		sql = fmt.Sprintf("(%s %s (%s))", key, c.Op, strings.Join(dialect.Placeholders(c.Values...), ", "))
+		sql = fmt.Sprintf("%s %s (%s)", key, c.Op, strings.Join(dialect.Placeholders(c.Values...), ", "))
 		return sql, c.Values
 	case "NOT IN":
-		sql = fmt.Sprintf("(%s %s (%s))", key, c.Op, strings.Join(dialect.Placeholders(c.Values...), ", "))
+		sql = fmt.Sprintf("%s %s (%s)", key, c.Op, strings.Join(dialect.Placeholders(c.Values...), ", "))
 		return sql, c.Values
 	case "LIKE":
-		sql = fmt.Sprintf("(%s %s '%s')", key, c.Op, c.Values[0])
+		sql = fmt.Sprintf("%s %s '%s'", key, c.Op, c.Values[0])
 		return sql, []interface{}{}
 	default:
-		sql = fmt.Sprintf("(%s %s %s)", key, c.Op, dialect.Placeholder())
+		sql = fmt.Sprintf("%s %s %s", key, c.Op, dialect.Placeholder())
 		return sql, c.Values
 	}
 }

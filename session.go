@@ -29,7 +29,7 @@ func New(driver string, dsn string) (*Session, error) {
 // Session is the composition of engine connection & orm mappings
 type Session struct {
 	builder    Builder
-	filters    []Conditional
+	filters    []Clause
 	statements []*Stmt
 	engine     *Engine
 	mapper     MapperElem
@@ -112,7 +112,7 @@ func (s *Session) Delete(model interface{}) {
 	tableName := s.mapper.ModelName(model)
 
 	d := Delete(s.metadata.Table(tableName))
-	conditions := []Conditional{}
+	conditions := []Clause{}
 	for k, v := range kv {
 		conditions = append(conditions, Eq(s.metadata.Table(tableName).C(k), v))
 	}
@@ -174,7 +174,7 @@ func (s *Session) Find(model interface{}) *Session {
 		cols = append(cols, s.T(table).C(k))
 	}
 
-	ands := []Conditional{}
+	ands := []Clause{}
 
 	for k := range modelMap {
 		if modelMap[k] == nil {
@@ -196,7 +196,7 @@ func (s *Session) Statement() *Stmt {
 	}
 
 	statement := s.builder.Build(s.dialect)
-	s.filters = []Conditional{}
+	s.filters = []Clause{}
 	s.builder = nil
 	return statement
 }
@@ -243,7 +243,7 @@ func (s *Session) isSelect() bool {
 // Filter appends a filter to the current select statement
 // NOTE: It currently only builds AndClause within the filters
 // TODO: Add OR able filters
-func (s *Session) Filter(conditional Conditional) *Session {
+func (s *Session) Filter(conditional Clause) *Session {
 	if !s.isSelect() {
 		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Filter()"))
 	}

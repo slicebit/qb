@@ -104,7 +104,7 @@ func TestSessionWrappings(t *testing.T) {
 	assert.Contains(t, selLeftJoin.SQL(), "id")
 	assert.Contains(t, selLeftJoin.SQL(), "user_id")
 	assert.Contains(t, selLeftJoin.SQL(), "created_at")
-	assert.Contains(t, selLeftJoin.SQL(), "\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.user_id = $1) AND (sessions.user_id != $2) AND (sessions.created_at <= $3) AND (sessions.created_at < $4) AND (sessions.created_at >= $5) AND (sessions.created_at > $6)\nORDER BY created_at DESC\nLIMIT 20 OFFSET 0;")
+	assert.Contains(t, selLeftJoin.SQL(), "\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.user_id = $1 AND sessions.user_id != $2 AND sessions.created_at <= $3 AND sessions.created_at < $4 AND sessions.created_at >= $5 AND sessions.created_at > $6)\nORDER BY created_at DESC\nLIMIT 20 OFFSET 0;")
 	assert.Equal(t, selLeftJoin.Bindings(), []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f", "9efbc9ac-7914-426c-8818-7d40b0427c8f", "2016-06-10", "2016-06-10", "2016-06-09", "2016-06-09"})
 
 	selRightJoin := qb.Query(sessions.C("id"), sessions.C("user_id"), sessions.C("created_at")).

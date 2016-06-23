@@ -44,6 +44,6 @@ func TestUpdate(t *testing.T) {
 		Returning(users.C("id"), users.C("email")).
 		Build(postgres)
 
-	assert.Equal(t, statement.SQL(), "UPDATE \"users\"\nSET \"email\" = $1\nWHERE (\"users\".\"email\" = $2)\nRETURNING \"id\", \"email\";")
+	assert.Equal(t, statement.SQL(), "UPDATE \"users\"\nSET \"email\" = $1\nWHERE \"users\".\"email\" = $2\nRETURNING \"id\", \"email\";")
 	assert.Equal(t, statement.Bindings(), []interface{}{"robert@de.niro", "al@pacino"})
 }

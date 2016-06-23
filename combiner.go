@@ -5,47 +5,47 @@ import (
 	"strings"
 )
 
-// buildCombiners generats and or statements and join them appropriately
-func buildCombiners(dialect Dialect, combiner string, conditionals []Conditional) (string, []interface{}) {
+// buildCombiners generates and or statements and join them appropriately
+func buildCombiners(dialect Dialect, combiner string, clauses []Clause) (string, []interface{}) {
 	sqls := []string{}
 	bindings := []interface{}{}
-	for _, c := range conditionals {
+	for _, c := range clauses {
 		sql, values := c.Build(dialect)
 		sqls = append(sqls, sql)
 		bindings = append(bindings, values...)
 	}
 
-	return strings.Join(sqls, fmt.Sprintf(" %s ", combiner)), bindings
+	return fmt.Sprintf("(%s)", strings.Join(sqls, fmt.Sprintf(" %s ", combiner))), bindings
 }
 
 // And generates an AndClause given conditional clauses
-func And(conditions ...Conditional) AndClause {
-	return AndClause{conditions}
+func And(clauses ...Clause) AndClause {
+	return AndClause{clauses}
 }
 
 // AndClause is the base struct to keep and within the where clause
 // It satisfies the Clause interface
 type AndClause struct {
-	conditions []Conditional
+	clauses []Clause
 }
 
 // Build compiles the and clause, joins the sql, returns sql and bindings
 func (c AndClause) Build(dialect Dialect) (string, []interface{}) {
-	return buildCombiners(dialect, "AND", c.conditions)
+	return buildCombiners(dialect, "AND", c.clauses)
 }
 
 // Or generates an OrClause given conditional clauses
-func Or(conditions ...Conditional) OrClause {
-	return OrClause{conditions}
+func Or(clauses ...Clause) OrClause {
+	return OrClause{clauses}
 }
 
 // OrClause is the base struct to keep or within the where clause
 // It satisfies the Clause interface
 type OrClause struct {
-	conditions []Conditional
+	clauses []Clause
 }
 
 // Build compiles the or clause, joins the sql, returns sql and bindings
 func (c OrClause) Build(dialect Dialect) (string, []interface{}) {
-	return buildCombiners(dialect, "OR", c.conditions)
+	return buildCombiners(dialect, "OR", c.clauses)
 }
