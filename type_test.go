@@ -21,7 +21,7 @@ func (suite *TypeTestSuite) TestConstraints() {
 	assert.Equal(suite.T(), precisionType.String(), "FLOAT(2, 5) NULL")
 
 	assert.Equal(suite.T(), Char().String(), "CHAR")
-	assert.Equal(suite.T(), Varchar().String(), "VARCHAR")
+	assert.Equal(suite.T(), Varchar().String(), "VARCHAR(255)")
 	assert.Equal(suite.T(), Text().String(), "TEXT")
 	assert.Equal(suite.T(), Int().String(), "INT")
 	assert.Equal(suite.T(), SmallInt().String(), "SMALLINT")
