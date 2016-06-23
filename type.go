@@ -12,7 +12,7 @@ func Char() TypeElem {
 
 // Varchar creates varchar type
 func Varchar() TypeElem {
-	return Type("VARCHAR")
+	return Type("VARCHAR").Size(255)
 }
 
 // Text creates text type
