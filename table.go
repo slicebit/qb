@@ -104,6 +104,14 @@ func (t TableElem) Create(dialect Dialect) string {
 	return strings.Join(sqls, "\n")
 }
 
+// Build generates a Statement object out of table ddl
+func (t TableElem) Build(dialect Dialect) *Stmt {
+	sql := t.Create(dialect)
+	statement := Statement()
+	statement.AddClause(sql)
+	return statement
+}
+
 // PrimaryCols returns the columns that are primary key to the table
 func (t TableElem) PrimaryCols() []ColumnElem {
 	primaryCols := []ColumnElem{}
