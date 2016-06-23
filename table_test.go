@@ -99,15 +99,16 @@ func (suite *TableTestSuite) TestTableIndexChain() {
 }
 
 func (suite *TableTestSuite) TestTableStarters() {
-	usersTable := Table(
+	users := Table(
 		"users",
 		Column("id", Varchar().Size(40)),
 		Column("email", Varchar().Size(40).Unique()),
 		PrimaryKey("id"),
 	)
+
 	sqlite := NewDialect("sqlite3")
 
-	ins := usersTable.
+	ins := users.
 		Insert().
 		Values(map[string]interface{}{
 			"id":    "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
@@ -122,28 +123,42 @@ func (suite *TableTestSuite) TestTableStarters() {
 	assert.Contains(suite.T(), ins.Bindings(), "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")
 	assert.Contains(suite.T(), ins.Bindings(), "al@pacino.com")
 
-	up := usersTable.
+	ups := users.Upsert().
+	Values(map[string]interface{}{
+		"id":    "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
+		"email": "al@pacino.com",
+	}).
+	Build(sqlite)
+
+	assert.Contains(suite.T(), ups.SQL(), "REPLACE INTO users")
+	assert.Contains(suite.T(), ups.SQL(), "id")
+	assert.Contains(suite.T(), ups.SQL(), "email")
+	assert.Contains(suite.T(), ups.SQL(), "VALUES(?, ?)")
+	assert.Contains(suite.T(), ups.Bindings(), "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")
+	assert.Contains(suite.T(), ups.Bindings(), "al@pacino.com")
+
+	upd := users.
 		Update().
 		Values(map[string]interface{}{
 			"email": "al@pacino.com",
 		}).
-		Where(usersTable.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
+		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), up.SQL(), "UPDATE users\nSET email = ?\nWHERE (users.id = ?);")
-	assert.Equal(suite.T(), up.Bindings(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+	assert.Equal(suite.T(), upd.SQL(), "UPDATE users\nSET email = ?\nWHERE (users.id = ?);")
+	assert.Equal(suite.T(), upd.Bindings(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
 
-	del := usersTable.
+	del := users.
 		Delete().
-		Where(usersTable.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
+		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
 	assert.Equal(suite.T(), del.SQL(), "DELETE FROM users\nWHERE (users.id = ?);")
 	assert.Equal(suite.T(), del.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
 
-	sel := usersTable.
-		Select(usersTable.C("id"), usersTable.C("email")).
-		Where(usersTable.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
+	sel := users.
+		Select(users.C("id"), users.C("email")).
+		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
 	assert.Equal(suite.T(), sel.SQL(), "SELECT id, email\nFROM users\nWHERE (users.id = ?);")

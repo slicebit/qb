@@ -143,6 +143,11 @@ func (t TableElem) Delete() DeleteStmt {
 	return Delete(t)
 }
 
+// Upsert starts an upsert statement by setting the table parameter
+func (t TableElem) Upsert() UpsertStmt {
+	return Upsert(t)
+}
+
 // Select starts a select statement by setting from table
 func (t TableElem) Select(clauses ...Clause) SelectStmt {
 	return Select(clauses...).From(t)
