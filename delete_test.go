@@ -15,7 +15,7 @@ func TestDelete(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
-	usersTable := Table(
+	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
 		Column("email", Varchar().Unique()),
@@ -23,28 +23,28 @@ func TestDelete(t *testing.T) {
 
 	var statement *Stmt
 
-	statement = Delete(usersTable).
-		Where(Eq(usersTable.C("id"), 5)).
+	statement = Delete(users).
+		Where(Eq(users.C("id"), 5)).
 		Build(sqlite)
 
 	assert.Equal(t, statement.SQL(), "DELETE FROM users\nWHERE (users.id = ?);")
 	assert.Equal(t, statement.Bindings(), []interface{}{5})
 
-	statement = Delete(usersTable).
-		Where(Eq(usersTable.C("id"), 5)).
+	statement = Delete(users).
+		Where(Eq(users.C("id"), 5)).
 		Build(mysql)
 
 	assert.Equal(t, statement.SQL(), "DELETE FROM `users`\nWHERE (`users`.`id` = ?);")
 	assert.Equal(t, statement.Bindings(), []interface{}{5})
 
-	statement = Delete(usersTable).
-		Where(Eq(usersTable.C("id"), 5)).
-		Returning(usersTable.C("id")).
+	statement = Delete(users).
+		Where(Eq(users.C("id"), 5)).
+		Returning(users.C("id")).
 		Build(postgres)
 
 	assert.Equal(t, statement.SQL(), "DELETE FROM \"users\"\nWHERE (\"users\".\"id\" = $1)\nRETURNING \"id\";")
 	assert.Equal(t, statement.Bindings(), []interface{}{5})
 
-	statement = Delete(usersTable).Build(sqlite)
+	statement = Delete(users).Build(sqlite)
 	assert.Equal(t, statement.SQL(), "DELETE FROM users;")
 }

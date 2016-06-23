@@ -31,9 +31,9 @@ func (s UpsertStmt) Values(vals map[string]interface{}) UpsertStmt {
 
 // Returning accepts the column names as strings and forms the returning array of insert statement
 // NOTE: Please use it in only postgres dialect, otherwise it'll crash
-func (s UpsertStmt) Returning(cols ...string) UpsertStmt {
+func (s UpsertStmt) Returning(cols ...ColumnElem) UpsertStmt {
 	for _, c := range cols {
-		s.returning = append(s.returning, s.table.C(c))
+		s.returning = append(s.returning, c)
 	}
 	return s
 }

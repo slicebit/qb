@@ -15,7 +15,7 @@ func TestInsert(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
-	usersTable := Table(
+	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
 		Column("email", Varchar().Unique()),
@@ -23,7 +23,7 @@ func TestInsert(t *testing.T) {
 
 	var statement *Stmt
 
-	ins := Insert(usersTable).Values(map[string]interface{}{
+	ins := Insert(users).Values(map[string]interface{}{
 		"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email": "al@pacino.com",
 	})
@@ -50,12 +50,12 @@ func TestInsert(t *testing.T) {
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
 	postgres.Reset()
 
-	statement = Insert(usersTable).
+	statement = Insert(users).
 		Values(map[string]interface{}{
 			"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 			"email": "al@pacino.com",
 		}).
-		Returning("id", "email").
+		Returning(users.C("id"), users.C("email")).
 		Build(postgres)
 
 	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")

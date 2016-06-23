@@ -16,7 +16,7 @@ func TestUpsert(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
-	usersTable := Table(
+	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
 		Column("email", Varchar().Unique()),
@@ -26,7 +26,7 @@ func TestUpsert(t *testing.T) {
 
 	var statement *Stmt
 
-	ups := Upsert(usersTable).Values(map[string]interface{}{
+	ups := Upsert(users).Values(map[string]interface{}{
 		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email":      "al@pacino.com",
 		"created_at": time.Now().UTC().String(),
@@ -58,12 +58,12 @@ func TestUpsert(t *testing.T) {
 	assert.Equal(t, len(statement.Bindings()), 6)
 	postgres.Reset()
 
-	statement = Upsert(usersTable).
+	statement = Upsert(users).
 		Values(map[string]interface{}{
 			"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 			"email": "al@pacino.com",
 		}).
-		Returning("id", "email").
+		Returning(users.C("id"), users.C("email")).
 		Build(postgres)
 
 	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")

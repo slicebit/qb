@@ -70,9 +70,9 @@ func (s UpdateStmt) Values(values map[string]interface{}) UpdateStmt {
 
 // Returning accepts the column names as strings and forms the returning array of insert statement
 // NOTE: Please use it in only postgres dialect, otherwise it'll crash
-func (s UpdateStmt) Returning(cols ...string) UpdateStmt {
+func (s UpdateStmt) Returning(cols ...ColumnElem) UpdateStmt {
 	for _, c := range cols {
-		s.returning = append(s.returning, s.table.C(c))
+		s.returning = append(s.returning, c)
 	}
 	return s
 }

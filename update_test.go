@@ -15,7 +15,7 @@ func TestUpdate(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
-	usersTable := Table(
+	users := Table(
 		"users",
 		Column("id", BigInt().NotNull()),
 		Column("email", Varchar().NotNull().Unique()),
@@ -24,24 +24,24 @@ func TestUpdate(t *testing.T) {
 
 	var statement *Stmt
 
-	statement = Update(usersTable).
+	statement = Update(users).
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
 		Build(sqlite)
 
 	assert.Equal(t, statement.SQL(), "UPDATE users\nSET email = ?;")
 	assert.Equal(t, statement.Bindings(), []interface{}{"robert@de.niro"})
 
-	statement = Update(usersTable).
+	statement = Update(users).
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
 		Build(mysql)
 
 	assert.Equal(t, statement.SQL(), "UPDATE `users`\nSET `email` = ?;")
 	assert.Equal(t, statement.Bindings(), []interface{}{"robert@de.niro"})
 
-	statement = Update(usersTable).
+	statement = Update(users).
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
-		Where(Eq(usersTable.C("email"), "al@pacino")).
-		Returning("id", "email").
+		Where(Eq(users.C("email"), "al@pacino")).
+		Returning(users.C("id"), users.C("email")).
 		Build(postgres)
 	postgres.Reset()
 
