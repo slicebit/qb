@@ -112,6 +112,8 @@ func (s SelectStmt) Limit(offset int, count int) SelectStmt {
 
 // Build compiles the select statement and returns the Stmt
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
+	defer dialect.Reset()
+
 	statement := Statement()
 
 	// select

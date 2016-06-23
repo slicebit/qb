@@ -36,7 +36,7 @@ func Aggregate(fn string, column ColumnElem) AggregateClause {
 
 // AggregateClause is the base struct for building aggregate functions
 type AggregateClause struct {
-	fn string
+	fn     string
 	column ColumnElem
 }
 
@@ -46,4 +46,3 @@ func (c AggregateClause) Build(dialect Dialect) (string, []interface{}) {
 	sql := fmt.Sprintf("%s(%s)", c.fn, dialect.Escape(c.column.Name))
 	return sql, bindings
 }
-

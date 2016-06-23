@@ -38,8 +38,6 @@ func TestCombiners(t *testing.T) {
 	assert.Equal(t, sql, "(\"email\" = $1) AND (\"id\" != $2)")
 	assert.Equal(t, bindings, []interface{}{"al@pacino.com", 1})
 
-	postgres.Reset()
-
 	sql, bindings = or.Build(sqlite)
 
 	assert.Equal(t, sql, "(email = ?) OR (id != ?)")
@@ -52,6 +50,6 @@ func TestCombiners(t *testing.T) {
 
 	sql, bindings = or.Build(postgres)
 
-	assert.Equal(t, sql, "(\"email\" = $1) OR (\"id\" != $2)")
+	assert.Equal(t, sql, "(\"email\" = $3) OR (\"id\" != $4)")
 	assert.Equal(t, bindings, []interface{}{"al@pacino.com", 1})
 }

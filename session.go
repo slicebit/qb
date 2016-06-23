@@ -128,7 +128,6 @@ func (s *Session) Add(model interface{}) {
 	ups := Upsert(s.metadata.Table(tableName)).Values(m)
 	statement := ups.Build(s.dialect)
 
-	s.dialect.Reset()
 	s.add(statement)
 }
 
@@ -197,7 +196,6 @@ func (s *Session) Statement() *Stmt {
 	}
 
 	statement := s.builder.Build(s.dialect)
-	s.dialect.Reset()
 	s.filters = []Conditional{}
 	s.builder = nil
 	return statement

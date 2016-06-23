@@ -48,7 +48,6 @@ func TestInsert(t *testing.T) {
 	assert.Contains(t, statement.SQL(), "VALUES($1, $2)")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
-	postgres.Reset()
 
 	statement = Insert(users).
 		Values(map[string]interface{}{

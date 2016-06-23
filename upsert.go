@@ -22,8 +22,8 @@ type UpsertStmt struct {
 }
 
 // Values accepts map[string]interface{} and forms the values map of insert statement
-func (s UpsertStmt) Values(vals map[string]interface{}) UpsertStmt {
-	for k, v := range vals {
+func (s UpsertStmt) Values(values map[string]interface{}) UpsertStmt {
+	for k, v := range values {
 		s.values[k] = v
 	}
 	return s
@@ -44,6 +44,8 @@ func (s UpsertStmt) Returning(cols ...ColumnElem) UpsertStmt {
 // For mysql, it generates INSERT INTO ... VALUES ... ON DUPLICATE KEY UPDATE ...
 // For postgres, it generates INSERT INTO ... VALUES ... ON CONFLICT(...) DO UPDATE SET ...
 func (s UpsertStmt) Build(dialect Dialect) *Stmt {
+	defer dialect.Reset()
+
 	statement := Statement()
 
 	colNames := []string{}
@@ -54,19 +56,23 @@ func (s UpsertStmt) Build(dialect Dialect) *Stmt {
 		values = append(values, dialect.Placeholder())
 	}
 
-	updates := []string{}
-	for k, v := range s.values {
-		updates = append(updates, fmt.Sprintf("%s = %s", dialect.Escape(k), dialect.Placeholder()))
-		statement.AddBinding(v)
-	}
-
 	switch dialect.Driver() {
 	case "mysql":
+		updates := []string{}
+		for k, v := range s.values {
+			updates = append(updates, fmt.Sprintf("%s = %s", dialect.Escape(k), dialect.Placeholder()))
+			statement.AddBinding(v)
+		}
 		statement.AddClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
 		statement.AddClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
 		statement.AddClause(fmt.Sprintf("ON DUPLICATE KEY UPDATE %s", strings.Join(updates, ", ")))
 		break
 	case "postgres":
+		updates := []string{}
+		for k, v := range s.values {
+			updates = append(updates, fmt.Sprintf("%s = %s", dialect.Escape(k), dialect.Placeholder()))
+			statement.AddBinding(v)
+		}
 		statement.AddClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
 		statement.AddClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
 		uniqueCols := []string{}

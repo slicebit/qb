@@ -36,6 +36,8 @@ func (s DeleteStmt) Returning(cols ...ColumnElem) DeleteStmt {
 
 // Build generates a statement out of DeleteStmt object
 func (s DeleteStmt) Build(dialect Dialect) *Stmt {
+	defer dialect.Reset()
+
 	statement := Statement()
 	statement.AddClause(fmt.Sprintf("DELETE FROM %s", dialect.Escape(s.table.Name)))
 	if s.where != nil {

@@ -77,8 +77,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		"bio":       sql.NullString{},
 	}).Build(suite.db.Dialect())
 
-	suite.db.Dialect().Reset()
-
 	_, err = suite.db.Engine().Exec(statement)
 	assert.NotNil(suite.T(), err)
 	fmt.Println("Duplicate error; ", err)
@@ -90,8 +88,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 			"full_name": "Jack Nicholson",
 			"bio":       sql.NullString{},
 		}).Build(suite.db.Dialect())
-
-	suite.db.Dialect().Reset()
 
 	fmt.Println("<statement>")
 	fmt.Println(statement.SQL())
@@ -149,7 +145,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Equal(suite.T(), sessions[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
 
 	// update user
-	user.Bio = sql.NullString{String: "nil", Valid:false}
+	user.Bio = sql.NullString{String: "nil", Valid: false}
 	suite.db.Add(user)
 
 	err = suite.db.Commit()

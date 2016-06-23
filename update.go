@@ -27,6 +27,8 @@ type UpdateStmt struct {
 
 // Build generates a statement out of UpdateStmt object
 func (s UpdateStmt) Build(dialect Dialect) *Stmt {
+	defer dialect.Reset()
+
 	statement := Statement()
 	statement.AddClause(fmt.Sprintf("UPDATE %s", dialect.Escape(s.table.Name)))
 	sets := []string{}

@@ -41,6 +41,8 @@ func (s InsertStmt) Returning(cols ...ColumnElem) InsertStmt {
 
 // Build generates a statement out of InsertStmt object
 func (s InsertStmt) Build(dialect Dialect) *Stmt {
+	defer dialect.Reset()
+
 	statement := Statement()
 	colNames := []string{}
 	values := []string{}

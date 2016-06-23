@@ -1,8 +1,8 @@
 package qb
 
 import (
-	"strings"
 	"fmt"
+	"strings"
 )
 
 // buildCombiners generats and or statements and join them appropriately

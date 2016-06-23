@@ -1,8 +1,8 @@
 package qb
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestConditionals(t *testing.T) {
@@ -45,7 +45,6 @@ func TestConditionals(t *testing.T) {
 	sql, bindings = notIn.Build(postgres)
 	assert.Equal(t, sql, "(\"country\" NOT IN ($1, $2, $3))")
 	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
-	postgres.Reset()
 
 	in := In(country, "USA", "England", "Sweden")
 
@@ -58,9 +57,8 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
 
 	sql, bindings = in.Build(postgres)
-	assert.Equal(t, sql, "(\"country\" IN ($1, $2, $3))")
+	assert.Equal(t, sql, "(\"country\" IN ($4, $5, $6))")
 	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
-	postgres.Reset()
 
 	notEq := NotEq(country, "USA")
 
@@ -73,9 +71,8 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{"USA"})
 
 	sql, bindings = notEq.Build(postgres)
-	assert.Equal(t, sql, "(\"country\" != $1)")
+	assert.Equal(t, sql, "(\"country\" != $7)")
 	assert.Equal(t, bindings, []interface{}{"USA"})
-	postgres.Reset()
 
 	eq := Eq(country, "Turkey")
 
@@ -88,9 +85,8 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{"Turkey"})
 
 	sql, bindings = eq.Build(postgres)
-	assert.Equal(t, sql, "(\"country\" = $1)")
+	assert.Equal(t, sql, "(\"country\" = $8)")
 	assert.Equal(t, bindings, []interface{}{"Turkey"})
-	postgres.Reset()
 
 	score := Column("score", BigInt().NotNull())
 
@@ -105,9 +101,8 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{1500})
 
 	sql, bindings = gt.Build(postgres)
-	assert.Equal(t, sql, "(\"score\" > $1)")
+	assert.Equal(t, sql, "(\"score\" > $9)")
 	assert.Equal(t, bindings, []interface{}{1500})
-	postgres.Reset()
 
 	st := St(score, 1500)
 
@@ -120,9 +115,8 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{1500})
 
 	sql, bindings = st.Build(postgres)
-	assert.Equal(t, sql, "(\"score\" < $1)")
+	assert.Equal(t, sql, "(\"score\" < $10)")
 	assert.Equal(t, bindings, []interface{}{1500})
-	postgres.Reset()
 
 	gte := Gte(score, 1500)
 
@@ -135,9 +129,8 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{1500})
 
 	sql, bindings = gte.Build(postgres)
-	assert.Equal(t, sql, "(\"score\" >= $1)")
+	assert.Equal(t, sql, "(\"score\" >= $11)")
 	assert.Equal(t, bindings, []interface{}{1500})
-	postgres.Reset()
 
 	ste := Ste(score, 1500)
 
@@ -150,8 +143,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, bindings, []interface{}{1500})
 
 	sql, bindings = ste.Build(postgres)
-	assert.Equal(t, sql, "(\"score\" <= $1)")
+	assert.Equal(t, sql, "(\"score\" <= $12)")
 	assert.Equal(t, bindings, []interface{}{1500})
-	postgres.Reset()
 
 }

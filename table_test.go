@@ -124,11 +124,11 @@ func (suite *TableTestSuite) TestTableStarters() {
 	assert.Contains(suite.T(), ins.Bindings(), "al@pacino.com")
 
 	ups := users.Upsert().
-	Values(map[string]interface{}{
-		"id":    "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
-		"email": "al@pacino.com",
-	}).
-	Build(sqlite)
+		Values(map[string]interface{}{
+			"id":    "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
+			"email": "al@pacino.com",
+		}).
+		Build(sqlite)
 
 	assert.Contains(suite.T(), ups.SQL(), "REPLACE INTO users")
 	assert.Contains(suite.T(), ups.SQL(), "id")

@@ -78,7 +78,6 @@ func (suite *SelectTestSuite) TestSelectWhere() {
 	statement = sel.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"users\"\nWHERE (\"users\".\"email\" = $1) AND (\"users\".\"id\" != $2);")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{"al@pacino.com", 5})
-	suite.postgres.Reset()
 }
 
 func (suite *SelectTestSuite) TestOrderByLimit() {
@@ -100,7 +99,6 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 	statement = selOrderByDesc.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE (\"sessions\".\"user_id\" = $1)\nORDER BY \"id\" DESC\nLIMIT 20 OFFSET 0;")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 
 	selWithoutOrder := Select(suite.sessions.C("id")).
 		From(suite.sessions).
@@ -118,7 +116,6 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 	statement = selWithoutOrder.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE (\"sessions\".\"user_id\" = $1)\nORDER BY \"id\" ASC;")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 
 	selOrderByAsc := Select(suite.sessions.C("id")).
 		From(suite.sessions).
@@ -136,7 +133,6 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 	statement = selOrderByAsc.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE (\"sessions\".\"user_id\" = $1)\nORDER BY \"id\" ASC;")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 }
 
 func (suite *SelectTestSuite) TestJoin() {
@@ -160,7 +156,6 @@ func (suite *SelectTestSuite) TestJoin() {
 	statement = selInnerJoin.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nINNER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE (\"sessions\".\"user_id\" = $1);")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 
 	// left join
 	selLeftJoin := Select(suite.sessions.C("id"), suite.sessions.C("auth_token")).
@@ -179,7 +174,6 @@ func (suite *SelectTestSuite) TestJoin() {
 	statement = selLeftJoin.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nLEFT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE (\"sessions\".\"user_id\" = $1);")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 
 	// right join
 	selRightJoin := Select(suite.sessions.C("id")).
@@ -198,7 +192,6 @@ func (suite *SelectTestSuite) TestJoin() {
 	statement = selRightJoin.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nRIGHT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE (\"sessions\".\"user_id\" = $1);")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 
 	// cross join
 	selCrossJoin := Select(suite.sessions.C("id")).
@@ -217,7 +210,6 @@ func (suite *SelectTestSuite) TestJoin() {
 	statement = selCrossJoin.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nCROSS JOIN \"users\"\nWHERE (\"sessions\".\"user_id\" = $1);")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
-	suite.postgres.Reset()
 }
 
 func (suite *SelectTestSuite) TestGroupByHaving() {
@@ -238,7 +230,6 @@ func (suite *SelectTestSuite) TestGroupByHaving() {
 	statement = sel.Build(suite.postgres)
 	assert.Equal(suite.T(), statement.SQL(), "SELECT COUNT(\"id\")\nFROM \"sessions\"\nGROUP BY \"user_id\"\nHAVING SUM(\"id\") > $1;")
 	assert.Equal(suite.T(), statement.Bindings(), []interface{}{4})
-	suite.postgres.Reset()
 }
 
 func TestSelectTestSuite(t *testing.T) {

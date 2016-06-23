@@ -26,10 +26,12 @@ func TestUpsert(t *testing.T) {
 
 	var statement *Stmt
 
+	now := time.Now().UTC().String()
+
 	ups := Upsert(users).Values(map[string]interface{}{
 		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email":      "al@pacino.com",
-		"created_at": time.Now().UTC().String(),
+		"created_at": now,
 	})
 
 	statement = ups.Build(sqlite)
@@ -38,6 +40,8 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.SQL(), "VALUES(?, ?, ?)")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
+	assert.Contains(t, statement.Bindings(), now)
+	assert.Equal(t, len(statement.Bindings()), 3)
 
 	statement = ups.Build(mysql)
 	assert.Contains(t, statement.SQL(), "INSERT INTO `users`")
@@ -47,6 +51,7 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.SQL(), "`id` = ?", "`email` = ?", "`created_at` = ?")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
+	assert.Equal(t, len(statement.Bindings()), 6)
 
 	statement = ups.Build(postgres)
 	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")
@@ -56,7 +61,6 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
 	assert.Equal(t, len(statement.Bindings()), 6)
-	postgres.Reset()
 
 	statement = Upsert(users).
 		Values(map[string]interface{}{
