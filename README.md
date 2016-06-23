@@ -49,8 +49,8 @@ If you want to install test dependencies then;
 go get -u -t github.com/aacanakin/qb
 ```
 
-Quick Start
------------
+Quick Start _ ORM
+-----------------
 ```go
 package main
 
@@ -104,6 +104,61 @@ func main() {
 
 	db.DropAll() // drops all tables
 
+}
+```
+
+QuickStart - Expression API
+---------------------------
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/aacanakin/qb"
+)
+
+func main() {
+	db, _ := qb.New("sqlite3", ":memory:")
+	defer db.Close()
+
+	db.Dialect().SetEscaping(true)
+
+	actors := qb.Table(
+		"actor",
+		qb.Column("id", qb.Varchar().Size(36)),
+		qb.Column("name", qb.Varchar().NotNull()),
+		qb.PrimaryKey("id"),
+	)
+
+	db.Metadata().AddTable(actors)
+	err := db.CreateAll()
+	if err != nil {
+		panic(err)
+	}
+
+	ins := actors.Insert().Values(map[string]interface{}{
+		"id":   "3af82cdc-4d21-473b-a175-cbc3f9119eda",
+		"name": "Robert De Niro",
+	})
+
+	_, err = db.Engine().Exec(ins.Build(db.Dialect()))
+	if err != nil {
+		panic(err)
+	}
+
+	sel := actors.
+		Select(actors.C("name"), actors.C("id")).
+		Where(actors.C("name").Eq("Robert De Niro")).
+		Build(db.Dialect())
+
+	var name string
+	var id string
+
+	db.Engine().QueryRow(sel).Scan(&name, &id)
+	fmt.Printf("<User name=%s id=%s/>\n", name, id)
+
+	// outputs
+	// <User name=Robert De Niro id=3af82cdc-4d21-473b-a175-cbc3f9119eda/>
 }
 ```
 
