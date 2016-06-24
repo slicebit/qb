@@ -49,7 +49,7 @@ If you want to install test dependencies then;
 go get -u -t github.com/aacanakin/qb
 ```
 
-Quick Start _ ORM
+Quick Start - ORM
 -----------------
 ```go
 package main
