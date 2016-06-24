@@ -16,6 +16,8 @@ func New(driver string, dsn string) (*Session, error) {
 
 	dialect := NewDialect(driver)
 
+	engine.SetDialect(dialect)
+
 	return &Session{
 		statements: []*Stmt{},
 		engine:     engine,
@@ -185,6 +187,11 @@ func (s *Session) Find(model interface{}) *Session {
 
 	s.builder = Select(cols...).From(s.T(table)).Where(And(ands...))
 	return s
+}
+
+// Builder returns the active query builder of session
+func (s *Session) Builder() Builder {
+	return s.builder
 }
 
 // Statement builds the active query and returns it as a Stmt
@@ -369,12 +376,11 @@ func (s *Session) Limit(offset int, count int) *Session {
 // One returns the first record mapped as a model
 // The interface should be struct pointer instead of struct
 func (s *Session) One(model interface{}) error {
-	return s.engine.Get(s.Statement(), model)
+	return s.engine.Get(s.builder, model)
 }
 
 // All returns all the records mapped as a model slice
 // The interface should be struct pointer instead of struct
 func (s *Session) All(models interface{}) error {
-	statement := s.Statement()
-	return s.engine.Select(statement, models)
+	return s.engine.Select(s.builder, models)
 }

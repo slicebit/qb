@@ -33,6 +33,12 @@ type Engine struct {
 	driver string
 	dsn    string
 	db     *sqlx.DB
+	dialect Dialect
+}
+
+// SetDialect lazily sets the dialect of the engine
+func (e *Engine) SetDialect(dialect Dialect) {
+	e.dialect = dialect
 }
 
 // Exec executes insert & update type queries and returns sql.Result and error
@@ -51,22 +57,26 @@ func (e *Engine) Exec(statement *Stmt) (sql.Result, error) {
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
-func (e *Engine) QueryRow(statement *Stmt) *sql.Row {
+func (e *Engine) QueryRow(builder Builder) *sql.Row {
+	statement := builder.Build(e.dialect)
 	return e.db.QueryRow(statement.SQL(), statement.Bindings()...)
 }
 
 // Query wraps *sql.DB.Query()
-func (e *Engine) Query(statement *Stmt) (*sql.Rows, error) {
+func (e *Engine) Query(builder Builder) (*sql.Rows, error) {
+	statement := builder.Build(e.dialect)
 	return e.db.Query(statement.SQL(), statement.Bindings()...)
 }
 
 // Get maps the single row to a model
-func (e *Engine) Get(statement *Stmt, model interface{}) error {
+func (e *Engine) Get(builder Builder, model interface{}) error {
+	statement := builder.Build(e.dialect)
 	return e.db.Get(model, statement.SQL(), statement.Bindings()...)
 }
 
 // Select maps multiple rows to a model array
-func (e *Engine) Select(statement *Stmt, model interface{}) error {
+func (e *Engine) Select(builder Builder, model interface{}) error {
+	statement := builder.Build(e.dialect)
 	return e.db.Select(model, statement.SQL(), statement.Bindings()...)
 }
 

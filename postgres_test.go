@@ -101,13 +101,13 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.NotNil(suite.T(), err)
 
 	// find user using QueryRow()
-	statement = suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Statement()
-	row := suite.db.Engine().QueryRow(statement)
+	sel := suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Builder()
+	row := suite.db.Engine().QueryRow(sel)
 	assert.NotNil(suite.T(), row)
 
 	// find user using Query()
-	statement = suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Statement()
-	rows, err := suite.db.Engine().Query(statement)
+	sel = suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Builder()
+	rows, err := suite.db.Engine().Query(sel)
 	assert.Nil(suite.T(), err)
 	rowLength := 0
 	for rows.Next() {
