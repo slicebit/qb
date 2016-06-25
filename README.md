@@ -141,15 +141,14 @@ func main() {
 		"name": "Robert De Niro",
 	})
 
-	_, err = db.Engine().Exec(ins.Build(db.Dialect()))
+	_, err = db.Engine().Exec(ins)
 	if err != nil {
 		panic(err)
 	}
 
 	sel := actors.
 		Select(actors.C("name"), actors.C("id")).
-		Where(actors.C("name").Eq("Robert De Niro")).
-		Build(db.Dialect())
+		Where(actors.C("name").Eq("Robert De Niro"))
 
 	var name string
 	var id string
