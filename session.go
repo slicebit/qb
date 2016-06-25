@@ -143,6 +143,7 @@ func (s *Session) AddAll(models ...interface{}) {
 // Commit commits the current transaction with queries
 func (s *Session) Commit() error {
 	for _, statement := range s.statements {
+		s.engine.log(statement)
 		_, err := s.tx.Exec(statement.SQL(), statement.Bindings()...)
 		if err != nil {
 			s.tx = nil
