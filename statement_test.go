@@ -5,33 +5,46 @@ import (
 	"testing"
 )
 
-func TestQuery(t *testing.T) {
-	query := Statement()
+func TestStatement(t *testing.T) {
+	statement := Statement()
 
-	query.AddClause("SELECT name")
-	query.AddClause("FROM user")
-	query.AddClause("WHERE id = ?")
-	query.AddBinding(5)
+	statement.AddClause("SELECT name")
+	statement.AddClause("FROM user")
+	statement.AddClause("WHERE id = ?")
+	statement.AddBinding(5)
 
-	assert.Equal(t, query.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
-	assert.Equal(t, query.Bindings(), []interface{}{5})
-	assert.Equal(t, query.SQL(), "SELECT name\nFROM user\nWHERE id = ?;")
+	assert.Equal(t, statement.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
+	assert.Equal(t, statement.Bindings(), []interface{}{5})
+	assert.Equal(t, statement.SQL(), "SELECT name\nFROM user\nWHERE id = ?;")
 }
 
-func TestQueryWithDelimiter(t *testing.T) {
-	query := Statement()
+func TestStatementRaw(t *testing.T) {
 
-	assert.Equal(t, query.SQL(), "")
+	statement := Statement()
+	sql := `
+		SELECT name
+		FROM user
+		WHERE id = ?;
+		`
+	statement.Text(sql)
+	assert.Equal(t, statement.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
+	assert.Equal(t, statement.SQL(), "SELECT name\nFROM user\nWHERE id = ?;")
+}
 
-	query.SetDelimiter(" ")
+func TestStatementWithCustomDelimiter(t *testing.T) {
+	statement := Statement()
 
-	query.AddClause("SELECT name")
-	query.AddClause("FROM user")
+	assert.Equal(t, statement.SQL(), "")
 
-	query.AddClause("WHERE id = ?")
-	query.AddBinding(5)
+	statement.SetDelimiter(" ")
 
-	assert.Equal(t, query.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
-	assert.Equal(t, query.Bindings(), []interface{}{5})
-	assert.Equal(t, query.SQL(), "SELECT name FROM user WHERE id = ?;")
+	statement.AddClause("SELECT name")
+	statement.AddClause("FROM user")
+
+	statement.AddClause("WHERE id = ?")
+	statement.AddBinding(5)
+
+	assert.Equal(t, statement.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
+	assert.Equal(t, statement.Bindings(), []interface{}{5})
+	assert.Equal(t, statement.SQL(), "SELECT name FROM user WHERE id = ?;")
 }

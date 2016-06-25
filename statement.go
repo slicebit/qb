@@ -25,6 +25,18 @@ type Stmt struct {
 	bindingIndex int
 }
 
+// Text is for executing raw sql
+// It parses the sql and generates clauses from
+func (s *Stmt) Text(sql string) {
+	sql = strings.Replace(sql, ";", "", -1)
+	sql = strings.Replace(sql, "\t", "", -1)
+	sql = strings.Trim(sql, "\n")
+	clauses := strings.Split(sql, "\n")
+	for _, c := range clauses {
+		s.clauses = append(s.clauses, c)
+	}
+}
+
 // SetDelimiter sets the delimiter of query
 func (s *Stmt) SetDelimiter(delimiter string) {
 	s.delimiter = delimiter
