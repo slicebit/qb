@@ -42,8 +42,9 @@ func (e *Engine) SetDialect(dialect Dialect) {
 }
 
 // Exec executes insert & update type queries and returns sql.Result and error
-func (e *Engine) Exec(statement *Stmt) (sql.Result, error) {
-	Statement, err := e.db.Prepare(statement.SQL())
+func (e *Engine) Exec(builder Builder) (sql.Result, error) {
+	statement := builder.Build(e.dialect)
+	stmt, err := e.db.Prepare(statement.SQL())
 	if err != nil {
 		return nil, err
 	}

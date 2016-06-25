@@ -23,28 +23,30 @@ func TestInvalidEngine(t *testing.T) {
 
 func TestEngineExec(t *testing.T) {
 	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
-	dialect := NewDialect(engine.Driver())
+	dialect := NewDialect("postgres")
+	dialect.SetEscaping(true)
+	engine.SetDialect(dialect)
 
 	usersTable := Table(
 		"users",
 		Column("full_name", Varchar().NotNull()),
 	)
 
-	statement := Insert(usersTable).
+	ins := Insert(usersTable).
 		Values(map[string]interface{}{
 			"full_name": "Al Pacino",
-		}).Build(dialect)
+		})
 
-	assert.Equal(t, err, nil)
+	assert.Nil(t, err)
 
-	res, err := engine.Exec(statement)
+	res, err := engine.Exec(ins)
 	assert.Equal(t, res, nil)
 	assert.NotNil(t, err)
 }
 
 func TestEngineFail(t *testing.T) {
 	engine, err := NewEngine("sqlite3", "./qb_test.db")
-	dialect := NewDialect(engine.Driver())
+	engine.SetDialect(NewDialect("sqlite3"))
 	assert.Nil(t, err)
 
 	usersTable := Table(
@@ -55,7 +57,7 @@ func TestEngineFail(t *testing.T) {
 	statement := Insert(usersTable).
 		Values(map[string]interface{}{
 			"full_name": "Robert De Niro",
-		}).Build(dialect)
+		})
 
 	_, err = engine.Exec(statement)
 	assert.NotNil(t, err)
