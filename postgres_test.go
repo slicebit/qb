@@ -75,7 +75,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
 		"bio":       sql.NullString{},
-	}).Build(suite.db.Dialect())
+	})
 
 	_, err = suite.db.Engine().Exec(statement)
 	assert.NotNil(suite.T(), err)
@@ -87,12 +87,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 			"email":     "jack@nicholson2.com",
 			"full_name": "Jack Nicholson",
 			"bio":       sql.NullString{},
-		}).Build(suite.db.Dialect())
-
-	fmt.Println("<statement>")
-	fmt.Println(statement.SQL())
-	fmt.Println(statement.Bindings())
-	fmt.Println("</statement>")
+		})
 
 	_, err = suite.db.Engine().Exec(statement)
 	assert.Nil(suite.T(), err)
