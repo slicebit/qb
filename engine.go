@@ -7,6 +7,8 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/serenize/snaker"
+	"log"
+	"os"
 )
 
 // NewEngine generates a new engine and returns it as an engine pointer
@@ -25,20 +27,45 @@ func NewEngine(driver string, dsn string) (*Engine, error) {
 		driver: driver,
 		dsn:    dsn,
 		db:     conn,
+		logger: DefaultLogger{LDefault, log.New(os.Stdout, "", -1)},
 	}, err
 }
 
 // Engine is the generic struct for handling db connections
 type Engine struct {
-	driver string
-	dsn    string
-	db     *sqlx.DB
+	driver  string
+	dsn     string
+	db      *sqlx.DB
 	dialect Dialect
+	logger  Logger
 }
 
-// SetDialect lazily sets the dialect of the engine
+// SetDialects sets the dialect of engine lazily
 func (e *Engine) SetDialect(dialect Dialect) {
 	e.dialect = dialect
+}
+
+// Logger returns the active logger of engine
+func (e *Engine) Logger() Logger {
+	return e.logger
+}
+
+// SetLogger sets the logger of engine
+func (e *Engine) SetLogger(logger Logger) {
+	e.logger = logger
+}
+
+func (e *Engine) log(statement *Stmt) {
+	logFlags := e.logger.LogFlags()
+	if logFlags == LQuery || logFlags == (LQuery|LBindings) {
+		e.logger.Println(statement.SQL())
+	}
+	if logFlags == LBindings || logFlags == (LQuery|LBindings) {
+		e.logger.Println(statement.Bindings())
+	}
+	if logFlags != LDefault {
+		e.logger.Println()
+	}
 }
 
 // Exec executes insert & update type queries and returns sql.Result and error
@@ -49,7 +76,9 @@ func (e *Engine) Exec(builder Builder) (sql.Result, error) {
 		return nil, err
 	}
 
-	res, err := Statement.Exec(statement.Bindings()...)
+	e.log(statement)
+
+	res, err := stmt.Exec(statement.Bindings()...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,24 +89,28 @@ func (e *Engine) Exec(builder Builder) (sql.Result, error) {
 // QueryRow wraps *sql.DB.QueryRow()
 func (e *Engine) QueryRow(builder Builder) *sql.Row {
 	statement := builder.Build(e.dialect)
+	e.log(statement)
 	return e.db.QueryRow(statement.SQL(), statement.Bindings()...)
 }
 
 // Query wraps *sql.DB.Query()
 func (e *Engine) Query(builder Builder) (*sql.Rows, error) {
 	statement := builder.Build(e.dialect)
+	e.log(statement)
 	return e.db.Query(statement.SQL(), statement.Bindings()...)
 }
 
 // Get maps the single row to a model
 func (e *Engine) Get(builder Builder, model interface{}) error {
 	statement := builder.Build(e.dialect)
+	e.log(statement)
 	return e.db.Get(model, statement.SQL(), statement.Bindings()...)
 }
 
 // Select maps multiple rows to a model array
 func (e *Engine) Select(builder Builder, model interface{}) error {
 	statement := builder.Build(e.dialect)
+	e.log(statement)
 	return e.db.Select(model, statement.SQL(), statement.Bindings()...)
 }
 
