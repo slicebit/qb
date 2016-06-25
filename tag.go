@@ -20,6 +20,7 @@ type Tag struct {
 // ParseTag parses raw qb tag and builds a Tag object
 func ParseTag(rawTag string) (Tag, error) {
 	rawTag = strings.Replace(rawTag, " ", "", -1)
+	rawTag = strings.TrimRight(rawTag, ";")
 
 	tag := Tag{
 		Constraints: []string{},
@@ -56,6 +57,8 @@ func ParseTag(rawTag string) (Tag, error) {
 					tag.Constraints = append(tag.Constraints, c)
 				}
 			}
+		} else {
+			return Tag{}, fmt.Errorf("Invalid tag key=%s value=%s", tagKeyVal[0], tagKeyVal[1])
 		}
 	}
 

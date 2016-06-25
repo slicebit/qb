@@ -25,7 +25,7 @@ func TestMapper(t *testing.T) {
 		Ignored         bool   `qb:"-"`
 		Premium         bool
 		CreatedAt       time.Time  `qb:"constraints:notnull"`
-		DeletedAt       *time.Time `qb:"constraints:null"`
+		DeletedAt       *time.Time `qb:"constraints:null;"`
 		Level           int
 		Money           float32
 		Score           float64
@@ -138,6 +138,7 @@ func TestMapperError(t *testing.T) {
 
 	userErrTable, err := mapper.ToTable(UserErr{})
 
+	fmt.Println(err)
 	assert.NotNil(t, err)
 	assert.Zero(t, userErrTable)
 }
