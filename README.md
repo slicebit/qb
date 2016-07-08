@@ -7,7 +7,7 @@
 
 **This project is currently pre 1.**
 
-Currently, it's not feature complete. It can have potential bugs. There are no tests having concurrency race condition tests. It can crash especially in concurrency. 
+Currently, it's not feature complete. It can have potential bugs. There are no tests covering concurrency race conditions. It can crash especially in concurrency. 
 Before 1.x releases, each major release could break backwards compatibility.
 
 About qb
@@ -16,7 +16,7 @@ qb is a database toolkit for easier db usage in go. It is inspired from python's
 
 [Documentation](https://qb.readme.io)
 -------------
-The documentation is hosted in [readme.io](https://qb.readme.io) which has great support for markdown docs. Currently, the docs is about 80% - 90% complete. The doc files will be added to this repo soon. Moreover, you can check the godoc from [here](https://godoc.org/github.com/aacanakin/qb). Contributions & Feedbacks in docs are welcome.
+The documentation is hosted in [readme.io](https://qb.readme.io) which has great support for markdown docs. Currently, the docs are about 80% - 90% complete. The doc files will be added to this repo soon. Moreover, you can check the godoc from [here](https://godoc.org/github.com/aacanakin/qb). Contributions & Feedbacks in docs are welcome.
 
 Features
 --------
