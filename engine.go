@@ -40,7 +40,7 @@ type Engine struct {
 	logger  Logger
 }
 
-// SetDialects sets the dialect of engine lazily
+// SetDialect sets the dialect of engine lazily
 func (e *Engine) SetDialect(dialect Dialect) {
 	e.dialect = dialect
 }
