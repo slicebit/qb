@@ -1,20 +1,34 @@
 hash: b8a53c70573f2475dd4882d4ae3409d3be1c52ff422e6ab9f8bb4706f5dda300
-updated: 2016-03-30T23:24:37.740014179+03:00
+updated: 2016-07-08T20:24:24.206032896+03:00
 imports:
 - name: github.com/fatih/structs
-  version: 73c4e3dc02a78deaba8640d5f3a8c236ec1352bf
+  version: be738c8546f55b34e60125afa50ed73a9a9c460e
 - name: github.com/go-sql-driver/mysql
-  version: 1421caf44f6464fd2ee8de694c7508ee13f92964
+  version: 3654d25ec346ee8ce71a68431025458d52a38ac0
 - name: github.com/jmoiron/sqlx
-  version: 398dd5876282499cdfd4cb8ea0f31a672abe9495
+  version: bdae0c3219c3bdb92f3d7c70825018712787c933
   subpackages:
   - reflectx
 - name: github.com/lib/pq
-  version: 3cd0097429be7d611bb644ef85b42bfb102ceea4
+  version: 4dd446efc17690bc53e154025146f73203b18309
   subpackages:
   - oid
 - name: github.com/mattn/go-sqlite3
-  version: 37aa7c6f5bc95b7264de70cd1f0ca1d39228ebd6
+  version: 38ee283dabf11c9cbdb968eebd79b1fa7acbabe6
 - name: github.com/serenize/snaker
   version: 8824b61eca66d308fcb2d515287d3d7a28dba8d6
-devImports: []
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: d77da356e56a7428ad25149ca77381849a6a5232
+  subpackages:
+  - assert
+  - suite
+  - require
