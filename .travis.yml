@@ -2,6 +2,16 @@ language: go
 
 sudo: required
 
+env:
+  global:
+    - PGPORT=5433
+    - PGHOST=localhost
+    - DATABASE_URL=postgres://localhost:5433/qb_test
+
+services:
+  - mysql
+  - postgresql
+
 go:
     - tip
 
@@ -22,19 +32,19 @@ script:
 
 services:
   - mysql
+  - postgresql
 
 addons:
-    apt:
-        sources:
-        - precise-pgdg-9.5
-        packages:
-        - postgresql-9.5
-        - postgresql-contrib-9.5
-    postgresql: 9.5
+  apt:
+    sources:
+    - precise-pgdg-9.5
+    packages:
+    - postgresql-9.5
+    - postgresql-contrib-9.5
+  postgresql: 9.5
 
 before_script:
   - mysql -e 'create database IF NOT EXISTS qb_test;'
   - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
   - sudo /etc/init.d/postgresql restart
-  - psql -U postgres -c 'create database "qb_test";'
-  - psql -U postgres travis-db-test -c 'create extension "uuid-ossp";'
+  - psql -U postgres -c 'CREATE DATABASE qb_test;'
