@@ -2,9 +2,9 @@ package qb
 
 import (
 	"github.com/stretchr/testify/assert"
-	"testing"
 	"log"
 	"os"
+	"testing"
 )
 
 func TestLogger(t *testing.T) {
