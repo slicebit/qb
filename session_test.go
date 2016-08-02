@@ -6,7 +6,7 @@ import (
 )
 
 func TestSession(t *testing.T) {
-	session, err := New("postgres", "user=root dbname=qb_test")
+	session, err := New("postgres", postgresDsn)
 	assert.NotNil(t, session.Engine())
 	defer session.Close()
 	assert.NotNil(t, session)
@@ -14,7 +14,7 @@ func TestSession(t *testing.T) {
 }
 
 func TestSessionCommitError(t *testing.T) {
-	session, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	session, err := New("postgres", postgresDsn)
 	defer session.Close()
 	assert.Nil(t, err)
 	users := Table(
@@ -31,7 +31,7 @@ func TestSessionCommitError(t *testing.T) {
 }
 
 func TestSessionAddError(t *testing.T) {
-	session, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	session, err := New("postgres", postgresDsn)
 	session.Dialect().SetEscaping(true)
 	assert.Nil(t, err)
 	type User struct {
@@ -56,7 +56,7 @@ func TestSessionFail(t *testing.T) {
 }
 
 func TestSessionWrappings(t *testing.T) {
-	qb, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	qb, err := New("postgres", postgresDsn)
 	assert.NotNil(t, qb)
 	assert.Nil(t, err)
 

@@ -4,9 +4,12 @@ import (
 	"database/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"os"
 	"testing"
 	"time"
 )
+
+var mysqlDsn = "root:@tcp(localhost:3306)/qb_test?charset=utf8"
 
 type MysqlTestSuite struct {
 	suite.Suite
@@ -15,7 +18,7 @@ type MysqlTestSuite struct {
 
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
-	suite.db, err = New("mysql", "root:@tcp(localhost:3306)/qb_test?charset=utf8")
+	suite.db, err = New("mysql", mysqlDsn)
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.db)
 }
@@ -106,4 +109,11 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 func TestMysqlTestSuite(t *testing.T) {
 	suite.Run(t, new(MysqlTestSuite))
+}
+
+func init() {
+	dsn := os.Getenv("QBTEST_MYSQL")
+	if dsn != "" {
+		mysqlDsn = dsn
+	}
 }
