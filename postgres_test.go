@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"os"
 	"testing"
 	"time"
 )
+
+var postgresDsn = "user=postgres dbname=qb_test sslmode=disable"
 
 type PostgresTestSuite struct {
 	suite.Suite
@@ -18,7 +21,7 @@ func (suite *PostgresTestSuite) SetupTest() {
 
 	var err error
 
-	suite.db, err = New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	suite.db, err = New("postgres", postgresDsn)
 	suite.db.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
@@ -160,4 +163,11 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 func TestPostgresTestSuite(t *testing.T) {
 	suite.Run(t, new(PostgresTestSuite))
+}
+
+func init() {
+	dsn := os.Getenv("QBTEST_POSTGRES")
+	if dsn != "" {
+		postgresDsn = dsn
+	}
 }

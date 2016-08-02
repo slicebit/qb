@@ -9,7 +9,7 @@ func TestMetadataCreateAllDropAllError(t *testing.T) {
 	type Account struct {
 		ID string `qb:"type:uuid; constraints:primary_key"`
 	}
-	qb, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	qb, err := New("postgres", postgresDsn)
 
 	qb.Dialect().SetEscaping(true)
 	assert.Nil(t, err)
@@ -17,7 +17,7 @@ func TestMetadataCreateAllDropAllError(t *testing.T) {
 	err = qb.Metadata().CreateAll(qb.Engine())
 	assert.Nil(t, err)
 
-	qbNew, err := New("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	qbNew, err := New("postgres", postgresDsn)
 	qbNew.Dialect().SetEscaping(true)
 	assert.Nil(t, err)
 	qbNew.AddTable(&Account{})
@@ -64,7 +64,7 @@ func TestMetadataTable(t *testing.T) {
 }
 
 func TestMetadataFailCreateDropAll(t *testing.T) {
-	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	engine, _ := NewEngine("postgres", postgresDsn)
 	dialect := NewDialect(engine.Driver())
 	metadata := MetaData(dialect)
 
@@ -78,7 +78,7 @@ func TestMetadataFailCreateDropAll(t *testing.T) {
 }
 
 func TestMetadataWithNoConnection(t *testing.T) {
-	engine, _ := NewEngine("postgres", "user=postgres dbname=qb_test sslmode=disable")
+	engine, _ := NewEngine("postgres", postgresDsn)
 	engine.DB().Close()
 
 	metadata := MetaData(NewDialect(engine.Driver()))
