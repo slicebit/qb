@@ -38,8 +38,8 @@ func (suite *MysqlTestSuite) TestMysql() {
 		ID        int64     `qb:"type:bigint; constraints:primary_key, auto_increment"`
 		UserID    string    `qb:"type:varchar(40); constraints:ref(user.id)"`
 		AuthToken string    `qb:"type:varchar(40); constraints:notnull, unique"`
-		CreatedAt time.Time `qb:"constraints:notnull"`
-		ExpiresAt time.Time `qb:"constraints:notnull"`
+		CreatedAt time.Time `qb:"constraints:null"`
+		ExpiresAt time.Time `qb:"constraints:null"`
 	}
 
 	var err error
