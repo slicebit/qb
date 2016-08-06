@@ -88,7 +88,7 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 	case "int":
 		return Int()
 	case "int8":
-		return SmallInt()
+		return TinyInt()
 	case "int16":
 		return SmallInt()
 	case "int32":
@@ -96,30 +96,15 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 	case "int64":
 		return BigInt()
 	case "uint":
-		if m.dialect.SupportsUnsigned() {
-			return Type("INT UNSIGNED")
-		}
-		return BigInt()
+		return Int().Unsigned()
 	case "uint8":
-		if m.dialect.SupportsUnsigned() {
-			return Type("TINYINT UNSIGNED")
-		}
-		return SmallInt()
+		return TinyInt().Unsigned()
 	case "uint16":
-		if m.dialect.SupportsUnsigned() {
-			return Type("SMALLINT UNSIGNED")
-		}
-		return Int()
+		return SmallInt().Unsigned()
 	case "uint32":
-		if m.dialect.SupportsUnsigned() {
-			return Type("INT UNSIGNED")
-		}
-		return BigInt()
+		return Int().Unsigned()
 	case "uint64":
-		if m.dialect.SupportsUnsigned() {
-			return Type("BIGINT UNSIGNED")
-		}
-		return BigInt()
+		return BigInt().Unsigned()
 	case "float32":
 		return Float() // TODO: Not sure
 	case "float64":

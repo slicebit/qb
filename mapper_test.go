@@ -192,9 +192,9 @@ func TestMapperTypes(t *testing.T) {
 	assert.Equal(t, postgresMapper.ToType("int", ""), Int())
 	assert.Equal(t, mysqlMapper.ToType("int", ""), Int())
 
-	assert.Equal(t, sqliteMapper.ToType("int8", ""), SmallInt())
-	assert.Equal(t, postgresMapper.ToType("int8", ""), SmallInt())
-	assert.Equal(t, mysqlMapper.ToType("int8", ""), SmallInt())
+	assert.Equal(t, sqliteMapper.ToType("int8", ""), TinyInt())
+	assert.Equal(t, postgresMapper.ToType("int8", ""), TinyInt())
+	assert.Equal(t, mysqlMapper.ToType("int8", ""), TinyInt())
 
 	assert.Equal(t, sqliteMapper.ToType("int16", ""), SmallInt())
 	assert.Equal(t, postgresMapper.ToType("int16", ""), SmallInt())
@@ -208,25 +208,25 @@ func TestMapperTypes(t *testing.T) {
 	assert.Equal(t, postgresMapper.ToType("int64", ""), BigInt())
 	assert.Equal(t, mysqlMapper.ToType("int64", ""), BigInt())
 
-	assert.Equal(t, sqliteMapper.ToType("uint", ""), BigInt())
-	assert.Equal(t, postgresMapper.ToType("uint", ""), BigInt())
-	assert.Equal(t, mysqlMapper.ToType("uint", ""), Type("INT UNSIGNED"))
+	assert.Equal(t, sqliteMapper.ToType("uint", ""), Int().Unsigned())
+	assert.Equal(t, postgresMapper.ToType("uint", ""), Int().Unsigned())
+	assert.Equal(t, mysqlMapper.ToType("uint", ""), Int().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint8", ""), SmallInt())
-	assert.Equal(t, postgresMapper.ToType("uint8", ""), SmallInt())
-	assert.Equal(t, mysqlMapper.ToType("uint8", ""), Type("TINYINT UNSIGNED"))
+	assert.Equal(t, sqliteMapper.ToType("uint8", ""), TinyInt().Unsigned())
+	assert.Equal(t, postgresMapper.ToType("uint8", ""), TinyInt().Unsigned())
+	assert.Equal(t, mysqlMapper.ToType("uint8", ""), TinyInt().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint16", ""), Int())
-	assert.Equal(t, postgresMapper.ToType("uint16", ""), Int())
-	assert.Equal(t, mysqlMapper.ToType("uint16", ""), Type("SMALLINT UNSIGNED"))
+	assert.Equal(t, sqliteMapper.ToType("uint16", ""), SmallInt().Unsigned())
+	assert.Equal(t, postgresMapper.ToType("uint16", ""), SmallInt().Unsigned())
+	assert.Equal(t, mysqlMapper.ToType("uint16", ""), SmallInt().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint32", ""), BigInt())
-	assert.Equal(t, postgresMapper.ToType("uint32", ""), BigInt())
-	assert.Equal(t, mysqlMapper.ToType("uint32", ""), Type("INT UNSIGNED"))
+	assert.Equal(t, sqliteMapper.ToType("uint32", ""), Int().Unsigned())
+	assert.Equal(t, postgresMapper.ToType("uint32", ""), Int().Unsigned())
+	assert.Equal(t, mysqlMapper.ToType("uint32", ""), Int().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint64", ""), BigInt())
-	assert.Equal(t, postgresMapper.ToType("uint64", ""), BigInt())
-	assert.Equal(t, mysqlMapper.ToType("uint64", ""), Type("BIGINT UNSIGNED"))
+	assert.Equal(t, sqliteMapper.ToType("uint64", ""), BigInt().Unsigned())
+	assert.Equal(t, postgresMapper.ToType("uint64", ""), BigInt().Unsigned())
+	assert.Equal(t, mysqlMapper.ToType("uint64", ""), BigInt().Unsigned())
 
 	assert.Equal(t, sqliteMapper.ToType("float32", ""), Float())
 	assert.Equal(t, postgresMapper.ToType("float32", ""), Float())

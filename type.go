@@ -25,6 +25,11 @@ func Int() TypeElem {
 	return Type("INT")
 }
 
+// TinyInt creates tinyint type
+func TinyInt() TypeElem {
+	return Type("TINYINT")
+}
+
 // SmallInt creates smallint type
 func SmallInt() TypeElem {
 	return Type("SMALLINT")
