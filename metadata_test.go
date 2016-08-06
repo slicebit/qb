@@ -36,16 +36,14 @@ type UserMetadataError struct {
 }
 
 func TestMetadataAddError(t *testing.T) {
-	dialect := NewDialect("postgres")
-	metadata := MetaData(dialect)
+	metadata := MetaData()
 
 	assert.Panics(t, func() { metadata.Add(UserMetadataError{}) })
 	assert.Equal(t, len(metadata.Tables()), 0)
 }
 
 func TestMetadataAddTable(t *testing.T) {
-	dialect := NewDialect("postgres")
-	metadata := MetaData(dialect)
+	metadata := MetaData()
 
 	table := Table("user", Column("id", BigInt()))
 
@@ -57,8 +55,7 @@ func TestMetadataAddTable(t *testing.T) {
 }
 
 func TestMetadataTable(t *testing.T) {
-	dialect := NewDialect("postgres")
-	metadata := MetaData(dialect)
+	metadata := MetaData()
 
 	assert.Panics(t, func() { metadata.Table("invalid-table") })
 }
@@ -66,7 +63,8 @@ func TestMetadataTable(t *testing.T) {
 func TestMetadataFailCreateDropAll(t *testing.T) {
 	engine, _ := NewEngine("postgres", postgresDsn)
 	dialect := NewDialect(engine.Driver())
-	metadata := MetaData(dialect)
+	engine.SetDialect(dialect)
+	metadata := MetaData()
 
 	var err error
 
@@ -80,8 +78,9 @@ func TestMetadataFailCreateDropAll(t *testing.T) {
 func TestMetadataWithNoConnection(t *testing.T) {
 	engine, _ := NewEngine("postgres", postgresDsn)
 	engine.DB().Close()
+	engine.SetDialect(NewDialect(engine.Driver()))
 
-	metadata := MetaData(NewDialect(engine.Driver()))
+	metadata := MetaData()
 	assert.NotNil(t, metadata.CreateAll(engine))
 	assert.NotNil(t, metadata.DropAll(engine))
 }

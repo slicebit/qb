@@ -23,7 +23,7 @@ func New(driver string, dsn string) (*Session, error) {
 		engine:     engine,
 		dialect:    dialect,
 		mapper:     Mapper(),
-		metadata:   MetaData(dialect),
+		metadata:   MetaData(),
 		mutex:      &sync.Mutex{},
 	}, nil
 }

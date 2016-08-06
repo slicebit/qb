@@ -40,6 +40,11 @@ type Engine struct {
 	logger  Logger
 }
 
+// Dialect returns the engine dialect
+func (e Engine) Dialect() Dialect {
+	return e.dialect
+}
+
 // SetDialect sets the dialect of engine lazily
 func (e *Engine) SetDialect(dialect Dialect) {
 	e.dialect = dialect
