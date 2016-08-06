@@ -32,6 +32,8 @@ func (suite *TypeTestSuite) TestConstraints() {
 	assert.Equal(suite.T(), Float().String(dialect), "FLOAT")
 	assert.Equal(suite.T(), Boolean().String(dialect), "BOOLEAN")
 	assert.Equal(suite.T(), Timestamp().String(dialect), "TIMESTAMP")
+
+	assert.Equal(suite.T(), Int().Constraint("TEST").String(dialect), "INT TEST")
 }
 
 func TestTypeTestSuite(t *testing.T) {
@@ -46,6 +48,7 @@ func (suite *TypeTestSuite) TestUnsigned() {
 
 	dialect = NewDialect("")
 	assert.Equal(suite.T(), Int().Signed().String(dialect), "INT")
+	assert.Equal(suite.T(), TinyInt().Unsigned().String(dialect), "SMALLINT")
 	assert.Equal(suite.T(), SmallInt().Unsigned().String(dialect), "INT")
 	assert.Equal(suite.T(), Int().Unsigned().String(dialect), "BIGINT")
 	assert.Equal(suite.T(), BigInt().Unsigned().String(dialect), "BIGINT")
