@@ -21,6 +21,8 @@ func (suite *MysqlTestSuite) SetupTest() {
 	suite.db, err = New("mysql", mysqlDsn)
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.db)
+	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS user")
+	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS session")
 }
 
 func (suite *MysqlTestSuite) TestMysql() {
