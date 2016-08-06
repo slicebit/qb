@@ -157,14 +157,7 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			} else if v == "unique" {
 				colType = colType.Unique()
 			} else if v == "auto_increment" || v == "autoincrement" {
-				c := m.dialect.AutoIncrement()
-
-				// it doesn't support auto increment
-				if c == "" {
-					continue
-				} else {
-					colType = colType.Constraint(c)
-				}
+				colType = colType.AutoIncrement()
 			} else if strings.Contains(v, "default") {
 				colType = colType.Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
