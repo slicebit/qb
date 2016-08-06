@@ -77,14 +77,32 @@ type TypeElem struct {
 	constraints []ConstraintElem
 	size        int
 	precision   []int
+	unsigned    bool
 	unique      bool
 }
 
 // String returns the clause as string
-func (t TypeElem) String() string {
+func (t TypeElem) String(dialect Dialect) string {
+	name := t.Name
 	constraintNames := []string{}
 	for _, c := range t.constraints {
 		constraintNames = append(constraintNames, c.String())
+	}
+
+	if t.unsigned {
+		if dialect.SupportsUnsigned() {
+			constraintNames = append([]string{"UNSIGNED"}, constraintNames...)
+		} else {
+			// use a bigger int type so the unsigned values can fit in
+			switch name {
+			case "TINYINT":
+				name = "SMALLINT"
+			case "SMALLINT":
+				name = "INT"
+			case "INT":
+				name = "BIGINT"
+			}
+		}
 	}
 
 	sizeSpecified := false
@@ -93,7 +111,7 @@ func (t TypeElem) String() string {
 	}
 
 	if sizeSpecified {
-		return strings.Trim(fmt.Sprintf("%s(%d) %s", t.Name, t.size, strings.Join(constraintNames, " ")), " ")
+		return strings.Trim(fmt.Sprintf("%s(%d) %s", name, t.size, strings.Join(constraintNames, " ")), " ")
 	}
 
 	precisionSpecified := false
@@ -106,10 +124,10 @@ func (t TypeElem) String() string {
 		for _, p := range t.precision {
 			precision = append(precision, fmt.Sprintf("%v", p))
 		}
-		return strings.Trim(fmt.Sprintf("%s(%s) %s", t.Name, strings.Join(precision, ", "), strings.Join(constraintNames, " ")), " ")
+		return strings.Trim(fmt.Sprintf("%s(%s) %s", name, strings.Join(precision, ", "), strings.Join(constraintNames, " ")), " ")
 	}
 
-	return strings.Trim(fmt.Sprintf("%s %s", t.Name, strings.Join(constraintNames, " ")), " ")
+	return strings.Trim(fmt.Sprintf("%s %s", name, strings.Join(constraintNames, " ")), " ")
 }
 
 // Size adds size constraint to column type
@@ -122,6 +140,20 @@ func (t TypeElem) Size(size int) TypeElem {
 // Note: Use it in Float, Decimal and Numeric types
 func (t TypeElem) Precision(p int, s int) TypeElem {
 	t.precision = []int{p, s}
+	return t
+}
+
+// Unsigned change the column type to 'unsigned'
+// Note: Use it in Float, Decimal and Numeric types
+func (t TypeElem) Unsigned() TypeElem {
+	t.unsigned = true
+	return t
+}
+
+// Signed change the column type to 'signed'
+// Note: Use it in Float, Decimal and Numeric types
+func (t TypeElem) Signed() TypeElem {
+	t.unsigned = false
 	return t
 }
 
