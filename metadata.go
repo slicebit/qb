@@ -9,7 +9,7 @@ import (
 func MetaData(dialect Dialect) *MetaDataElem {
 	return &MetaDataElem{
 		tables:  []TableElem{},
-		mapper:  Mapper(dialect),
+		mapper:  Mapper(),
 		dialect: dialect,
 	}
 }

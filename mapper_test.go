@@ -34,7 +34,7 @@ func TestMapper(t *testing.T) {
 	}
 
 	dialect := NewDialect("mysql")
-	mapper := Mapper(dialect)
+	mapper := Mapper()
 
 	userTable, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
@@ -74,7 +74,7 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 	}
 
 	dialect := NewDialect("sqlite3")
-	mapper := Mapper(dialect)
+	mapper := Mapper()
 	table, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
 	ddl := table.Create(dialect)
@@ -93,7 +93,7 @@ func TestMapperWithDBTag(t *testing.T) {
 	}
 
 	dialect := NewDialect("mysql")
-	mapper := Mapper(dialect)
+	mapper := Mapper()
 	table, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
 	ddl := table.Create(dialect)
@@ -118,7 +118,7 @@ func TestMapperPostgresAutoIncrement(t *testing.T) {
 	}
 
 	dialect := NewDialect("postgres")
-	mapper := Mapper(dialect)
+	mapper := Mapper()
 	table, err := mapper.ToTable(User{})
 	assert.Nil(t, err)
 
@@ -133,8 +133,7 @@ func TestMapperError(t *testing.T) {
 		Email string `qb:"wrongtag:"`
 	}
 
-	dialect := NewDialect("postgres")
-	mapper := Mapper(dialect)
+	mapper := Mapper()
 
 	userErrTable, err := mapper.ToTable(UserErr{})
 
@@ -148,8 +147,7 @@ func TestMapperInvalidConstraint(t *testing.T) {
 		ID string `qb:"constraints:invalid_constraint"`
 	}
 
-	dialect := NewDialect("mysql")
-	mapper := Mapper(dialect)
+	mapper := Mapper()
 
 	invalidConstraintTable, err := mapper.ToTable(InvalidConstraint{})
 
@@ -162,7 +160,7 @@ func TestNonZeroStruct(t *testing.T) {
 		ID int
 	}
 
-	mapper := Mapper(NewDialect("mysql"))
+	mapper := Mapper()
 	m := mapper.ToMap(User{5}, false)
 	assert.Equal(t, m, map[string]interface{}{"id": 5})
 }
@@ -173,78 +171,44 @@ func TestMapperUtilFuncs(t *testing.T) {
 		Email string `qb:"wrongtag:"`
 	}
 
-	mapper := Mapper(NewDialect("mysql"))
+	mapper := Mapper()
 
 	kv := mapper.ToMap(UserErr{}, false)
 	assert.Equal(t, kv, map[string]interface{}{})
 }
 
 func TestMapperTypes(t *testing.T) {
-	sqliteMapper := Mapper(NewDialect("sqlite3"))
-	postgresMapper := Mapper(NewDialect("postgres"))
-	mysqlMapper := Mapper(NewDialect("mysql"))
+	mapper := Mapper()
 
-	assert.Equal(t, sqliteMapper.ToType("string", ""), Varchar().Size(255))
-	assert.Equal(t, postgresMapper.ToType("string", ""), Varchar().Size(255))
-	assert.Equal(t, mysqlMapper.ToType("string", ""), Varchar().Size(255))
+	assert.Equal(t, mapper.ToType("string", ""), Varchar().Size(255))
 
-	assert.Equal(t, sqliteMapper.ToType("int", ""), Int())
-	assert.Equal(t, postgresMapper.ToType("int", ""), Int())
-	assert.Equal(t, mysqlMapper.ToType("int", ""), Int())
+	assert.Equal(t, mapper.ToType("int", ""), Int())
 
-	assert.Equal(t, sqliteMapper.ToType("int8", ""), TinyInt())
-	assert.Equal(t, postgresMapper.ToType("int8", ""), TinyInt())
-	assert.Equal(t, mysqlMapper.ToType("int8", ""), TinyInt())
+	assert.Equal(t, mapper.ToType("int8", ""), TinyInt())
 
-	assert.Equal(t, sqliteMapper.ToType("int16", ""), SmallInt())
-	assert.Equal(t, postgresMapper.ToType("int16", ""), SmallInt())
-	assert.Equal(t, mysqlMapper.ToType("int16", ""), SmallInt())
+	assert.Equal(t, mapper.ToType("int16", ""), SmallInt())
 
-	assert.Equal(t, sqliteMapper.ToType("int32", ""), Int())
-	assert.Equal(t, postgresMapper.ToType("int32", ""), Int())
-	assert.Equal(t, mysqlMapper.ToType("int32", ""), Int())
+	assert.Equal(t, mapper.ToType("int32", ""), Int())
 
-	assert.Equal(t, sqliteMapper.ToType("int64", ""), BigInt())
-	assert.Equal(t, postgresMapper.ToType("int64", ""), BigInt())
-	assert.Equal(t, mysqlMapper.ToType("int64", ""), BigInt())
+	assert.Equal(t, mapper.ToType("int64", ""), BigInt())
 
-	assert.Equal(t, sqliteMapper.ToType("uint", ""), Int().Unsigned())
-	assert.Equal(t, postgresMapper.ToType("uint", ""), Int().Unsigned())
-	assert.Equal(t, mysqlMapper.ToType("uint", ""), Int().Unsigned())
+	assert.Equal(t, mapper.ToType("uint", ""), Int().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint8", ""), TinyInt().Unsigned())
-	assert.Equal(t, postgresMapper.ToType("uint8", ""), TinyInt().Unsigned())
-	assert.Equal(t, mysqlMapper.ToType("uint8", ""), TinyInt().Unsigned())
+	assert.Equal(t, mapper.ToType("uint8", ""), TinyInt().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint16", ""), SmallInt().Unsigned())
-	assert.Equal(t, postgresMapper.ToType("uint16", ""), SmallInt().Unsigned())
-	assert.Equal(t, mysqlMapper.ToType("uint16", ""), SmallInt().Unsigned())
+	assert.Equal(t, mapper.ToType("uint16", ""), SmallInt().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint32", ""), Int().Unsigned())
-	assert.Equal(t, postgresMapper.ToType("uint32", ""), Int().Unsigned())
-	assert.Equal(t, mysqlMapper.ToType("uint32", ""), Int().Unsigned())
+	assert.Equal(t, mapper.ToType("uint32", ""), Int().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("uint64", ""), BigInt().Unsigned())
-	assert.Equal(t, postgresMapper.ToType("uint64", ""), BigInt().Unsigned())
-	assert.Equal(t, mysqlMapper.ToType("uint64", ""), BigInt().Unsigned())
+	assert.Equal(t, mapper.ToType("uint64", ""), BigInt().Unsigned())
 
-	assert.Equal(t, sqliteMapper.ToType("float32", ""), Float())
-	assert.Equal(t, postgresMapper.ToType("float32", ""), Float())
-	assert.Equal(t, mysqlMapper.ToType("float32", ""), Float())
+	assert.Equal(t, mapper.ToType("float32", ""), Float())
 
-	assert.Equal(t, sqliteMapper.ToType("float64", ""), Float())
-	assert.Equal(t, postgresMapper.ToType("float64", ""), Float())
-	assert.Equal(t, mysqlMapper.ToType("float64", ""), Float())
+	assert.Equal(t, mapper.ToType("float64", ""), Float())
 
-	assert.Equal(t, sqliteMapper.ToType("bool", ""), Boolean())
-	assert.Equal(t, postgresMapper.ToType("bool", ""), Boolean())
-	assert.Equal(t, mysqlMapper.ToType("bool", ""), Boolean())
+	assert.Equal(t, mapper.ToType("bool", ""), Boolean())
 
-	assert.Equal(t, sqliteMapper.ToType("time.Time", ""), Timestamp())
-	assert.Equal(t, postgresMapper.ToType("time.Time", ""), Timestamp())
-	assert.Equal(t, mysqlMapper.ToType("time.Time", ""), Timestamp())
+	assert.Equal(t, mapper.ToType("time.Time", ""), Timestamp())
 
-	assert.Equal(t, sqliteMapper.ToType("*time.Time", ""), Timestamp())
-	assert.Equal(t, postgresMapper.ToType("*time.Time", ""), Timestamp())
-	assert.Equal(t, mysqlMapper.ToType("*time.Time", ""), Timestamp())
+	assert.Equal(t, mapper.ToType("*time.Time", ""), Timestamp())
 }

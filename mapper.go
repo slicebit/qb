@@ -10,14 +10,12 @@ import (
 const tagPrefix = "qb"
 
 // Mapper creates a new mapper struct and returns it as a mapper pointer
-func Mapper(dialect Dialect) MapperElem {
-	return MapperElem{dialect: dialect}
+func Mapper() MapperElem {
+	return MapperElem{}
 }
 
 // MapperElem is the generic struct for struct to table mapping
-type MapperElem struct {
-	dialect Dialect
-}
+type MapperElem struct{}
 
 func (m MapperElem) extractValue(value string) string {
 	hasParams := strings.Contains(value, "(") && strings.Contains(value, ")")
