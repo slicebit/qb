@@ -21,6 +21,8 @@ func (suite *MysqlTestSuite) SetupTest() {
 	suite.db, err = New("mysql", mysqlDsn)
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.db)
+	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS user")
+	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS session")
 }
 
 func (suite *MysqlTestSuite) TestMysql() {
@@ -36,8 +38,8 @@ func (suite *MysqlTestSuite) TestMysql() {
 		ID        int64     `qb:"type:bigint; constraints:primary_key, auto_increment"`
 		UserID    string    `qb:"type:varchar(40); constraints:ref(user.id)"`
 		AuthToken string    `qb:"type:varchar(40); constraints:notnull, unique"`
-		CreatedAt time.Time `qb:"constraints:notnull"`
-		ExpiresAt time.Time `qb:"constraints:notnull"`
+		CreatedAt time.Time `qb:"constraints:null"`
+		ExpiresAt time.Time `qb:"constraints:null"`
 	}
 
 	var err error
