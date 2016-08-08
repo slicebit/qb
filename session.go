@@ -22,8 +22,8 @@ func New(driver string, dsn string) (*Session, error) {
 		statements: []*Stmt{},
 		engine:     engine,
 		dialect:    dialect,
-		mapper:     Mapper(dialect),
-		metadata:   MetaData(dialect),
+		mapper:     Mapper(),
+		metadata:   MetaData(),
 		mutex:      &sync.Mutex{},
 	}, nil
 }

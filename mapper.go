@@ -10,14 +10,12 @@ import (
 const tagPrefix = "qb"
 
 // Mapper creates a new mapper struct and returns it as a mapper pointer
-func Mapper(dialect Dialect) MapperElem {
-	return MapperElem{dialect: dialect}
+func Mapper() MapperElem {
+	return MapperElem{}
 }
 
 // MapperElem is the generic struct for struct to table mapping
-type MapperElem struct {
-	dialect Dialect
-}
+type MapperElem struct{}
 
 func (m MapperElem) extractValue(value string) string {
 	hasParams := strings.Contains(value, "(") && strings.Contains(value, ")")
@@ -88,7 +86,7 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 	case "int":
 		return Int()
 	case "int8":
-		return SmallInt()
+		return TinyInt()
 	case "int16":
 		return SmallInt()
 	case "int32":
@@ -96,30 +94,15 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 	case "int64":
 		return BigInt()
 	case "uint":
-		if m.dialect.SupportsUnsigned() {
-			return Type("INT UNSIGNED")
-		}
-		return BigInt()
+		return Int().Unsigned()
 	case "uint8":
-		if m.dialect.SupportsUnsigned() {
-			return Type("TINYINT UNSIGNED")
-		}
-		return SmallInt()
+		return TinyInt().Unsigned()
 	case "uint16":
-		if m.dialect.SupportsUnsigned() {
-			return Type("SMALLINT UNSIGNED")
-		}
-		return Int()
+		return SmallInt().Unsigned()
 	case "uint32":
-		if m.dialect.SupportsUnsigned() {
-			return Type("INT UNSIGNED")
-		}
-		return BigInt()
+		return Int().Unsigned()
 	case "uint64":
-		if m.dialect.SupportsUnsigned() {
-			return Type("BIGINT UNSIGNED")
-		}
-		return BigInt()
+		return BigInt().Unsigned()
 	case "float32":
 		return Float() // TODO: Not sure
 	case "float64":
@@ -172,14 +155,7 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			} else if v == "unique" {
 				colType = colType.Unique()
 			} else if v == "auto_increment" || v == "autoincrement" {
-				c := m.dialect.AutoIncrement()
-
-				// it doesn't support auto increment
-				if c == "" {
-					continue
-				} else {
-					colType = colType.Constraint(c)
-				}
+				colType = colType.AutoIncrement()
 			} else if strings.Contains(v, "default") {
 				colType = colType.Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {

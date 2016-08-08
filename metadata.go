@@ -6,19 +6,17 @@ import (
 )
 
 // MetaData creates a new MetaData object and returns it as a pointer
-func MetaData(dialect Dialect) *MetaDataElem {
+func MetaData() *MetaDataElem {
 	return &MetaDataElem{
-		tables:  []TableElem{},
-		mapper:  Mapper(dialect),
-		dialect: dialect,
+		tables: []TableElem{},
+		mapper: Mapper(),
 	}
 }
 
 // MetaDataElem is the container for database structs and tables
 type MetaDataElem struct {
-	tables  []TableElem
-	mapper  MapperElem
-	dialect Dialect
+	tables []TableElem
+	mapper MapperElem
 }
 
 // Add retrieves the struct and converts it using mapper and appends to tables slice
@@ -60,7 +58,7 @@ func (m *MetaDataElem) CreateAll(engine *Engine) error {
 	}
 
 	for _, t := range m.tables {
-		_, err = tx.Exec(t.Create(m.dialect))
+		_, err = tx.Exec(t.Create(engine.Dialect()))
 		if err != nil {
 			return err
 		}
@@ -83,7 +81,7 @@ func (m *MetaDataElem) DropAll(engine *Engine) error {
 	}
 
 	for i := len(m.tables) - 1; i >= 0; i-- {
-		drop := m.tables[i].Drop(m.dialect)
+		drop := m.tables[i].Drop(engine.Dialect())
 		_, err = tx.Exec(drop)
 		if err != nil {
 			return err

@@ -17,7 +17,7 @@ type ColumnElem struct {
 // String returns the column element as an sql clause
 // It satisfies the TableClause interface
 func (c ColumnElem) String(dialect Dialect) string {
-	return fmt.Sprintf("%s %s", dialect.Escape(c.Name), c.Type.String())
+	return fmt.Sprintf("%s %s", dialect.Escape(c.Name), c.Type.String(dialect))
 }
 
 // Build compiles the column element and returns sql, bindings
