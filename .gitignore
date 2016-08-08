@@ -25,4 +25,5 @@ _testmain.go
 
 .idea/*
 vendor/*
+qb.iml
 qb_test.db
