@@ -41,8 +41,13 @@ func (d *MysqlDialect) Placeholders(values ...interface{}) []string {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *MysqlDialect) AutoIncrement() string {
-	return "AUTO_INCREMENT"
+func (d *MysqlDialect) AutoIncrement(column *ColumnElem) string {
+	colSpec := column.Type.String(d)
+	if column.Options.PrimaryKey {
+		colSpec += " PRIMARY KEY"
+	}
+	colSpec += " AUTO_INCREMENT"
+	return colSpec
 }
 
 // Reset does nothing for the default driver

@@ -23,7 +23,6 @@ func (suite *DialectTestSuite) SetupTest() {
 
 func (suite *DialectTestSuite) TestDefaultDialect() {
 	assert.Equal(suite.T(), suite.def.SupportsUnsigned(), false)
-	assert.Equal(suite.T(), suite.def.AutoIncrement(), "AUTO INCREMENT")
 	assert.Equal(suite.T(), suite.def.Escape("test"), "test")
 	assert.Equal(suite.T(), suite.def.Escaping(), false)
 	suite.def.SetEscaping(true)
@@ -38,7 +37,6 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 
 func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), suite.mysql.SupportsUnsigned(), true)
-	assert.Equal(suite.T(), suite.mysql.AutoIncrement(), "AUTO_INCREMENT")
 	assert.Equal(suite.T(), suite.mysql.Escape("test"), "test")
 	assert.Equal(suite.T(), suite.mysql.Escaping(), false)
 	suite.mysql.SetEscaping(true)
@@ -53,7 +51,6 @@ func (suite *DialectTestSuite) TestMysqlDialect() {
 
 func (suite *DialectTestSuite) TestPostgresDialect() {
 	assert.Equal(suite.T(), suite.postgres.SupportsUnsigned(), false)
-	assert.Equal(suite.T(), suite.postgres.AutoIncrement(), "")
 	assert.Equal(suite.T(), suite.postgres.Escape("test"), "test")
 	assert.Equal(suite.T(), suite.postgres.Escaping(), false)
 	suite.postgres.SetEscaping(true)
@@ -70,8 +67,6 @@ func (suite *DialectTestSuite) TestPostgresDialect() {
 
 func (suite *DialectTestSuite) TestSqliteDialect() {
 	assert.Equal(suite.T(), suite.sqlite.SupportsUnsigned(), false)
-	assert.Equal(suite.T(), suite.sqlite.AutoIncrement(), "")
-	//assert.Equal(suite.T(), suite.sqlite.AutoIncrement(), "AUTOINCREMENT")
 	assert.Equal(suite.T(), suite.sqlite.Escape("test"), "test")
 	assert.Equal(suite.T(), suite.sqlite.Escaping(), false)
 	suite.sqlite.SetEscaping(true)

@@ -36,9 +36,8 @@ func (d *SqliteDialect) Placeholders(values ...interface{}) []string {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *SqliteDialect) AutoIncrement() string {
-	//return "AUTOINCREMENT"
-	return ""
+func (d *SqliteDialect) AutoIncrement(colum *ColumnElem) string {
+	return "INTEGER PRIMARY KEY"
 }
 
 // Reset does nothing for the default driver

@@ -23,11 +23,11 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, col.String(mysql), "`id` VARCHAR(40)")
 	assert.Equal(t, col.String(postgres), "\"id\" VARCHAR(40)")
 
-	col = Column("id", Int()).AutoIncrement()
+	col = Column("id", Int()).PrimaryKey().AutoIncrement()
 
-	assert.Equal(t, col.String(sqlite), "id INT")
-	assert.Equal(t, col.String(mysql), "`id` INT AUTO_INCREMENT")
-	assert.Equal(t, col.String(postgres), "\"id\" INT")
+	assert.Equal(t, col.String(sqlite), "id INTEGER PRIMARY KEY")
+	assert.Equal(t, col.String(mysql), "`id` INT PRIMARY KEY AUTO_INCREMENT")
+	assert.Equal(t, col.String(postgres), "\"id\" SERIAL PRIMARY KEY")
 
 	var sql string
 
