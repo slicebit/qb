@@ -41,8 +41,13 @@ func (d *DefaultDialect) Placeholders(values ...interface{}) []string {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *DefaultDialect) AutoIncrement() string {
-	return "AUTO INCREMENT"
+func (d *DefaultDialect) AutoIncrement(column *ColumnElem) string {
+	colSpec := column.Type.String(d)
+	if column.Options.PrimaryKey {
+		colSpec += " PRIMARY KEY"
+	}
+	colSpec += " AUTO INCREMENT"
+	return colSpec
 }
 
 // Reset does nothing for the default driver

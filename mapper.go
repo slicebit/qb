@@ -145,6 +145,7 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 		}
 
 		colType := m.ToType(fmt.Sprintf("%T", f.Value()), tag.Type)
+		autoIncrement := false
 
 		// convert tag into constraints
 		for _, v := range tag.Constraints {
@@ -155,7 +156,7 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			} else if v == "unique" {
 				colType = colType.Unique()
 			} else if v == "auto_increment" || v == "autoincrement" {
-				colType = colType.AutoIncrement()
+				autoIncrement = true
 			} else if strings.Contains(v, "default") {
 				colType = colType.Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
@@ -212,7 +213,11 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			continue
 		}
 
-		colClauses = append(colClauses, Column(colName, colType))
+		col := Column(colName, colType)
+		if autoIncrement {
+			col = col.AutoIncrement()
+		}
+		colClauses = append(colClauses, col)
 	}
 
 	return Table(modelName, append(colClauses, constraintClauses...)...), nil

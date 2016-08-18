@@ -53,11 +53,3 @@ func (suite *TypeTestSuite) TestUnsigned() {
 	assert.Equal(suite.T(), Int().Unsigned().String(dialect), "BIGINT")
 	assert.Equal(suite.T(), BigInt().Unsigned().String(dialect), "BIGINT")
 }
-
-func (suite *TypeTestSuite) TestAutoIncrement() {
-	dialect := NewDialect("mysql")
-	assert.Equal(suite.T(), Int().AutoIncrement().String(dialect), "INT AUTO_INCREMENT")
-
-	dialect = NewDialect("postgres")
-	assert.Equal(suite.T(), Int().AutoIncrement().String(dialect), "INT")
-}
