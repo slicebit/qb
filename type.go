@@ -78,13 +78,12 @@ func Type(name string) TypeElem {
 
 // TypeElem is the struct for defining column types
 type TypeElem struct {
-	Name          string
-	constraints   []ConstraintElem
-	size          int
-	precision     []int
-	unsigned      bool
-	unique        bool
-	autoIncrement bool
+	Name        string
+	constraints []ConstraintElem
+	size        int
+	precision   []int
+	unsigned    bool
+	unique      bool
 }
 
 // String returns the clause as string
@@ -108,13 +107,6 @@ func (t TypeElem) String(dialect Dialect) string {
 			case "INT":
 				name = "BIGINT"
 			}
-		}
-	}
-
-	if t.autoIncrement {
-		c := dialect.AutoIncrement()
-		if c != "" {
-			constraintNames = append(constraintNames, c)
 		}
 	}
 
@@ -192,12 +184,6 @@ func (t TypeElem) NotNull() TypeElem {
 func (t TypeElem) Unique() TypeElem {
 	t.constraints = append(t.constraints, Unique())
 	t.unique = true
-	return t
-}
-
-// AutoIncrement adds auto_increment constraint to column type
-func (t TypeElem) AutoIncrement() TypeElem {
-	t.autoIncrement = true
 	return t
 }
 

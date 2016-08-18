@@ -14,10 +14,15 @@ func Table(name string, clauses ...TableClause) TableElem {
 		Indices:               []IndexElem{},
 	}
 
+	var pkeyCols []ColumnElem
+
 	for _, clause := range clauses {
 		switch clause.(type) {
 		case ColumnElem:
 			col := clause.(ColumnElem)
+			if col.Options.PrimaryKey {
+				pkeyCols = append(pkeyCols, col)
+			}
 			col.Table = name
 			table.Columns[col.Name] = col
 			break
@@ -34,6 +39,17 @@ func Table(name string, clauses ...TableClause) TableElem {
 			table.Indices = append(table.Indices, clause.(IndexElem))
 			break
 		}
+	}
+
+	if len(pkeyCols) > 0 && table.PrimaryKeyConstraint.Columns != nil {
+		panic(fmt.Sprintf("Table %s has both 'PrimaryKey()' columns (%#v) and a PrimaryKeyConstraint. Only only should be set", name, pkeyCols))
+	}
+	if len(pkeyCols) > 1 {
+		var pkeyNames []string
+		for _, col := range pkeyCols {
+			pkeyNames = append(pkeyNames, col.Name)
+		}
+		table.PrimaryKeyConstraint = PrimaryKey(pkeyNames...)
 	}
 
 	return table

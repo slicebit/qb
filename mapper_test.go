@@ -78,7 +78,7 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 	ddl := table.Create(dialect)
 
 	assert.Contains(t, ddl, "CREATE TABLE user (")
-	assert.Contains(t, ddl, "id BIGINT")
+	assert.Contains(t, ddl, "id INTEGER PRIMARY KEY")
 	assert.Contains(t, ddl, ")")
 }
 
@@ -117,8 +117,7 @@ func TestMapperPostgresAutoIncrement(t *testing.T) {
 	assert.Nil(t, err)
 
 	ddl := table.Create(dialect)
-	assert.NotContains(t, ddl, "AUTOINCREMENT")
-	assert.NotContains(t, ddl, "AUTO INCREMENT")
+	assert.Contains(t, ddl, "id BIGSERIAL")
 }
 
 func TestMapperError(t *testing.T) {

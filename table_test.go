@@ -50,6 +50,30 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 	assert.Contains(suite.T(), ddl, ");")
 }
 
+func (suite *TableTestSuite) TestTablePrimaryKey() {
+	t := Table(
+		"users",
+		Column("id", Varchar().Size(40)).PrimaryKey(),
+	)
+	assert.Empty(suite.T(), t.PrimaryKeyConstraint.Columns)
+
+	t = Table(
+		"users",
+		Column("fname", Varchar().Size(40)).PrimaryKey(),
+		Column("lname", Varchar().Size(40)).PrimaryKey(),
+	)
+
+	assert.Equal(suite.T(), t.PrimaryKeyConstraint.Columns, []string{"fname", "lname"})
+
+	assert.Panics(suite.T(), func() {
+		Table(
+			"users",
+			Column("id", Varchar().Size(40)).PrimaryKey(),
+			PrimaryKey("id"),
+		)
+	})
+}
+
 func (suite *TableTestSuite) TestTableUniqueCompositeUnique() {
 	usersTable := Table(
 		"users",
