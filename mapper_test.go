@@ -1,7 +1,6 @@
 package qb
 
 import (
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -40,7 +39,6 @@ func TestMapper(t *testing.T) {
 	assert.Nil(t, err)
 
 	ddl := userTable.Create(dialect)
-	fmt.Println(ddl, "\n")
 
 	assert.Contains(t, ddl, "CREATE TABLE user (")
 	assert.Contains(t, ddl, "id VARCHAR(255)")
@@ -82,8 +80,6 @@ func TestMapperSqliteAutoIncrement(t *testing.T) {
 	assert.Contains(t, ddl, "CREATE TABLE user (")
 	assert.Contains(t, ddl, "id BIGINT")
 	assert.Contains(t, ddl, ")")
-
-	fmt.Println(ddl, "\n")
 }
 
 func TestMapperWithDBTag(t *testing.T) {
@@ -108,8 +104,6 @@ func TestMapperWithDBTag(t *testing.T) {
 		"_id":   "cba0667d-8c76-4999-9a55-84ffe572fb23",
 		"email": "aras@slicebit.com",
 	})
-
-	fmt.Println(ddl, "\n")
 }
 
 func TestMapperPostgresAutoIncrement(t *testing.T) {
@@ -137,7 +131,6 @@ func TestMapperError(t *testing.T) {
 
 	userErrTable, err := mapper.ToTable(UserErr{})
 
-	fmt.Println(err)
 	assert.NotNil(t, err)
 	assert.Zero(t, userErrTable)
 }

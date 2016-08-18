@@ -1,7 +1,6 @@
 package qb
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -16,7 +15,6 @@ func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
 	usersTable := Table("users", Column("id", Varchar().Size(40)))
 
 	ddl := usersTable.Create(dialect)
-	fmt.Println(ddl, "\n")
 	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);")
 
 	statement := usersTable.Build(dialect)
@@ -41,7 +39,6 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 	)
 
 	ddl := usersTable.Create(NewDialect("mysql"))
-	fmt.Println(ddl, "\n")
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "auth_token VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "role_id VARCHAR(40)")
@@ -63,7 +60,6 @@ func (suite *TableTestSuite) TestTableUniqueCompositeUnique() {
 	)
 
 	ddl := usersTable.Create(NewDialect("mysql"))
-	fmt.Println(ddl, "\n")
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "email VARCHAR(40) UNIQUE")
@@ -82,7 +78,6 @@ func (suite *TableTestSuite) TestTableIndex() {
 		Index("users", "id", "email"),
 	)
 	ddl := usersTable.Create(NewDialect("postgres"))
-	fmt.Println(ddl, "\n")
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "email VARCHAR(40) UNIQUE")
@@ -98,7 +93,6 @@ func (suite *TableTestSuite) TestTableIndex() {
 func (suite *TableTestSuite) TestTableIndexChain() {
 	usersTable := Table("users", Column("id", Varchar().Size(40))).Index("id")
 	ddl := usersTable.Create(NewDialect("mysql"))
-	fmt.Println(ddl, "\n")
 	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);\nCREATE INDEX i_id ON users(id);")
 }
 

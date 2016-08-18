@@ -2,7 +2,6 @@ package qb
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -82,7 +81,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	_, err = suite.db.Engine().Exec(statement)
 	assert.NotNil(suite.T(), err)
-	fmt.Println("Duplicate error; ", err)
 
 	statement = Insert(suite.db.T("user")).
 		Values(map[string]interface{}{
