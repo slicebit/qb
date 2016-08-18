@@ -2,8 +2,8 @@ package qb
 
 import (
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"log"
-	"os"
 	"testing"
 )
 
@@ -16,7 +16,7 @@ func TestLogger(t *testing.T) {
 	db.Metadata().AddTable(actors)
 	db.CreateAll()
 	defer db.DropAll()
-	db.Engine().SetLogger(DefaultLogger{LQuery | LBindings, log.New(os.Stdout, "", log.LstdFlags)})
+	db.Engine().SetLogger(DefaultLogger{LQuery | LBindings, log.New(ioutil.Discard, "", log.LstdFlags)})
 	db.Engine().Logger().SetLogFlags(LQuery)
 
 	_, err = db.Engine().Exec(actors.Insert().Values(map[string]interface{}{"id": 5}))
