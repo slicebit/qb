@@ -43,8 +43,19 @@ func (d *PostgresDialect) Placeholders(values ...interface{}) []string {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *PostgresDialect) AutoIncrement() string {
-	return ""
+func (d *PostgresDialect) AutoIncrement(column *ColumnElem) string {
+	var colSpec string
+	if column.Type.Name == "BIGINT" {
+		colSpec = "BIGSERIAL"
+	} else if column.Type.Name == "SMALLINT" {
+		colSpec = "SMALLSERIAL"
+	} else {
+		colSpec = "SERIAL"
+	}
+	if column.Options.PrimaryKey {
+		colSpec += " PRIMARY KEY"
+	}
+	return colSpec
 }
 
 // Reset clears the binding index for postgres driver

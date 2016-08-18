@@ -23,7 +23,7 @@ type Dialect interface {
 	Escaping() bool
 	Placeholder() string
 	Placeholders(values ...interface{}) []string
-	AutoIncrement() string
+	AutoIncrement(column *ColumnElem) string
 	Reset()
 	SupportsUnsigned() bool
 	Driver() string
