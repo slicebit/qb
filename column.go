@@ -4,20 +4,39 @@ import "fmt"
 
 // Column generates a ColumnElem given name and type
 func Column(name string, t TypeElem) ColumnElem {
-	return ColumnElem{name, t, ""}
+	return ColumnElem{name, t, "", ColumnOptions{}}
+}
+
+// ColumnOptions holds options for a column
+type ColumnOptions struct {
+	AutoIncrement bool
 }
 
 // ColumnElem is the definition of any columns defined in a table
 type ColumnElem struct {
-	Name  string
-	Type  TypeElem
-	Table string // This field should be lazily set by Table() function
+	Name    string
+	Type    TypeElem
+	Table   string // This field should be lazily set by Table() function
+	Options ColumnOptions
+}
+
+// AutoIncrement set up “auto increment” semantics for an integer primary key column.
+func (c ColumnElem) AutoIncrement() ColumnElem {
+	c.Options.AutoIncrement = true
+	return c
 }
 
 // String returns the column element as an sql clause
 // It satisfies the TableClause interface
 func (c ColumnElem) String(dialect Dialect) string {
-	return fmt.Sprintf("%s %s", dialect.Escape(c.Name), c.Type.String(dialect))
+	res := fmt.Sprintf("%s %s", dialect.Escape(c.Name), c.Type.String(dialect))
+	if c.Options.AutoIncrement {
+		autoinc := dialect.AutoIncrement()
+		if autoinc != "" {
+			res = fmt.Sprintf("%s %s", res, autoinc)
+		}
+	}
+	return res
 }
 
 // Build compiles the column element and returns sql, bindings

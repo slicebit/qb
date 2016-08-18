@@ -23,6 +23,12 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, col.String(mysql), "`id` VARCHAR(40)")
 	assert.Equal(t, col.String(postgres), "\"id\" VARCHAR(40)")
 
+	col = Column("id", Int()).AutoIncrement()
+
+	assert.Equal(t, col.String(sqlite), "id INT")
+	assert.Equal(t, col.String(mysql), "`id` INT AUTO_INCREMENT")
+	assert.Equal(t, col.String(postgres), "\"id\" INT")
+
 	var sql string
 
 	sql, _ = col.Build(sqlite)
