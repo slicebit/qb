@@ -73,9 +73,9 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
 
-	assert.Equal(suite.T(), user.Email, "jack@nicholson.com")
-	assert.Equal(suite.T(), user.FullName, "Jack Nicholson")
-	assert.Equal(suite.T(), user.Bio.String, "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.")
+	assert.Equal(suite.T(), "jack@nicholson.com", user.Email)
+	assert.Equal(suite.T(), "Jack Nicholson", user.FullName)
+	assert.Equal(suite.T(), "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", user.Bio.String)
 
 	// select using join
 	sessions := []Session{}
@@ -85,11 +85,11 @@ func (suite *MysqlTestSuite) TestMysql() {
 		All(&sessions)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), len(sessions), 1)
+	assert.Equal(suite.T(), 1, len(sessions))
 
-	assert.Equal(suite.T(), sessions[0].ID, int64(1))
-	assert.Equal(suite.T(), sessions[0].UserID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
-	assert.Equal(suite.T(), sessions[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
+	assert.Equal(suite.T(), int64(1), sessions[0].ID)
+	assert.Equal(suite.T(), "b6f8bfe3-a830-441a-a097-1777e6bfae95", sessions[0].UserID)
+	assert.Equal(suite.T(), "e4968197-6137-47a4-ba79-690d8c552248", sessions[0].AuthToken)
 
 	user.Bio = sql.NullString{String: "nil", Valid: false}
 	suite.db.Add(user)
@@ -98,7 +98,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Nil(suite.T(), err)
 
 	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
-	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
+	assert.Equal(suite.T(), sql.NullString{String: "", Valid: false}, user.Bio)
 
 	// delete session
 	suite.db.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})

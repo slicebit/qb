@@ -28,15 +28,15 @@ func TestUpdate(t *testing.T) {
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
 		Build(sqlite)
 
-	assert.Equal(t, statement.SQL(), "UPDATE users\nSET email = ?;")
-	assert.Equal(t, statement.Bindings(), []interface{}{"robert@de.niro"})
+	assert.Equal(t, "UPDATE users\nSET email = ?;", statement.SQL())
+	assert.Equal(t, []interface{}{"robert@de.niro"}, statement.Bindings())
 
 	statement = Update(users).
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
 		Build(mysql)
 
-	assert.Equal(t, statement.SQL(), "UPDATE `users`\nSET `email` = ?;")
-	assert.Equal(t, statement.Bindings(), []interface{}{"robert@de.niro"})
+	assert.Equal(t, "UPDATE `users`\nSET `email` = ?;", statement.SQL())
+	assert.Equal(t, []interface{}{"robert@de.niro"}, statement.Bindings())
 
 	statement = Update(users).
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
@@ -44,6 +44,6 @@ func TestUpdate(t *testing.T) {
 		Returning(users.C("id"), users.C("email")).
 		Build(postgres)
 
-	assert.Equal(t, statement.SQL(), "UPDATE \"users\"\nSET \"email\" = $1\nWHERE \"users\".\"email\" = $2\nRETURNING \"id\", \"email\";")
-	assert.Equal(t, statement.Bindings(), []interface{}{"robert@de.niro", "al@pacino"})
+	assert.Equal(t, "UPDATE \"users\"\nSET \"email\" = $1\nWHERE \"users\".\"email\" = $2\nRETURNING \"id\", \"email\";", statement.SQL())
+	assert.Equal(t, []interface{}{"robert@de.niro", "al@pacino"}, statement.Bindings())
 }

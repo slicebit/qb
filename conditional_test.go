@@ -24,126 +24,126 @@ func TestConditionals(t *testing.T) {
 	like := Like(country, "%land%")
 
 	sql, _ = like.Build(sqlite)
-	assert.Equal(t, sql, "country LIKE '%land%'")
+	assert.Equal(t, "country LIKE '%land%'", sql)
 
 	sql, _ = like.Build(mysql)
-	assert.Equal(t, sql, "`country` LIKE '%land%'")
+	assert.Equal(t, "`country` LIKE '%land%'", sql)
 
 	sql, _ = like.Build(postgres)
-	assert.Equal(t, sql, "\"country\" LIKE '%land%'")
+	assert.Equal(t, "\"country\" LIKE '%land%'", sql)
 
 	notIn := NotIn(country, "USA", "England", "Sweden")
 
 	sql, bindings = notIn.Build(sqlite)
-	assert.Equal(t, sql, "country NOT IN (?, ?, ?)")
-	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
+	assert.Equal(t, "country NOT IN (?, ?, ?)", sql)
+	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = notIn.Build(mysql)
-	assert.Equal(t, sql, "`country` NOT IN (?, ?, ?)")
-	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
+	assert.Equal(t, "`country` NOT IN (?, ?, ?)", sql)
+	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = notIn.Build(postgres)
-	assert.Equal(t, sql, "\"country\" NOT IN ($1, $2, $3)")
-	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
+	assert.Equal(t, "\"country\" NOT IN ($1, $2, $3)", sql)
+	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	in := In(country, "USA", "England", "Sweden")
 
 	sql, bindings = in.Build(sqlite)
-	assert.Equal(t, sql, "country IN (?, ?, ?)")
-	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
+	assert.Equal(t, "country IN (?, ?, ?)", sql)
+	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = in.Build(mysql)
-	assert.Equal(t, sql, "`country` IN (?, ?, ?)")
-	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
+	assert.Equal(t, "`country` IN (?, ?, ?)", sql)
+	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = in.Build(postgres)
-	assert.Equal(t, sql, "\"country\" IN ($4, $5, $6)")
-	assert.Equal(t, bindings, []interface{}{"USA", "England", "Sweden"})
+	assert.Equal(t, "\"country\" IN ($4, $5, $6)", sql)
+	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	notEq := NotEq(country, "USA")
 
 	sql, bindings = notEq.Build(sqlite)
-	assert.Equal(t, sql, "country != ?")
-	assert.Equal(t, bindings, []interface{}{"USA"})
+	assert.Equal(t, "country != ?", sql)
+	assert.Equal(t, []interface{}{"USA"}, bindings)
 
 	sql, bindings = notEq.Build(mysql)
-	assert.Equal(t, sql, "`country` != ?")
-	assert.Equal(t, bindings, []interface{}{"USA"})
+	assert.Equal(t, "`country` != ?", sql)
+	assert.Equal(t, []interface{}{"USA"}, bindings)
 
 	sql, bindings = notEq.Build(postgres)
-	assert.Equal(t, sql, "\"country\" != $7")
-	assert.Equal(t, bindings, []interface{}{"USA"})
+	assert.Equal(t, "\"country\" != $7", sql)
+	assert.Equal(t, []interface{}{"USA"}, bindings)
 
 	eq := Eq(country, "Turkey")
 
 	sql, bindings = eq.Build(sqlite)
-	assert.Equal(t, sql, "country = ?")
-	assert.Equal(t, bindings, []interface{}{"Turkey"})
+	assert.Equal(t, "country = ?", sql)
+	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
 	sql, bindings = eq.Build(mysql)
-	assert.Equal(t, sql, "`country` = ?")
-	assert.Equal(t, bindings, []interface{}{"Turkey"})
+	assert.Equal(t, "`country` = ?", sql)
+	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
 	sql, bindings = eq.Build(postgres)
-	assert.Equal(t, sql, "\"country\" = $8")
-	assert.Equal(t, bindings, []interface{}{"Turkey"})
+	assert.Equal(t, "\"country\" = $8", sql)
+	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
 	score := Column("score", BigInt().NotNull())
 
 	gt := Gt(score, 1500)
 
 	sql, bindings = gt.Build(sqlite)
-	assert.Equal(t, sql, "score > ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "score > ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = gt.Build(mysql)
-	assert.Equal(t, sql, "`score` > ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "`score` > ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = gt.Build(postgres)
-	assert.Equal(t, sql, "\"score\" > $9")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "\"score\" > $9", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	st := St(score, 1500)
 
 	sql, bindings = st.Build(sqlite)
-	assert.Equal(t, sql, "score < ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "score < ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = st.Build(mysql)
-	assert.Equal(t, sql, "`score` < ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "`score` < ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = st.Build(postgres)
-	assert.Equal(t, sql, "\"score\" < $10")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "\"score\" < $10", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	gte := Gte(score, 1500)
 
 	sql, bindings = gte.Build(sqlite)
-	assert.Equal(t, sql, "score >= ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "score >= ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = gte.Build(mysql)
-	assert.Equal(t, sql, "`score` >= ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "`score` >= ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = gte.Build(postgres)
-	assert.Equal(t, sql, "\"score\" >= $11")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "\"score\" >= $11", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	ste := Ste(score, 1500)
 
 	sql, bindings = ste.Build(sqlite)
-	assert.Equal(t, sql, "score <= ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "score <= ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = ste.Build(mysql)
-	assert.Equal(t, sql, "`score` <= ?")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "`score` <= ?", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = ste.Build(postgres)
-	assert.Equal(t, sql, "\"score\" <= $12")
-	assert.Equal(t, bindings, []interface{}{1500})
+	assert.Equal(t, "\"score\" <= $12", sql)
+	assert.Equal(t, []interface{}{1500}, bindings)
 
 }
