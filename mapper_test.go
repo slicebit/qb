@@ -100,10 +100,10 @@ func TestMapperWithDBTag(t *testing.T) {
 	assert.Contains(t, ddl, "PRIMARY KEY(_id)")
 
 	m := mapper.ToMap(User{ID: "cba0667d-8c76-4999-9a55-84ffe572fb23", Email: "aras@slicebit.com"}, false)
-	assert.Equal(t, m, map[string]interface{}{
+	assert.Equal(t, map[string]interface{}{
 		"_id":   "cba0667d-8c76-4999-9a55-84ffe572fb23",
 		"email": "aras@slicebit.com",
-	})
+	}, m)
 }
 
 func TestMapperPostgresAutoIncrement(t *testing.T) {
@@ -154,7 +154,7 @@ func TestNonZeroStruct(t *testing.T) {
 
 	mapper := Mapper()
 	m := mapper.ToMap(User{5}, false)
-	assert.Equal(t, m, map[string]interface{}{"id": 5})
+	assert.Equal(t, map[string]interface{}{"id": 5}, m)
 }
 
 func TestMapperUtilFuncs(t *testing.T) {
@@ -166,41 +166,41 @@ func TestMapperUtilFuncs(t *testing.T) {
 	mapper := Mapper()
 
 	kv := mapper.ToMap(UserErr{}, false)
-	assert.Equal(t, kv, map[string]interface{}{})
+	assert.Equal(t, map[string]interface{}{}, kv)
 }
 
 func TestMapperTypes(t *testing.T) {
 	mapper := Mapper()
 
-	assert.Equal(t, mapper.ToType("string", ""), Varchar().Size(255))
+	assert.Equal(t, Varchar().Size(255), mapper.ToType("string", ""))
 
-	assert.Equal(t, mapper.ToType("int", ""), Int())
+	assert.Equal(t, Int(), mapper.ToType("int", ""))
 
-	assert.Equal(t, mapper.ToType("int8", ""), TinyInt())
+	assert.Equal(t, TinyInt(), mapper.ToType("int8", ""))
 
-	assert.Equal(t, mapper.ToType("int16", ""), SmallInt())
+	assert.Equal(t, SmallInt(), mapper.ToType("int16", ""))
 
-	assert.Equal(t, mapper.ToType("int32", ""), Int())
+	assert.Equal(t, Int(), mapper.ToType("int32", ""))
 
-	assert.Equal(t, mapper.ToType("int64", ""), BigInt())
+	assert.Equal(t, BigInt(), mapper.ToType("int64", ""))
 
-	assert.Equal(t, mapper.ToType("uint", ""), Int().Unsigned())
+	assert.Equal(t, Int().Unsigned(), mapper.ToType("uint", ""))
 
-	assert.Equal(t, mapper.ToType("uint8", ""), TinyInt().Unsigned())
+	assert.Equal(t, TinyInt().Unsigned(), mapper.ToType("uint8", ""))
 
-	assert.Equal(t, mapper.ToType("uint16", ""), SmallInt().Unsigned())
+	assert.Equal(t, SmallInt().Unsigned(), mapper.ToType("uint16", ""))
 
-	assert.Equal(t, mapper.ToType("uint32", ""), Int().Unsigned())
+	assert.Equal(t, Int().Unsigned(), mapper.ToType("uint32", ""))
 
-	assert.Equal(t, mapper.ToType("uint64", ""), BigInt().Unsigned())
+	assert.Equal(t, BigInt().Unsigned(), mapper.ToType("uint64", ""))
 
-	assert.Equal(t, mapper.ToType("float32", ""), Float())
+	assert.Equal(t, Float(), mapper.ToType("float32", ""))
 
-	assert.Equal(t, mapper.ToType("float64", ""), Float())
+	assert.Equal(t, Float(), mapper.ToType("float64", ""))
 
-	assert.Equal(t, mapper.ToType("bool", ""), Boolean())
+	assert.Equal(t, Boolean(), mapper.ToType("bool", ""))
 
-	assert.Equal(t, mapper.ToType("time.Time", ""), Timestamp())
+	assert.Equal(t, Timestamp(), mapper.ToType("time.Time", ""))
 
-	assert.Equal(t, mapper.ToType("*time.Time", ""), Timestamp())
+	assert.Equal(t, Timestamp(), mapper.ToType("*time.Time", ""))
 }

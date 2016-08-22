@@ -7,12 +7,12 @@ import (
 
 func TestTag(t *testing.T) {
 	tag, _ := ParseTag("type:varchar(255);constraints:default(guest),notnull")
-	assert.Equal(t, tag.Type, "varchar(255)")
-	assert.Equal(t, tag.Constraints, []string{"default(guest)", "notnull"})
+	assert.Equal(t, "varchar(255)", tag.Type)
+	assert.Equal(t, []string{"default(guest)", "notnull"}, tag.Constraints)
 
 	tagWithoutConstraint, _ := ParseTag("type:varchar(255);constraints:")
-	assert.Equal(t, tagWithoutConstraint.Type, "varchar(255)")
-	assert.Equal(t, tagWithoutConstraint.Constraints, []string{})
+	assert.Equal(t, "varchar(255)", tagWithoutConstraint.Type)
+	assert.Equal(t, []string{}, tagWithoutConstraint.Constraints)
 
 	tagEmpty, _ := ParseTag("     ")
 	assert.Zero(t, tagEmpty)

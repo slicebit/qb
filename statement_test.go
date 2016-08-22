@@ -13,9 +13,9 @@ func TestStatement(t *testing.T) {
 	statement.AddClause("WHERE id = ?")
 	statement.AddBinding(5)
 
-	assert.Equal(t, statement.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
-	assert.Equal(t, statement.Bindings(), []interface{}{5})
-	assert.Equal(t, statement.SQL(), "SELECT name\nFROM user\nWHERE id = ?;")
+	assert.Equal(t, []string{"SELECT name", "FROM user", "WHERE id = ?"}, statement.Clauses())
+	assert.Equal(t, []interface{}{5}, statement.Bindings())
+	assert.Equal(t, "SELECT name\nFROM user\nWHERE id = ?;", statement.SQL())
 }
 
 func TestStatementRaw(t *testing.T) {
@@ -27,14 +27,14 @@ func TestStatementRaw(t *testing.T) {
 		WHERE id = ?;
 		`
 	statement.Text(sql)
-	assert.Equal(t, statement.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
-	assert.Equal(t, statement.SQL(), "SELECT name\nFROM user\nWHERE id = ?;")
+	assert.Equal(t, []string{"SELECT name", "FROM user", "WHERE id = ?"}, statement.Clauses())
+	assert.Equal(t, "SELECT name\nFROM user\nWHERE id = ?;", statement.SQL())
 }
 
 func TestStatementWithCustomDelimiter(t *testing.T) {
 	statement := Statement()
 
-	assert.Equal(t, statement.SQL(), "")
+	assert.Equal(t, "", statement.SQL())
 
 	statement.SetDelimiter(" ")
 
@@ -44,7 +44,7 @@ func TestStatementWithCustomDelimiter(t *testing.T) {
 	statement.AddClause("WHERE id = ?")
 	statement.AddBinding(5)
 
-	assert.Equal(t, statement.Clauses(), []string{"SELECT name", "FROM user", "WHERE id = ?"})
-	assert.Equal(t, statement.Bindings(), []interface{}{5})
-	assert.Equal(t, statement.SQL(), "SELECT name FROM user WHERE id = ?;")
+	assert.Equal(t, []string{"SELECT name", "FROM user", "WHERE id = ?"}, statement.Clauses())
+	assert.Equal(t, []interface{}{5}, statement.Bindings())
+	assert.Equal(t, "SELECT name FROM user WHERE id = ?;", statement.SQL())
 }

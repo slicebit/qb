@@ -41,7 +41,7 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
 	assert.Contains(t, statement.Bindings(), now)
-	assert.Equal(t, len(statement.Bindings()), 3)
+	assert.Equal(t, 3, len(statement.Bindings()))
 
 	statement = ups.Build(mysql)
 	assert.Contains(t, statement.SQL(), "INSERT INTO `users`")
@@ -51,7 +51,7 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.SQL(), "`id` = ?", "`email` = ?", "`created_at` = ?")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
-	assert.Equal(t, len(statement.Bindings()), 6)
+	assert.Equal(t, 6, len(statement.Bindings()))
 
 	statement = ups.Build(postgres)
 	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")
@@ -60,7 +60,7 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.SQL(), "ON CONFLICT", "DO UPDATE SET")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
-	assert.Equal(t, len(statement.Bindings()), 6)
+	assert.Equal(t, 6, len(statement.Bindings()))
 
 	statement = Upsert(users).
 		Values(map[string]interface{}{
@@ -78,5 +78,5 @@ func TestUpsert(t *testing.T) {
 	assert.Contains(t, statement.SQL(), "RETURNING \"id\", \"email\";")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, statement.Bindings(), "al@pacino.com")
-	assert.Equal(t, len(statement.Bindings()), 4)
+	assert.Equal(t, 4, len(statement.Bindings()))
 }

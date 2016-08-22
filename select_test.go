@@ -46,13 +46,13 @@ func (suite *SelectTestSuite) TestSimpleSelect() {
 
 	var statement *Stmt
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT id\nFROM users;")
+	assert.Equal(suite.T(), "SELECT id\nFROM users;", statement.SQL())
 
 	statement = sel.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `id`\nFROM `users`;")
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `users`;", statement.SQL())
 
 	statement = sel.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"users\";")
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\";", statement.SQL())
 }
 
 func (suite *SelectTestSuite) TestSelectWhere() {
@@ -68,16 +68,16 @@ func (suite *SelectTestSuite) TestSelectWhere() {
 	var statement *Stmt
 
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT id\nFROM users\nWHERE (users.email = ? AND users.id != ?);")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{"al@pacino.com", 5})
+	assert.Equal(suite.T(), "SELECT id\nFROM users\nWHERE (users.email = ? AND users.id != ?);", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 
 	statement = sel.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `id`\nFROM `users`\nWHERE (`users`.`email` = ? AND `users`.`id` != ?);")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{"al@pacino.com", 5})
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `users`\nWHERE (`users`.`email` = ? AND `users`.`id` != ?);", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 
 	statement = sel.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"users\"\nWHERE (\"users\".\"email\" = $1 AND \"users\".\"id\" != $2);")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{"al@pacino.com", 5})
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\"\nWHERE (\"users\".\"email\" = $1 AND \"users\".\"id\" != $2);", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 }
 
 func (suite *SelectTestSuite) TestOrderByLimit() {
@@ -89,16 +89,16 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 
 	var statement *Stmt
 	statement = selOrderByDesc.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id DESC\nLIMIT 20 OFFSET 0;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByDesc.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` DESC\nLIMIT 20 OFFSET 0;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByDesc.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" DESC\nLIMIT 20 OFFSET 0;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	selWithoutOrder := Select(suite.sessions.C("id")).
 		From(suite.sessions).
@@ -106,16 +106,16 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		OrderBy(suite.sessions.C("id"))
 
 	statement = selWithoutOrder.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id ASC;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id ASC;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selWithoutOrder.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` ASC;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` ASC;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selWithoutOrder.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" ASC;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" ASC;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	selOrderByAsc := Select(suite.sessions.C("id")).
 		From(suite.sessions).
@@ -123,16 +123,16 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		OrderBy(suite.sessions.C("id")).Asc()
 
 	statement = selOrderByAsc.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id ASC;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id ASC;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByAsc.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` ASC;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` ASC;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByAsc.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" ASC;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" ASC;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 }
 
 func (suite *SelectTestSuite) TestJoin() {
@@ -146,16 +146,16 @@ func (suite *SelectTestSuite) TestJoin() {
 	var statement *Stmt
 
 	statement = selInnerJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nINNER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nINNER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selInnerJoin.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `sessions`.`id`, `sessions`.`auth_token`\nFROM `sessions`\nINNER JOIN `users` ON `sessions`.`user_id` = `users`.`id`\nWHERE `sessions`.`user_id` = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `sessions`.`id`, `sessions`.`auth_token`\nFROM `sessions`\nINNER JOIN `users` ON `sessions`.`user_id` = `users`.`id`\nWHERE `sessions`.`user_id` = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selInnerJoin.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nINNER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = $1;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nINNER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = $1;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	// left join
 	selLeftJoin := Select(suite.sessions.C("id"), suite.sessions.C("auth_token")).
@@ -164,16 +164,16 @@ func (suite *SelectTestSuite) TestJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	statement = selLeftJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selLeftJoin.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `sessions`.`id`, `sessions`.`auth_token`\nFROM `sessions`\nLEFT OUTER JOIN `users` ON `sessions`.`user_id` = `users`.`id`\nWHERE `sessions`.`user_id` = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `sessions`.`id`, `sessions`.`auth_token`\nFROM `sessions`\nLEFT OUTER JOIN `users` ON `sessions`.`user_id` = `users`.`id`\nWHERE `sessions`.`user_id` = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selLeftJoin.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nLEFT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = $1;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nLEFT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = $1;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	// right join
 	selRightJoin := Select(suite.sessions.C("id")).
@@ -182,16 +182,16 @@ func (suite *SelectTestSuite) TestJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	statement = selRightJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT sessions.id\nFROM sessions\nRIGHT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT sessions.id\nFROM sessions\nRIGHT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selRightJoin.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `sessions`.`id`\nFROM `sessions`\nRIGHT OUTER JOIN `users` ON `sessions`.`user_id` = `users`.`id`\nWHERE `sessions`.`user_id` = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `sessions`.`id`\nFROM `sessions`\nRIGHT OUTER JOIN `users` ON `sessions`.`user_id` = `users`.`id`\nWHERE `sessions`.`user_id` = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selRightJoin.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nRIGHT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = $1;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nRIGHT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = $1;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	// cross join
 	selCrossJoin := Select(suite.sessions.C("id")).
@@ -200,16 +200,16 @@ func (suite *SelectTestSuite) TestJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	statement = selCrossJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT sessions.id\nFROM sessions\nCROSS JOIN users\nWHERE sessions.user_id = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT sessions.id\nFROM sessions\nCROSS JOIN users\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selCrossJoin.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT `sessions`.`id`\nFROM `sessions`\nCROSS JOIN `users`\nWHERE `sessions`.`user_id` = ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT `sessions`.`id`\nFROM `sessions`\nCROSS JOIN `users`\nWHERE `sessions`.`user_id` = ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selCrossJoin.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nCROSS JOIN \"users\"\nWHERE \"sessions\".\"user_id\" = $1;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{5})
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nCROSS JOIN \"users\"\nWHERE \"sessions\".\"user_id\" = $1;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 }
 
 func (suite *SelectTestSuite) TestGroupByHaving() {
@@ -220,16 +220,16 @@ func (suite *SelectTestSuite) TestGroupByHaving() {
 
 	var statement *Stmt
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT COUNT(id)\nFROM sessions\nGROUP BY user_id\nHAVING SUM(id) > ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{4})
+	assert.Equal(suite.T(), "SELECT COUNT(id)\nFROM sessions\nGROUP BY user_id\nHAVING SUM(id) > ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{4}, statement.Bindings())
 
 	statement = sel.Build(suite.mysql)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT COUNT(`id`)\nFROM `sessions`\nGROUP BY `user_id`\nHAVING SUM(`id`) > ?;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{4})
+	assert.Equal(suite.T(), "SELECT COUNT(`id`)\nFROM `sessions`\nGROUP BY `user_id`\nHAVING SUM(`id`) > ?;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{4}, statement.Bindings())
 
 	statement = sel.Build(suite.postgres)
-	assert.Equal(suite.T(), statement.SQL(), "SELECT COUNT(\"id\")\nFROM \"sessions\"\nGROUP BY \"user_id\"\nHAVING SUM(\"id\") > $1;")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{4})
+	assert.Equal(suite.T(), "SELECT COUNT(\"id\")\nFROM \"sessions\"\nGROUP BY \"user_id\"\nHAVING SUM(\"id\") > $1;", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{4}, statement.Bindings())
 }
 
 func TestSelectTestSuite(t *testing.T) {

@@ -26,5 +26,5 @@ func TestLogger(t *testing.T) {
 	_, err = db.Engine().Exec(actors.Insert().Values(map[string]interface{}{"id": 10}))
 	assert.Nil(t, err)
 
-	assert.Equal(t, db.Engine().Logger().LogFlags(), LQuery|LBindings)
+	assert.Equal(t, LQuery|LBindings, db.Engine().Logger().LogFlags())
 }

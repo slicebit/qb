@@ -39,7 +39,7 @@ func TestMetadataAddError(t *testing.T) {
 	metadata := MetaData()
 
 	assert.Panics(t, func() { metadata.Add(UserMetadataError{}) })
-	assert.Equal(t, len(metadata.Tables()), 0)
+	assert.Equal(t, 0, len(metadata.Tables()))
 }
 
 func TestMetadataAddTable(t *testing.T) {
@@ -49,9 +49,9 @@ func TestMetadataAddTable(t *testing.T) {
 
 	metadata.AddTable(table)
 
-	assert.Equal(t, metadata.Tables(), []TableElem{table})
+	assert.Equal(t, []TableElem{table}, metadata.Tables())
 
-	assert.Equal(t, metadata.Table("user").Name, "user")
+	assert.Equal(t, "user", metadata.Table("user").Name)
 }
 
 func TestMetadataTable(t *testing.T) {

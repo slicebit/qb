@@ -86,8 +86,8 @@ func TestSessionWrappings(t *testing.T) {
 		Filter(sessions.C("id").Eq("9efbc9ab-7914-426c-8818-7d40b0427c8f")).
 		Statement()
 
-	assert.Equal(t, selInnerJoin.SQL(), "SELECT sessions.id, sessions.created_at\nFROM sessions\nINNER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.id = $1);")
-	assert.Equal(t, selInnerJoin.Bindings(), []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f"})
+	assert.Equal(t, "SELECT sessions.id, sessions.created_at\nFROM sessions\nINNER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.id = $1);", selInnerJoin.SQL())
+	assert.Equal(t, []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f"}, selInnerJoin.Bindings())
 
 	selLeftJoin := qb.Query(sessions.All()...).
 		LeftJoin(users, sessions.C("user_id"), users.C("id")).
@@ -105,7 +105,7 @@ func TestSessionWrappings(t *testing.T) {
 	assert.Contains(t, selLeftJoin.SQL(), "user_id")
 	assert.Contains(t, selLeftJoin.SQL(), "created_at")
 	assert.Contains(t, selLeftJoin.SQL(), "\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.user_id = $1 AND sessions.user_id != $2 AND sessions.created_at <= $3 AND sessions.created_at < $4 AND sessions.created_at >= $5 AND sessions.created_at > $6)\nORDER BY created_at DESC\nLIMIT 20 OFFSET 0;")
-	assert.Equal(t, selLeftJoin.Bindings(), []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f", "9efbc9ac-7914-426c-8818-7d40b0427c8f", "2016-06-10", "2016-06-10", "2016-06-09", "2016-06-09"})
+	assert.Equal(t, []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f", "9efbc9ac-7914-426c-8818-7d40b0427c8f", "2016-06-10", "2016-06-10", "2016-06-09", "2016-06-09"}, selLeftJoin.Bindings())
 
 	selRightJoin := qb.Query(sessions.C("id"), sessions.C("user_id"), sessions.C("created_at")).
 		RightJoin(users, sessions.C("user_id"), users.C("id")).
@@ -114,8 +114,8 @@ func TestSessionWrappings(t *testing.T) {
 		Filter(sessions.C("user_id").In("9efbc9ab-7914-426c-8818-7d40b0427c8f")).
 		Statement()
 
-	assert.Equal(t, selRightJoin.SQL(), "SELECT sessions.id, sessions.user_id, sessions.created_at\nFROM sessions\nRIGHT OUTER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.user_id IN ($1))\nORDER BY created_at DESC\nLIMIT 20 OFFSET 0;")
-	assert.Equal(t, selRightJoin.Bindings(), []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f"})
+	assert.Equal(t, "SELECT sessions.id, sessions.user_id, sessions.created_at\nFROM sessions\nRIGHT OUTER JOIN users ON sessions.user_id = users.id\nWHERE (sessions.user_id IN ($1))\nORDER BY created_at DESC\nLIMIT 20 OFFSET 0;", selRightJoin.SQL())
+	assert.Equal(t, []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f"}, selRightJoin.Bindings())
 
 	selCrossJoin := qb.
 		Query(sessions.C("id"), sessions.C("user_id"), sessions.C("created_at")).
@@ -125,16 +125,16 @@ func TestSessionWrappings(t *testing.T) {
 		Filter(sessions.C("user_id").NotIn("9efbc9ab-7914-426c-8818-7d40b0427c8f")).
 		Statement()
 
-	assert.Equal(t, selCrossJoin.SQL(), "SELECT sessions.id, sessions.user_id, sessions.created_at\nFROM sessions\nCROSS JOIN users\nWHERE (sessions.user_id NOT IN ($1))\nORDER BY created_at ASC\nLIMIT 20 OFFSET 0;")
-	assert.Equal(t, selCrossJoin.Bindings(), []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f"})
+	assert.Equal(t, "SELECT sessions.id, sessions.user_id, sessions.created_at\nFROM sessions\nCROSS JOIN users\nWHERE (sessions.user_id NOT IN ($1))\nORDER BY created_at ASC\nLIMIT 20 OFFSET 0;", selCrossJoin.SQL())
+	assert.Equal(t, []interface{}{"9efbc9ab-7914-426c-8818-7d40b0427c8f"}, selCrossJoin.Bindings())
 
 	selLike := qb.
 		Query(users.C("id"), users.C("name")).
 		Filter(users.C("name").Like("%Robert%")).
 		Statement()
 
-	assert.Equal(t, selLike.SQL(), "SELECT id, name\nFROM users\nWHERE (users.name LIKE '%Robert%');")
-	assert.Equal(t, selLike.Bindings(), []interface{}{})
+	assert.Equal(t, "SELECT id, name\nFROM users\nWHERE (users.name LIKE '%Robert%');", selLike.SQL())
+	assert.Equal(t, []interface{}{}, selLike.Bindings())
 
 	selAggCountMinMax := qb.
 		Query(Count(users.C("id")), Max(users.C("name")), Min(users.C("name"))).
@@ -143,16 +143,16 @@ func TestSessionWrappings(t *testing.T) {
 		Having(Sum(users.C("score")), ">", 100).
 		Statement()
 
-	assert.Equal(t, selAggCountMinMax.SQL(), "SELECT COUNT(id), MAX(name), MIN(name)\nFROM users\nGROUP BY name\nHAVING SUM(score) > $1;")
-	assert.Equal(t, selAggCountMinMax.Bindings(), []interface{}{100})
+	assert.Equal(t, "SELECT COUNT(id), MAX(name), MIN(name)\nFROM users\nGROUP BY name\nHAVING SUM(score) > $1;", selAggCountMinMax.SQL())
+	assert.Equal(t, []interface{}{100}, selAggCountMinMax.Bindings())
 
 	selAggAvgSum := qb.
 		Query(Avg(users.C("score")), Sum(users.C("score"))).
 		GroupBy(users.C("id")).
 		Statement()
 
-	assert.Equal(t, selAggAvgSum.SQL(), "SELECT AVG(score), SUM(score)\nFROM \nGROUP BY id;")
-	assert.Equal(t, selAggAvgSum.Bindings(), []interface{}{})
+	assert.Equal(t, "SELECT AVG(score), SUM(score)\nFROM \nGROUP BY id;", selAggAvgSum.SQL())
+	assert.Equal(t, []interface{}{}, selAggAvgSum.Bindings())
 
 	assert.Panics(t, func() {
 		qb.Query()

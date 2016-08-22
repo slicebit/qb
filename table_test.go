@@ -15,13 +15,13 @@ func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
 	usersTable := Table("users", Column("id", Varchar().Size(40)))
 
 	ddl := usersTable.Create(dialect)
-	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);")
+	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);", ddl)
 
 	statement := usersTable.Build(dialect)
-	assert.Equal(suite.T(), statement.SQL(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);")
-	assert.Equal(suite.T(), statement.Bindings(), []interface{}{})
+	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);", statement.SQL())
+	assert.Equal(suite.T(), []interface{}{}, statement.Bindings())
 
-	assert.Equal(suite.T(), usersTable.Drop(dialect), "DROP TABLE users;")
+	assert.Equal(suite.T(), "DROP TABLE users;", usersTable.Drop(dialect))
 }
 
 func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
@@ -63,7 +63,7 @@ func (suite *TableTestSuite) TestTablePrimaryKey() {
 		Column("lname", Varchar().Size(40)).PrimaryKey(),
 	)
 
-	assert.Equal(suite.T(), t.PrimaryKeyConstraint.Columns, []string{"fname", "lname"})
+	assert.Equal(suite.T(), []string{"fname", "lname"}, t.PrimaryKeyConstraint.Columns)
 
 	assert.Panics(suite.T(), func() {
 		Table(
@@ -110,14 +110,14 @@ func (suite *TableTestSuite) TestTableIndex() {
 	assert.Contains(suite.T(), ddl, "CREATE INDEX i_email ON users(email)")
 	assert.Contains(suite.T(), ddl, "CREATE INDEX i_id_email ON users(id, email);")
 
-	assert.Equal(suite.T(), usersTable.C("id"), ColumnElem{Name: "id", Type: Varchar().Size(40), Table: "users"})
+	assert.Equal(suite.T(), ColumnElem{Name: "id", Type: Varchar().Size(40), Table: "users"}, usersTable.C("id"))
 	assert.Zero(suite.T(), usersTable.C("nonExisting"))
 }
 
 func (suite *TableTestSuite) TestTableIndexChain() {
 	usersTable := Table("users", Column("id", Varchar().Size(40))).Index("id")
 	ddl := usersTable.Create(NewDialect("mysql"))
-	assert.Equal(suite.T(), ddl, "CREATE TABLE users (\n\tid VARCHAR(40)\n);\nCREATE INDEX i_id ON users(id);")
+	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);\nCREATE INDEX i_id ON users(id);", ddl)
 }
 
 func (suite *TableTestSuite) TestTableStarters() {
@@ -167,24 +167,24 @@ func (suite *TableTestSuite) TestTableStarters() {
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), upd.SQL(), "UPDATE users\nSET email = ?\nWHERE users.id = ?;")
-	assert.Equal(suite.T(), upd.Bindings(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+	assert.Equal(suite.T(), "UPDATE users\nSET email = ?\nWHERE users.id = ?;", upd.SQL())
+	assert.Equal(suite.T(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, upd.Bindings())
 
 	del := users.
 		Delete().
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), del.SQL(), "DELETE FROM users\nWHERE users.id = ?;")
-	assert.Equal(suite.T(), del.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+	assert.Equal(suite.T(), "DELETE FROM users\nWHERE users.id = ?;", del.SQL())
+	assert.Equal(suite.T(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, del.Bindings())
 
 	sel := users.
 		Select(users.C("id"), users.C("email")).
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), sel.SQL(), "SELECT id, email\nFROM users\nWHERE users.id = ?;")
-	assert.Equal(suite.T(), sel.Bindings(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"})
+	assert.Equal(suite.T(), "SELECT id, email\nFROM users\nWHERE users.id = ?;", sel.SQL())
+	assert.Equal(suite.T(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, sel.Bindings())
 }
 
 func TestTableTestSuite(t *testing.T) {
