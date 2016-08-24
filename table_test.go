@@ -78,8 +78,8 @@ func (suite *TableTestSuite) TestTableUniqueCompositeUnique() {
 	usersTable := Table(
 		"users",
 		Column("id", Varchar().Size(40)),
-		Column("email", Varchar().Size(40).Unique()),
-		Column("device_id", Varchar().Size(255).Unique()),
+		Column("email", Varchar().Size(40)).Unique(),
+		Column("device_id", Varchar().Size(255)).Unique(),
 		UniqueKey("email", "device_id"),
 	)
 
@@ -96,7 +96,7 @@ func (suite *TableTestSuite) TestTableIndex() {
 	usersTable := Table(
 		"users",
 		Column("id", Varchar().Size(40)),
-		Column("email", Varchar().Size(40).Unique()),
+		Column("email", Varchar().Size(40)).Unique(),
 		Index("users", "id"),
 		Index("users", "email"),
 		Index("users", "id", "email"),
@@ -124,7 +124,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 	users := Table(
 		"users",
 		Column("id", Varchar().Size(40)),
-		Column("email", Varchar().Size(40).Unique()),
+		Column("email", Varchar().Size(40)).Unique(),
 		PrimaryKey("id"),
 	)
 

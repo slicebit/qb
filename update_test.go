@@ -17,8 +17,8 @@ func TestUpdate(t *testing.T) {
 
 	users := Table(
 		"users",
-		Column("id", BigInt().NotNull()),
-		Column("email", Varchar().NotNull().Unique()),
+		Column("id", BigInt()).NotNull(),
+		Column("email", Varchar()).NotNull().Unique(),
 		PrimaryKey("email"),
 	)
 

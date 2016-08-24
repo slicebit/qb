@@ -16,7 +16,7 @@ func TestConditionals(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
-	country := Column("country", Varchar().NotNull())
+	country := Column("country", Varchar()).NotNull()
 
 	var sql string
 	var bindings interface{}
@@ -88,7 +88,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, "\"country\" = $8", sql)
 	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
-	score := Column("score", BigInt().NotNull())
+	score := Column("score", BigInt()).NotNull()
 
 	gt := Gt(score, 1500)
 
