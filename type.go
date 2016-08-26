@@ -65,6 +65,11 @@ func Timestamp() TypeElem {
 	return Type("TIMESTAMP")
 }
 
+// UUID creates a UUID type
+func UUID() TypeElem {
+	return Type("UUID")
+}
+
 const defaultTypeSize = -1
 
 // Type returns a new TypeElem while defining columns in table

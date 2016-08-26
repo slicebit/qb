@@ -9,6 +9,9 @@ type MysqlDialect struct {
 
 // CompileType compiles a type into its DDL
 func (d *MysqlDialect) CompileType(t TypeElem) string {
+	if t.Name == "UUID" {
+		return "VARCHAR(36)"
+	}
 	return DefaultCompileType(t, d.SupportsUnsigned())
 }
 

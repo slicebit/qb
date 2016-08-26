@@ -25,6 +25,10 @@ func (suite *MysqlTestSuite) SetupTest() {
 	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS session")
 }
 
+func (suite *MysqlTestSuite) TestUUID() {
+	assert.Equal(suite.T(), "VARCHAR(36)", suite.db.Dialect().CompileType(UUID()))
+}
+
 func (suite *MysqlTestSuite) TestMysql() {
 	type User struct {
 		ID       string         `qb:"type:varchar(40); constraints:primary_key"`
