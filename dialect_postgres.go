@@ -8,6 +8,11 @@ type PostgresDialect struct {
 	escaping     bool
 }
 
+// CompileType compiles a type into its DDL
+func (d *PostgresDialect) CompileType(t TypeElem) string {
+	return DefaultCompileType(t, d.SupportsUnsigned())
+}
+
 // Escape wraps the string with escape characters of the dialect
 func (d *PostgresDialect) Escape(str string) string {
 	if d.escaping {

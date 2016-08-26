@@ -42,7 +42,7 @@ func (c ColumnElem) String(dialect Dialect) string {
 		colSpec = dialect.AutoIncrement(&c)
 	}
 	if colSpec == "" {
-		colSpec = c.Type.String(dialect)
+		colSpec = dialect.CompileType(c.Type)
 	}
 	res := fmt.Sprintf("%s %s", dialect.Escape(c.Name), colSpec)
 	return res

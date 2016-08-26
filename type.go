@@ -86,8 +86,8 @@ type TypeElem struct {
 	unique      bool
 }
 
-// String returns the clause as string
-func (t TypeElem) String(dialect Dialect) string {
+// DefaultCompileType is a default implementation for Dialect.CompileType
+func DefaultCompileType(t TypeElem, supportsUnsigned bool) string {
 	name := t.Name
 	constraintNames := []string{}
 	for _, c := range t.constraints {
@@ -95,7 +95,7 @@ func (t TypeElem) String(dialect Dialect) string {
 	}
 
 	if t.unsigned {
-		if dialect.SupportsUnsigned() {
+		if supportsUnsigned {
 			constraintNames = append([]string{"UNSIGNED"}, constraintNames...)
 		} else {
 			// use a bigger int type so the unsigned values can fit in
