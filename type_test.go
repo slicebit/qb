@@ -15,25 +15,25 @@ func (suite *TypeTestSuite) TestConstraints() {
 
 	sizeType := Varchar().Size(255).Unique().NotNull().Default("hello")
 
-	assert.Equal(suite.T(), "VARCHAR(255) UNIQUE NOT NULL DEFAULT 'hello'", sizeType.String(dialect))
+	assert.Equal(suite.T(), "VARCHAR(255) UNIQUE NOT NULL DEFAULT 'hello'", dialect.CompileType(sizeType))
 
 	precisionType := Type("FLOAT").Precision(2, 5).Null()
 
-	assert.Equal(suite.T(), "FLOAT(2, 5) NULL", precisionType.String(dialect))
+	assert.Equal(suite.T(), "FLOAT(2, 5) NULL", dialect.CompileType(precisionType))
 
-	assert.Equal(suite.T(), "CHAR", Char().String(dialect))
-	assert.Equal(suite.T(), "VARCHAR(255)", Varchar().String(dialect))
-	assert.Equal(suite.T(), "TEXT", Text().String(dialect))
-	assert.Equal(suite.T(), "INT", Int().String(dialect))
-	assert.Equal(suite.T(), "SMALLINT", SmallInt().String(dialect))
-	assert.Equal(suite.T(), "BIGINT", BigInt().String(dialect))
-	assert.Equal(suite.T(), "NUMERIC(2, 5)", Numeric().Precision(2, 5).String(dialect))
-	assert.Equal(suite.T(), "DECIMAL", Decimal().String(dialect))
-	assert.Equal(suite.T(), "FLOAT", Float().String(dialect))
-	assert.Equal(suite.T(), "BOOLEAN", Boolean().String(dialect))
-	assert.Equal(suite.T(), "TIMESTAMP", Timestamp().String(dialect))
+	assert.Equal(suite.T(), "CHAR", dialect.CompileType(Char()))
+	assert.Equal(suite.T(), "VARCHAR(255)", dialect.CompileType(Varchar()))
+	assert.Equal(suite.T(), "TEXT", dialect.CompileType(Text()))
+	assert.Equal(suite.T(), "INT", dialect.CompileType(Int()))
+	assert.Equal(suite.T(), "SMALLINT", dialect.CompileType(SmallInt()))
+	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(BigInt()))
+	assert.Equal(suite.T(), "NUMERIC(2, 5)", dialect.CompileType(Numeric().Precision(2, 5)))
+	assert.Equal(suite.T(), "DECIMAL", dialect.CompileType(Decimal()))
+	assert.Equal(suite.T(), "FLOAT", dialect.CompileType(Float()))
+	assert.Equal(suite.T(), "BOOLEAN", dialect.CompileType(Boolean()))
+	assert.Equal(suite.T(), "TIMESTAMP", dialect.CompileType(Timestamp()))
 
-	assert.Equal(suite.T(), "INT TEST", Int().Constraint("TEST").String(dialect))
+	assert.Equal(suite.T(), "INT TEST", dialect.CompileType(Int().Constraint("TEST")))
 }
 
 func TestTypeTestSuite(t *testing.T) {
@@ -42,14 +42,14 @@ func TestTypeTestSuite(t *testing.T) {
 
 func (suite *TypeTestSuite) TestUnsigned() {
 	dialect := NewDialect("mysql")
-	assert.Equal(suite.T(), "BIGINT", BigInt().Signed().String(dialect))
-	assert.Equal(suite.T(), "BIGINT UNSIGNED", BigInt().Unsigned().String(dialect))
-	assert.Equal(suite.T(), "NUMERIC(2, 5) UNSIGNED", Numeric().Precision(2, 5).Unsigned().String(dialect))
+	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(BigInt().Signed()))
+	assert.Equal(suite.T(), "BIGINT UNSIGNED", dialect.CompileType(BigInt().Unsigned()))
+	assert.Equal(suite.T(), "NUMERIC(2, 5) UNSIGNED", dialect.CompileType(Numeric().Precision(2, 5).Unsigned()))
 
 	dialect = NewDialect("")
-	assert.Equal(suite.T(), "INT", Int().Signed().String(dialect))
-	assert.Equal(suite.T(), "SMALLINT", TinyInt().Unsigned().String(dialect))
-	assert.Equal(suite.T(), "INT", SmallInt().Unsigned().String(dialect))
-	assert.Equal(suite.T(), "BIGINT", Int().Unsigned().String(dialect))
-	assert.Equal(suite.T(), "BIGINT", BigInt().Unsigned().String(dialect))
+	assert.Equal(suite.T(), "INT", dialect.CompileType(Int().Signed()))
+	assert.Equal(suite.T(), "SMALLINT", dialect.CompileType(TinyInt().Unsigned()))
+	assert.Equal(suite.T(), "INT", dialect.CompileType(SmallInt().Unsigned()))
+	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(Int().Unsigned()))
+	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(BigInt().Unsigned()))
 }

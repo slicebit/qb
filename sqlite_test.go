@@ -23,6 +23,10 @@ func (suite *SqliteTestSuite) SetupTest() {
 	assert.NotNil(suite.T(), suite.db)
 }
 
+func (suite *SqliteTestSuite) TestUUID() {
+	assert.Equal(suite.T(), "VARCHAR(36)", suite.db.Dialect().CompileType(UUID()))
+}
+
 func (suite *SqliteTestSuite) TestSqlite() {
 	type User struct {
 		ID       string         `qb:"type:varchar(40); constraints:primary_key"`
@@ -110,6 +114,7 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.db.DropAll())
+
 }
 
 func TestSqliteTestSuite(t *testing.T) {

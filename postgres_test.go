@@ -27,6 +27,10 @@ func (suite *PostgresTestSuite) SetupTest() {
 	assert.NotNil(suite.T(), suite.db)
 }
 
+func (suite *PostgresTestSuite) TestUUID() {
+	assert.Equal(suite.T(), "UUID", suite.db.Dialect().CompileType(UUID()))
+}
+
 func (suite *PostgresTestSuite) TestPostgres() {
 	type User struct {
 		ID          string         `db:"_id" qb:"type:uuid; constraints:primary_key"`

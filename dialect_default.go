@@ -7,6 +7,11 @@ type DefaultDialect struct {
 	escaping bool
 }
 
+// CompileType compiles a type into its DDL
+func (d *DefaultDialect) CompileType(t TypeElem) string {
+	return DefaultCompileType(t, d.SupportsUnsigned())
+}
+
 // Escape wraps the string with escape characters of the dialect
 func (d *DefaultDialect) Escape(str string) string {
 	if d.escaping {
@@ -42,7 +47,7 @@ func (d *DefaultDialect) Placeholders(values ...interface{}) []string {
 
 // AutoIncrement generates auto increment sql of current dialect
 func (d *DefaultDialect) AutoIncrement(column *ColumnElem) string {
-	colSpec := column.Type.String(d)
+	colSpec := d.CompileType(column.Type)
 	if column.Options.PrimaryKey {
 		colSpec += " PRIMARY KEY"
 	}

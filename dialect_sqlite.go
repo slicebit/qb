@@ -5,6 +5,14 @@ type SqliteDialect struct {
 	escaping bool
 }
 
+// CompileType compiles a type into its DDL
+func (d *SqliteDialect) CompileType(t TypeElem) string {
+	if t.Name == "UUID" {
+		return "VARCHAR(36)"
+	}
+	return DefaultCompileType(t, d.SupportsUnsigned())
+}
+
 // Escape wraps the string with escape characters of the dialect
 func (d *SqliteDialect) Escape(str string) string {
 	return str

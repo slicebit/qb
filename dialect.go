@@ -17,6 +17,7 @@ func NewDialect(driver string) Dialect {
 // Dialect is the common interface for driver changes
 // It is for fixing compatibility issues of different drivers
 type Dialect interface {
+	CompileType(t TypeElem) string
 	Escape(str string) string
 	EscapeAll([]string) []string
 	SetEscaping(escaping bool)
