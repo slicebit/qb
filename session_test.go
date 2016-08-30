@@ -148,10 +148,11 @@ func TestSessionWrappings(t *testing.T) {
 
 	selAggAvgSum := qb.
 		Query(Avg(users.C("score")), Sum(users.C("score"))).
+		From(users).
 		GroupBy(users.C("id")).
 		Statement()
 
-	assert.Equal(t, "SELECT AVG(score), SUM(score)\nFROM \nGROUP BY id;", selAggAvgSum.SQL())
+	assert.Equal(t, "SELECT AVG(score), SUM(score)\nFROM users\nGROUP BY id;", selAggAvgSum.SQL())
 	assert.Equal(t, []interface{}{}, selAggAvgSum.Bindings())
 
 	assert.Panics(t, func() {

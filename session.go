@@ -172,7 +172,7 @@ func (s *Session) Find(model interface{}) *Session {
 	table := s.mapper.ModelName(model)
 	modelMap := s.mapper.ToMap(model, true)
 
-	cols := []SQLClause{}
+	cols := []Clause{}
 	for k := range modelMap {
 		cols = append(cols, s.T(table).C(k))
 	}
@@ -210,7 +210,7 @@ func (s *Session) Statement() *Stmt {
 }
 
 // Query starts a select statement given columns
-func (s *Session) Query(clauses ...SQLClause) *Session {
+func (s *Session) Query(clauses ...Clause) *Session {
 	if len(clauses) == 0 {
 		panic(fmt.Errorf("You must enter one or more column or aggregate paramater(s)"))
 	} else {
@@ -229,7 +229,7 @@ func (s *Session) Query(clauses ...SQLClause) *Session {
 }
 
 // isCol returns if the clause is ColumnElem type
-func (s *Session) isCol(clause SQLClause) bool {
+func (s *Session) isCol(clause Clause) bool {
 	switch clause.(type) {
 	case ColumnElem:
 		return true
@@ -323,7 +323,7 @@ func (s *Session) GroupBy(cols ...ColumnElem) *Session {
 }
 
 // Having wraps the select's Having
-func (s *Session) Having(aggregate AggregateSQLClause, op string, value interface{}) *Session {
+func (s *Session) Having(aggregate AggregateClause, op string, value interface{}) *Session {
 	if !s.isSelect() {
 		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Having()"))
 	}

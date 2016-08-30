@@ -63,10 +63,8 @@ func (c ColumnElem) String(dialect Dialect) string {
 	return res
 }
 
-// Build compiles the column element and returns sql, bindings
-// It satisfies the SQLClause interface
-func (c ColumnElem) Build(dialect Dialect) (string, []interface{}) {
-	return dialect.Escape(c.Name), []interface{}{}
+func (c ColumnElem) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitColumn(context, c)
 }
 
 // constraints setters

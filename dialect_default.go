@@ -65,3 +65,7 @@ func (d *DefaultDialect) SupportsUnsigned() bool { return false }
 func (d *DefaultDialect) Driver() string {
 	return ""
 }
+
+func (d *DefaultDialect) GetCompiler() Compiler {
+	return SQLCompiler{d}
+}

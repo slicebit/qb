@@ -1,5 +1,9 @@
 package qb
 
+type Clause interface {
+	Accept(context *CompilerContext) string
+}
+
 // Compiles is the standard interface for any compilable sql clause
 // Compiling means to post process any sql clauses if needed such as escaping, putting placeholders, etc.
 type Compiles interface {
