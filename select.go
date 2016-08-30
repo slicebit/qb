@@ -6,24 +6,24 @@ import (
 )
 
 // Select generates a select statement and returns it
-func Select(clauses ...Clause) SelectStmt {
+func Select(clauses ...SQLClause) SelectStmt {
 	return SelectStmt{
 		sel:     clauses,
-		joins:   []JoinClause{},
+		joins:   []JoinSQLClause{},
 		groupBy: []ColumnElem{},
-		having:  []HavingClause{},
+		having:  []HavingSQLClause{},
 	}
 }
 
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
-	sel     []Clause
+	sel     []SQLClause
 	from    TableElem
-	joins   []JoinClause
+	joins   []JoinSQLClause
 	groupBy []ColumnElem
-	orderBy *OrderByClause
-	having  []HavingClause
-	where   *WhereClause
+	orderBy *OrderBySQLClause
+	having  []HavingSQLClause
+	where   *WhereSQLClause
 	offset  *int
 	count   *int
 }
@@ -35,7 +35,7 @@ func (s SelectStmt) From(table TableElem) SelectStmt {
 }
 
 // Where sets the where clause of select statement
-func (s SelectStmt) Where(clause Clause) SelectStmt {
+func (s SelectStmt) Where(clause SQLClause) SelectStmt {
 	where := Where(clause)
 	s.where = &where
 	return s
@@ -69,11 +69,11 @@ func (s SelectStmt) RightJoin(table TableElem, fromCol ColumnElem, col ColumnEle
 	return s
 }
 
-// OrderBy generates an OrderByClause and sets select statement's orderbyclause
+// OrderBy generates an OrderBySQLClause and sets select statement's orderbyclause
 // OrderBy(usersTable.C("id")).Asc()
 // OrderBy(usersTable.C("email")).Desc()
 func (s SelectStmt) OrderBy(columns ...ColumnElem) SelectStmt {
-	s.orderBy = &OrderByClause{columns, "ASC"}
+	s.orderBy = &OrderBySQLClause{columns, "ASC"}
 	return s
 }
 
@@ -98,8 +98,8 @@ func (s SelectStmt) GroupBy(cols ...ColumnElem) SelectStmt {
 }
 
 // Having appends a having clause to select statement
-func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface{}) SelectStmt {
-	s.having = append(s.having, HavingClause{aggregate, op, value})
+func (s SelectStmt) Having(aggregate AggregateSQLClause, op string, value interface{}) SelectStmt {
+	s.having = append(s.having, HavingSQLClause{aggregate, op, value})
 	return s
 }
 
@@ -127,21 +127,21 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 		}
 
 	}
-	statement.AddClause(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
+	statement.AddSQLClause(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
 
 	// from
-	statement.AddClause(fmt.Sprintf("FROM %s", dialect.Escape(s.from.Name)))
+	statement.AddSQLClause(fmt.Sprintf("FROM %s", dialect.Escape(s.from.Name)))
 
 	// joins
 	for _, j := range s.joins {
 		sql, _ := j.Build(dialect)
-		statement.AddClause(sql)
+		statement.AddSQLClause(sql)
 	}
 
 	// where
 	if s.where != nil {
 		where, bindings := s.where.Build(dialect)
-		statement.AddClause(where)
+		statement.AddSQLClause(where)
 		statement.AddBinding(bindings...)
 	}
 
@@ -151,31 +151,31 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 		groupByCols = append(groupByCols, dialect.Escape(c.Name))
 	}
 	if len(groupByCols) > 0 {
-		statement.AddClause(fmt.Sprintf("GROUP BY %s", strings.Join(groupByCols, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("GROUP BY %s", strings.Join(groupByCols, ", ")))
 	}
 
 	// having
 	for _, h := range s.having {
 		sql, bindings := h.Build(dialect)
-		statement.AddClause(sql)
+		statement.AddSQLClause(sql)
 		statement.AddBinding(bindings...)
 	}
 
 	// order by
 	if s.orderBy != nil {
 		sql, _ := s.orderBy.Build(dialect)
-		statement.AddClause(sql)
+		statement.AddSQLClause(sql)
 	}
 
 	if (s.offset != nil) && (s.count != nil) {
-		statement.AddClause(fmt.Sprintf("LIMIT %d OFFSET %d", *s.count, *s.offset))
+		statement.AddSQLClause(fmt.Sprintf("LIMIT %d OFFSET %d", *s.count, *s.offset))
 	}
 
 	return statement
 }
 
-func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnElem, col ColumnElem) JoinClause {
-	return JoinClause{
+func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnElem, col ColumnElem) JoinSQLClause {
+	return JoinSQLClause{
 		joinType,
 		fromTable,
 		table,
@@ -184,9 +184,9 @@ func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnE
 	}
 }
 
-// JoinClause is the base struct for generating join clauses when using select
-// It satisfies Clause interface
-type JoinClause struct {
+// JoinSQLClause is the base struct for generating join clauses when using select
+// It satisfies SQLClause interface
+type JoinSQLClause struct {
 	joinType  string
 	fromTable TableElem
 	table     TableElem
@@ -194,8 +194,8 @@ type JoinClause struct {
 	col       ColumnElem
 }
 
-// Build generates join sql & bindings out of JoinClause struct
-func (c JoinClause) Build(dialect Dialect) (string, []interface{}) {
+// Build generates join sql & bindings out of JoinSQLClause struct
+func (c JoinSQLClause) Build(dialect Dialect) (string, []interface{}) {
 
 	if (c.fromCol.Name == "") && (c.col.Name == "") {
 		return fmt.Sprintf(
@@ -216,15 +216,15 @@ func (c JoinClause) Build(dialect Dialect) (string, []interface{}) {
 	), []interface{}{}
 }
 
-// OrderByClause is the base struct for generating order by clauses when using select
-// It satisfies Clause interface
-type OrderByClause struct {
+// OrderBySQLClause is the base struct for generating order by clauses when using select
+// It satisfies SQLClause interface
+type OrderBySQLClause struct {
 	columns []ColumnElem
 	t       string
 }
 
 // Build generates an order by clause
-func (c OrderByClause) Build(dialect Dialect) (string, []interface{}) {
+func (c OrderBySQLClause) Build(dialect Dialect) (string, []interface{}) {
 	cols := []string{}
 	for _, c := range c.columns {
 		cols = append(cols, dialect.Escape(c.Name))
@@ -233,16 +233,16 @@ func (c OrderByClause) Build(dialect Dialect) (string, []interface{}) {
 	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), c.t), []interface{}{}
 }
 
-// HavingClause is the base struct for generating having clauses when using select
-// It satisfies Clause interface
-type HavingClause struct {
-	aggregate AggregateClause
+// HavingSQLClause is the base struct for generating having clauses when using select
+// It satisfies SQLClause interface
+type HavingSQLClause struct {
+	aggregate AggregateSQLClause
 	op        string
 	value     interface{}
 }
 
-// Build generates having sql & bindings out of HavingClause struct
-func (c HavingClause) Build(dialect Dialect) (string, []interface{}) {
+// Build generates having sql & bindings out of HavingSQLClause struct
+func (c HavingSQLClause) Build(dialect Dialect) (string, []interface{}) {
 	aggSQL, bindings := c.aggregate.Build(dialect)
 	bindings = append(bindings, c.value)
 	return fmt.Sprintf("HAVING %s %s %s", aggSQL, c.op, dialect.Placeholder()), bindings

@@ -17,13 +17,13 @@ func Delete(table TableElem) DeleteStmt {
 // DeleteStmt is the base struct for building delete queries
 type DeleteStmt struct {
 	table     TableElem
-	where     *WhereClause
+	where     *WhereSQLClause
 	returning []ColumnElem
 }
 
 // Where adds a where clause to the current delete statement
-func (s DeleteStmt) Where(clause Clause) DeleteStmt {
-	s.where = &WhereClause{clause}
+func (s DeleteStmt) Where(clause SQLClause) DeleteStmt {
+	s.where = &WhereSQLClause{clause}
 	return s
 }
 
@@ -39,10 +39,10 @@ func (s DeleteStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
 	statement := Statement()
-	statement.AddClause(fmt.Sprintf("DELETE FROM %s", dialect.Escape(s.table.Name)))
+	statement.AddSQLClause(fmt.Sprintf("DELETE FROM %s", dialect.Escape(s.table.Name)))
 	if s.where != nil {
 		where, whereBindings := s.where.Build(dialect)
-		statement.AddClause(where)
+		statement.AddSQLClause(where)
 		statement.AddBinding(whereBindings...)
 	}
 
@@ -52,7 +52,7 @@ func (s DeleteStmt) Build(dialect Dialect) *Stmt {
 	}
 
 	if len(returning) > 0 {
-		statement.AddClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
 	}
 
 	return statement

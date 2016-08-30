@@ -31,7 +31,7 @@ func New(driver string, dsn string) (*Session, error) {
 // Session is the composition of engine connection & orm mappings
 type Session struct {
 	builder    Builder
-	filters    []Clause
+	filters    []SQLClause
 	statements []*Stmt
 	engine     *Engine
 	mapper     MapperElem
@@ -114,7 +114,7 @@ func (s *Session) Delete(model interface{}) {
 	tableName := s.mapper.ModelName(model)
 
 	d := Delete(s.metadata.Table(tableName))
-	conditions := []Clause{}
+	conditions := []SQLClause{}
 	for k, v := range kv {
 		conditions = append(conditions, Eq(s.metadata.Table(tableName).C(k), v))
 	}
@@ -172,12 +172,12 @@ func (s *Session) Find(model interface{}) *Session {
 	table := s.mapper.ModelName(model)
 	modelMap := s.mapper.ToMap(model, true)
 
-	cols := []Clause{}
+	cols := []SQLClause{}
 	for k := range modelMap {
 		cols = append(cols, s.T(table).C(k))
 	}
 
-	ands := []Clause{}
+	ands := []SQLClause{}
 
 	for k := range modelMap {
 		if modelMap[k] == nil {
@@ -204,13 +204,13 @@ func (s *Session) Statement() *Stmt {
 	}
 
 	statement := s.builder.Build(s.dialect)
-	s.filters = []Clause{}
+	s.filters = []SQLClause{}
 	s.builder = nil
 	return statement
 }
 
 // Query starts a select statement given columns
-func (s *Session) Query(clauses ...Clause) *Session {
+func (s *Session) Query(clauses ...SQLClause) *Session {
 	if len(clauses) == 0 {
 		panic(fmt.Errorf("You must enter one or more column or aggregate paramater(s)"))
 	} else {
@@ -229,7 +229,7 @@ func (s *Session) Query(clauses ...Clause) *Session {
 }
 
 // isCol returns if the clause is ColumnElem type
-func (s *Session) isCol(clause Clause) bool {
+func (s *Session) isCol(clause SQLClause) bool {
 	switch clause.(type) {
 	case ColumnElem:
 		return true
@@ -249,9 +249,9 @@ func (s *Session) isSelect() bool {
 }
 
 // Filter appends a filter to the current select statement
-// NOTE: It currently only builds AndClause within the filters
+// NOTE: It currently only builds AndSQLClause within the filters
 // TODO: Add OR able filters
-func (s *Session) Filter(conditional Clause) *Session {
+func (s *Session) Filter(conditional SQLClause) *Session {
 	if !s.isSelect() {
 		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Filter()"))
 	}
@@ -323,7 +323,7 @@ func (s *Session) GroupBy(cols ...ColumnElem) *Session {
 }
 
 // Having wraps the select's Having
-func (s *Session) Having(aggregate AggregateClause, op string, value interface{}) *Session {
+func (s *Session) Having(aggregate AggregateSQLClause, op string, value interface{}) *Session {
 	if !s.isSelect() {
 		panic(fmt.Errorf("Please use Query(cols ...ColumnElem) before calling Having()"))
 	}
