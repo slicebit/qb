@@ -23,6 +23,7 @@ func RegisterDialect(name string, factory DialectFactory) {
 // Dialect is the common interface for driver changes
 // It is for fixing compatibility issues of different drivers
 type Dialect interface {
+	GetCompiler() Compiler
 	CompileType(t TypeElem) string
 	Escape(str string) string
 	EscapeAll([]string) []string

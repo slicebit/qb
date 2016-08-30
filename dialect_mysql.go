@@ -77,3 +77,7 @@ func (d *MysqlDialect) SupportsUnsigned() bool { return true }
 func (d *MysqlDialect) Driver() string {
 	return "mysql"
 }
+
+func (d *MysqlDialect) GetCompiler() Compiler {
+	return SQLCompiler{d}
+}

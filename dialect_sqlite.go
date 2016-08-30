@@ -68,3 +68,7 @@ func (d *SqliteDialect) SupportsUnsigned() bool { return false }
 func (d *SqliteDialect) Driver() string {
 	return "sqlite3"
 }
+
+func (d *SqliteDialect) GetCompiler() Compiler {
+	return SQLCompiler{d}
+}

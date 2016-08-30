@@ -6,7 +6,7 @@ import (
 )
 
 // Select generates a select statement and returns it
-func Select(clauses ...SQLClause) SelectStmt {
+func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
 		sel:     clauses,
 		joins:   []JoinSQLClause{},
@@ -17,7 +17,7 @@ func Select(clauses ...SQLClause) SelectStmt {
 
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
-	sel     []SQLClause
+	sel     []Clause
 	from    TableElem
 	joins   []JoinSQLClause
 	groupBy []ColumnElem
@@ -98,7 +98,7 @@ func (s SelectStmt) GroupBy(cols ...ColumnElem) SelectStmt {
 }
 
 // Having appends a having clause to select statement
-func (s SelectStmt) Having(aggregate AggregateSQLClause, op string, value interface{}) SelectStmt {
+func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface{}) SelectStmt {
 	s.having = append(s.having, HavingSQLClause{aggregate, op, value})
 	return s
 }
@@ -114,18 +114,18 @@ func (s SelectStmt) Limit(offset int, count int) SelectStmt {
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
+	context := NewCompilerContext(dialect.GetCompiler())
 	statement := Statement()
+
+	if len(s.joins) == 0 {
+		context.DefaultTableName = s.from.Name
+	}
 
 	// select
 	columns := []string{}
 	for _, c := range s.sel {
-		sql, _ := c.Build(dialect)
-		if len(s.joins) > 0 {
-			columns = append(columns, fmt.Sprintf("%s.%s", dialect.Escape(s.from.Name), sql))
-		} else {
-			columns = append(columns, sql)
-		}
-
+		sql := c.Accept(context)
+		columns = append(columns, sql)
 	}
 	statement.AddSQLClause(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
 
@@ -236,7 +236,7 @@ func (c OrderBySQLClause) Build(dialect Dialect) (string, []interface{}) {
 // HavingSQLClause is the base struct for generating having clauses when using select
 // It satisfies SQLClause interface
 type HavingSQLClause struct {
-	aggregate AggregateSQLClause
+	aggregate AggregateClause
 	op        string
 	value     interface{}
 }

@@ -82,3 +82,7 @@ func (d *PostgresDialect) SupportsUnsigned() bool { return false }
 func (d *PostgresDialect) Driver() string {
 	return "postgres"
 }
+
+func (d *PostgresDialect) GetCompiler() Compiler {
+	return SQLCompiler{d}
+}

@@ -73,8 +73,8 @@ type TableElem struct {
 }
 
 // All returns all columns of table as a column slice
-func (t TableElem) All() []SQLClause {
-	cols := []SQLClause{}
+func (t TableElem) All() []Clause {
+	cols := []Clause{}
 	for _, v := range t.Columns {
 		cols = append(cols, v)
 	}
@@ -180,6 +180,6 @@ func (t TableElem) Upsert() UpsertStmt {
 }
 
 // Select starts a select statement by setting from table
-func (t TableElem) Select(clauses ...SQLClause) SelectStmt {
+func (t TableElem) Select(clauses ...Clause) SelectStmt {
 	return Select(clauses...).From(t)
 }
