@@ -22,7 +22,7 @@ type UpdateStmt struct {
 	table     TableElem
 	values    map[string]interface{}
 	returning []ColumnElem
-	where     *WhereClause
+	where     *WhereSQLClause
 }
 
 // Build generates a statement out of UpdateStmt object
@@ -30,7 +30,7 @@ func (s UpdateStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
 	statement := Statement()
-	statement.AddClause(fmt.Sprintf("UPDATE %s", dialect.Escape(s.table.Name)))
+	statement.AddSQLClause(fmt.Sprintf("UPDATE %s", dialect.Escape(s.table.Name)))
 	sets := []string{}
 	bindings := []interface{}{}
 	for k, v := range s.values {
@@ -39,13 +39,13 @@ func (s UpdateStmt) Build(dialect Dialect) *Stmt {
 	}
 
 	if len(sets) > 0 {
-		statement.AddClause(fmt.Sprintf("SET %s", strings.Join(sets, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("SET %s", strings.Join(sets, ", ")))
 	}
 
 	if s.where != nil {
 		where, whereBindings := s.where.Build(dialect)
 		bindings = append(bindings, whereBindings...)
-		statement.AddClause(where)
+		statement.AddSQLClause(where)
 	}
 
 	returning := []string{}
@@ -54,7 +54,7 @@ func (s UpdateStmt) Build(dialect Dialect) *Stmt {
 	}
 
 	if len(returning) > 0 {
-		statement.AddClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
 	}
 
 	statement.AddBinding(bindings...)
@@ -80,7 +80,7 @@ func (s UpdateStmt) Returning(cols ...ColumnElem) UpdateStmt {
 }
 
 // Where adds a where clause to update statement and returns the update statement
-func (s UpdateStmt) Where(clause Clause) UpdateStmt {
-	s.where = &WhereClause{clause}
+func (s UpdateStmt) Where(clause SQLClause) UpdateStmt {
+	s.where = &WhereSQLClause{clause}
 	return s
 }

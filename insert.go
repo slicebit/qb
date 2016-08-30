@@ -51,15 +51,15 @@ func (s InsertStmt) Build(dialect Dialect) *Stmt {
 		statement.AddBinding(v)
 		values = append(values, dialect.Placeholder())
 	}
-	statement.AddClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
-	statement.AddClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
+	statement.AddSQLClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
+	statement.AddSQLClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
 
 	returning := []string{}
 	for _, r := range s.returning {
 		returning = append(returning, dialect.Escape(r.Name))
 	}
 	if len(s.returning) > 0 {
-		statement.AddClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
 	}
 	return statement
 }

@@ -63,9 +63,9 @@ func (s UpsertStmt) Build(dialect Dialect) *Stmt {
 			updates = append(updates, fmt.Sprintf("%s = %s", dialect.Escape(k), dialect.Placeholder()))
 			statement.AddBinding(v)
 		}
-		statement.AddClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
-		statement.AddClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
-		statement.AddClause(fmt.Sprintf("ON DUPLICATE KEY UPDATE %s", strings.Join(updates, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("ON DUPLICATE KEY UPDATE %s", strings.Join(updates, ", ")))
 		break
 	case "postgres":
 		updates := []string{}
@@ -73,24 +73,24 @@ func (s UpsertStmt) Build(dialect Dialect) *Stmt {
 			updates = append(updates, fmt.Sprintf("%s = %s", dialect.Escape(k), dialect.Placeholder()))
 			statement.AddBinding(v)
 		}
-		statement.AddClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
-		statement.AddClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
 		uniqueCols := []string{}
 		for _, c := range s.table.PrimaryCols() {
 			uniqueCols = append(uniqueCols, dialect.Escape(c.Name))
 		}
-		statement.AddClause(fmt.Sprintf("ON CONFLICT (%s) DO UPDATE SET %s", strings.Join(uniqueCols, ", "), strings.Join(updates, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("ON CONFLICT (%s) DO UPDATE SET %s", strings.Join(uniqueCols, ", "), strings.Join(updates, ", ")))
 		returning := []string{}
 		for _, r := range s.returning {
 			returning = append(returning, dialect.Escape(r.Name))
 		}
 		if len(s.returning) > 0 {
-			statement.AddClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
+			statement.AddSQLClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
 		}
 		break
 	case "sqlite3":
-		statement.AddClause(fmt.Sprintf("REPLACE INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
-		statement.AddClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("REPLACE INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
+		statement.AddSQLClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
 		break
 	}
 	return statement

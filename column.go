@@ -43,7 +43,7 @@ func (c ColumnElem) PrimaryKey() ColumnElem {
 }
 
 // String returns the column element as an sql clause
-// It satisfies the TableClause interface
+// It satisfies the TableSQLClause interface
 func (c ColumnElem) String(dialect Dialect) string {
 	colSpec := ""
 	if c.Options.AutoIncrement {
@@ -64,7 +64,7 @@ func (c ColumnElem) String(dialect Dialect) string {
 }
 
 // Build compiles the column element and returns sql, bindings
-// It satisfies the Clause interface
+// It satisfies the SQLClause interface
 func (c ColumnElem) Build(dialect Dialect) (string, []interface{}) {
 	return dialect.Escape(c.Name), []interface{}{}
 }
@@ -105,46 +105,46 @@ func (c ColumnElem) Constraint(name string) ColumnElem {
 // conditional wrappers
 
 // Like wraps the Like(col ColumnElem, pattern string)
-func (c ColumnElem) Like(pattern string) Clause {
+func (c ColumnElem) Like(pattern string) SQLClause {
 	return Like(c, pattern)
 }
 
 // NotIn wraps the NotIn(col ColumnElem, values ...interface{})
-func (c ColumnElem) NotIn(values ...interface{}) Clause {
+func (c ColumnElem) NotIn(values ...interface{}) SQLClause {
 	return NotIn(c, values...)
 }
 
 // In wraps the In(col ColumnElem, values ...interface{})
-func (c ColumnElem) In(values ...interface{}) Clause {
+func (c ColumnElem) In(values ...interface{}) SQLClause {
 	return In(c, values...)
 }
 
 // NotEq wraps the NotEq(col ColumnElem, value interface{})
-func (c ColumnElem) NotEq(value interface{}) Clause {
+func (c ColumnElem) NotEq(value interface{}) SQLClause {
 	return NotEq(c, value)
 }
 
 // Eq wraps the Eq(col ColumnElem, value interface{})
-func (c ColumnElem) Eq(value interface{}) Clause {
+func (c ColumnElem) Eq(value interface{}) SQLClause {
 	return Eq(c, value)
 }
 
 // Gt wraps the Gt(col ColumnElem, value interface{})
-func (c ColumnElem) Gt(value interface{}) Clause {
+func (c ColumnElem) Gt(value interface{}) SQLClause {
 	return Gt(c, value)
 }
 
 // Lt wraps the Lt(col ColumnElem, value interface{})
-func (c ColumnElem) Lt(value interface{}) Clause {
+func (c ColumnElem) Lt(value interface{}) SQLClause {
 	return Lt(c, value)
 }
 
 // Gte wraps the Gte(col ColumnElem, value interface{})
-func (c ColumnElem) Gte(value interface{}) Clause {
+func (c ColumnElem) Gte(value interface{}) SQLClause {
 	return Gte(c, value)
 }
 
 // Lte wraps the Lte(col ColumnElem, value interface{})
-func (c ColumnElem) Lte(value interface{}) Clause {
+func (c ColumnElem) Lte(value interface{}) SQLClause {
 	return Lte(c, value)
 }

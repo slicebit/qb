@@ -6,7 +6,7 @@ import (
 )
 
 // Table generates table struct given name and clauses
-func Table(name string, clauses ...TableClause) TableElem {
+func Table(name string, clauses ...TableSQLClause) TableElem {
 	table := TableElem{
 		Name:                  name,
 		Columns:               map[string]ColumnElem{},
@@ -73,8 +73,8 @@ type TableElem struct {
 }
 
 // All returns all columns of table as a column slice
-func (t TableElem) All() []Clause {
-	cols := []Clause{}
+func (t TableElem) All() []SQLClause {
+	cols := []SQLClause{}
 	for _, v := range t.Columns {
 		cols = append(cols, v)
 	}
@@ -90,7 +90,7 @@ func (t TableElem) Index(cols ...string) TableElem {
 // Create generates create table syntax and returns it as a query struct
 func (t TableElem) Create(dialect Dialect) string {
 	statement := Statement()
-	statement.AddClause(fmt.Sprintf("CREATE TABLE %s (", dialect.Escape(t.Name)))
+	statement.AddSQLClause(fmt.Sprintf("CREATE TABLE %s (", dialect.Escape(t.Name)))
 
 	colClauses := []string{}
 	for _, col := range t.Columns {
@@ -109,16 +109,16 @@ func (t TableElem) Create(dialect Dialect) string {
 		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.UniqueKeyConstraint.String(dialect)))
 	}
 
-	statement.AddClause(strings.Join(colClauses, ",\n"))
+	statement.AddSQLClause(strings.Join(colClauses, ",\n"))
 
-	statement.AddClause(")")
+	statement.AddSQLClause(")")
 
 	ddl := statement.SQL()
 
 	indexSqls := []string{}
 	for _, index := range t.Indices {
-		iClause := index.String(dialect)
-		indexSqls = append(indexSqls, iClause)
+		iSQLClause := index.String(dialect)
+		indexSqls = append(indexSqls, iSQLClause)
 	}
 
 	sqls := []string{ddl}
@@ -131,7 +131,7 @@ func (t TableElem) Create(dialect Dialect) string {
 func (t TableElem) Build(dialect Dialect) *Stmt {
 	sql := t.Create(dialect)
 	statement := Statement()
-	statement.AddClause(strings.Trim(sql, ";")) // TODO: Remove this ugly hack
+	statement.AddSQLClause(strings.Trim(sql, ";")) // TODO: Remove this ugly hack
 	return statement
 }
 
@@ -148,7 +148,7 @@ func (t TableElem) PrimaryCols() []ColumnElem {
 // Drop generates drop table syntax and returns it as a query struct
 func (t TableElem) Drop(dialect Dialect) string {
 	stmt := Statement()
-	stmt.AddClause(fmt.Sprintf("DROP TABLE %s", dialect.Escape(t.Name)))
+	stmt.AddSQLClause(fmt.Sprintf("DROP TABLE %s", dialect.Escape(t.Name)))
 	return stmt.SQL()
 }
 
@@ -180,6 +180,6 @@ func (t TableElem) Upsert() UpsertStmt {
 }
 
 // Select starts a select statement by setting from table
-func (t TableElem) Select(clauses ...Clause) SelectStmt {
+func (t TableElem) Select(clauses ...SQLClause) SelectStmt {
 	return Select(clauses...).From(t)
 }
