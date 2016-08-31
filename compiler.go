@@ -30,6 +30,7 @@ type Compiler interface {
 	VisitCondition(*CompilerContext, Conditional) string
 	VisitDelete(*CompilerContext, DeleteStmt) string
 	VisitHaving(*CompilerContext, HavingClause) string
+	VisitInsert(*CompilerContext, InsertStmt) string
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
 	VisitOrderBy(*CompilerContext, OrderByClause) string
@@ -108,6 +109,42 @@ func (c SQLCompiler) VisitHaving(context *CompilerContext, having HavingClause) 
 	aggSQL := having.aggregate.Accept(context)
 	context.Binds = append(context.Binds, having.value)
 	return fmt.Sprintf("HAVING %s %s %s", aggSQL, having.op, context.Dialect.Placeholder())
+}
+
+func (c SQLCompiler) VisitInsert(context *CompilerContext, insert InsertStmt) string {
+	var (
+		colNames     []string
+		placeholders []string
+	)
+
+	context.DefaultTableName = insert.table.Name
+	defer func() { context.DefaultTableName = "" }()
+
+	for k, v := range insert.values {
+		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
+		placeholders = append(placeholders, context.Dialect.Placeholder())
+		context.Binds = append(context.Binds, v)
+	}
+
+	sql := fmt.Sprintf(
+		"INSERT INTO %s(%s)\nVALUES(%s)",
+		context.Compiler.VisitLabel(context, insert.table.Name),
+		strings.Join(colNames, ", "),
+		strings.Join(placeholders, ", "),
+	)
+
+	returning := []string{}
+	for _, r := range insert.returning {
+		returning = append(returning, r.Accept(context))
+	}
+	if len(insert.returning) > 0 {
+		sql += fmt.Sprintf(
+			"\nRETURNING %s",
+			strings.Join(returning, ", "),
+		)
+	}
+
+	return sql
 }
 
 func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string {
