@@ -22,6 +22,8 @@ type CompilerContext struct {
 type Compiler interface {
 	VisitAggregate(*CompilerContext, AggregateClause) string
 	VisitColumn(*CompilerContext, ColumnElem) string
+	VisitJoin(*CompilerContext, JoinClause) string
+	VisitLabel(*CompilerContext, string) string
 }
 
 type SQLCompiler struct {
@@ -39,4 +41,21 @@ func (c SQLCompiler) VisitColumn(context *CompilerContext, column ColumnElem) st
 	}
 	sql += c.Dialect.Escape(column.Name)
 	return sql
+}
+
+func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string {
+	sql := fmt.Sprintf(
+		"%s %s",
+		join.joinType,
+		context.Compiler.VisitLabel(context, join.table.Name),
+	)
+	if (join.fromCol.Name != "") || (join.col.Name != "") {
+		sql += " ON " + join.fromCol.Accept(context) + " = " + join.col.Accept(context)
+	}
+
+	return sql
+}
+
+func (c SQLCompiler) VisitLabel(context *CompilerContext, label string) string {
+	return c.Dialect.Escape(label)
 }

@@ -9,7 +9,7 @@ import (
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
 		sel:     clauses,
-		joins:   []JoinSQLClause{},
+		joins:   []JoinClause{},
 		groupBy: []ColumnElem{},
 		having:  []HavingSQLClause{},
 	}
@@ -19,7 +19,7 @@ func Select(clauses ...Clause) SelectStmt {
 type SelectStmt struct {
 	sel     []Clause
 	from    TableElem
-	joins   []JoinSQLClause
+	joins   []JoinClause
 	groupBy []ColumnElem
 	orderBy *OrderBySQLClause
 	having  []HavingSQLClause
@@ -134,7 +134,7 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 
 	// joins
 	for _, j := range s.joins {
-		sql, _ := j.Build(dialect)
+		sql := j.Accept(context)
 		statement.AddSQLClause(sql)
 	}
 
@@ -174,8 +174,8 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	return statement
 }
 
-func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnElem, col ColumnElem) JoinSQLClause {
-	return JoinSQLClause{
+func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnElem, col ColumnElem) JoinClause {
+	return JoinClause{
 		joinType,
 		fromTable,
 		table,
@@ -184,9 +184,9 @@ func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnE
 	}
 }
 
-// JoinSQLClause is the base struct for generating join clauses when using select
+// JoinClause is the base struct for generating join clauses when using select
 // It satisfies SQLClause interface
-type JoinSQLClause struct {
+type JoinClause struct {
 	joinType  string
 	fromTable TableElem
 	table     TableElem
@@ -194,26 +194,8 @@ type JoinSQLClause struct {
 	col       ColumnElem
 }
 
-// Build generates join sql & bindings out of JoinSQLClause struct
-func (c JoinSQLClause) Build(dialect Dialect) (string, []interface{}) {
-
-	if (c.fromCol.Name == "") && (c.col.Name == "") {
-		return fmt.Sprintf(
-			"%s %s",
-			c.joinType,
-			dialect.Escape(c.table.Name),
-		), []interface{}{}
-	}
-
-	return fmt.Sprintf(
-		"%s %s ON %s.%s = %s.%s",
-		c.joinType,
-		dialect.Escape(c.table.Name),
-		dialect.Escape(c.fromTable.Name),
-		dialect.Escape(c.fromCol.Name),
-		dialect.Escape(c.table.Name),
-		dialect.Escape(c.col.Name),
-	), []interface{}{}
+func (c JoinClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitJoin(context, c)
 }
 
 // OrderBySQLClause is the base struct for generating order by clauses when using select
