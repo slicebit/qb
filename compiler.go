@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
-func NewCompilerContext(compiler Compiler) *CompilerContext {
+func NewCompilerContext(dialect Dialect) *CompilerContext {
 	return &CompilerContext{
-		Compiler: compiler,
+		Dialect:  dialect,
+		Compiler: dialect.GetCompiler(),
 		Vars:     make(map[string]interface{}),
 	}
 }
@@ -17,12 +18,14 @@ type CompilerContext struct {
 	DefaultTableName string
 	Vars             map[string]interface{}
 
+	Dialect  Dialect
 	Compiler Compiler
 }
 
 type Compiler interface {
 	VisitAggregate(*CompilerContext, AggregateClause) string
 	VisitColumn(*CompilerContext, ColumnElem) string
+	VisitHaving(*CompilerContext, HavingClause) string
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
 	VisitOrderBy(*CompilerContext, OrderByClause) string
@@ -43,6 +46,12 @@ func (c SQLCompiler) VisitColumn(context *CompilerContext, column ColumnElem) st
 	}
 	sql += c.Dialect.Escape(column.Name)
 	return sql
+}
+
+func (c SQLCompiler) VisitHaving(context *CompilerContext, having HavingClause) string {
+	aggSQL := having.aggregate.Accept(context)
+	context.Binds = append(context.Binds, having.value)
+	return fmt.Sprintf("HAVING %s %s %s", aggSQL, having.op, context.Dialect.Placeholder())
 }
 
 func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string {

@@ -1,9 +1,5 @@
 package qb
 
-import (
-	"fmt"
-)
-
 // Avg function generates "avg(%s)" statement for column
 func Avg(column ColumnElem) AggregateClause {
 	return Aggregate("AVG", column)
@@ -42,11 +38,4 @@ type AggregateClause struct {
 
 func (c AggregateClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitAggregate(context, c)
-}
-
-// Build compiles the aggregate clause and returns the sql and bindings
-func (c AggregateClause) Build(dialect Dialect) (string, []interface{}) {
-	bindings := []interface{}{}
-	sql := fmt.Sprintf("%s(%s)", c.fn, dialect.Escape(c.column.Name))
-	return sql, bindings
 }
