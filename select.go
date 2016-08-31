@@ -11,7 +11,7 @@ func Select(clauses ...Clause) SelectStmt {
 		sel:     clauses,
 		joins:   []JoinClause{},
 		groupBy: []ColumnElem{},
-		having:  []HavingSQLClause{},
+		having:  []HavingClause{},
 	}
 }
 
@@ -22,7 +22,7 @@ type SelectStmt struct {
 	joins   []JoinClause
 	groupBy []ColumnElem
 	orderBy *OrderByClause
-	having  []HavingSQLClause
+	having  []HavingClause
 	where   *WhereSQLClause
 	offset  *int
 	count   *int
@@ -99,7 +99,7 @@ func (s SelectStmt) GroupBy(cols ...ColumnElem) SelectStmt {
 
 // Having appends a having clause to select statement
 func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface{}) SelectStmt {
-	s.having = append(s.having, HavingSQLClause{aggregate, op, value})
+	s.having = append(s.having, HavingClause{aggregate, op, value})
 	return s
 }
 
@@ -114,7 +114,7 @@ func (s SelectStmt) Limit(offset int, count int) SelectStmt {
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
-	context := NewCompilerContext(dialect.GetCompiler())
+	context := NewCompilerContext(dialect)
 	statement := Statement()
 
 	if len(s.joins) == 0 {
@@ -156,10 +156,10 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 
 	// having
 	for _, h := range s.having {
-		sql, bindings := h.Build(dialect)
+		sql := h.Accept(context)
 		statement.AddSQLClause(sql)
-		statement.AddBinding(bindings...)
 	}
+	statement.AddBinding(context.Binds...)
 
 	// order by
 	if s.orderBy != nil {
@@ -210,17 +210,15 @@ func (c OrderByClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitOrderBy(context, c)
 }
 
-// HavingSQLClause is the base struct for generating having clauses when using select
+// HavingClause is the base struct for generating having clauses when using select
 // It satisfies SQLClause interface
-type HavingSQLClause struct {
+type HavingClause struct {
 	aggregate AggregateClause
 	op        string
 	value     interface{}
 }
 
-// Build generates having sql & bindings out of HavingSQLClause struct
-func (c HavingSQLClause) Build(dialect Dialect) (string, []interface{}) {
-	aggSQL, bindings := c.aggregate.Build(dialect)
-	bindings = append(bindings, c.value)
-	return fmt.Sprintf("HAVING %s %s %s", aggSQL, c.op, dialect.Placeholder()), bindings
+// Accept generates having sql & bindings out of HavingClause struct
+func (c HavingClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitHaving(context, c)
 }
