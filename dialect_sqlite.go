@@ -1,5 +1,10 @@
 package qb
 
+import (
+	"fmt"
+	"strings"
+)
+
 // SqliteDialect is a type of dialect that can be used with sqlite driver
 type SqliteDialect struct {
 	escaping bool
@@ -70,5 +75,31 @@ func (d *SqliteDialect) Driver() string {
 }
 
 func (d *SqliteDialect) GetCompiler() Compiler {
-	return SQLCompiler{d}
+	return SqliteCompiler{SQLCompiler{d}}
+}
+
+type SqliteCompiler struct {
+	SQLCompiler
+}
+
+// VisitUpsert generates the folowing sql: REPLACE INTO ... VALUES ...
+func (SqliteCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+	var (
+		colNames []string
+		values   []string
+	)
+	for k, v := range upsert.values {
+		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
+		context.Binds = append(context.Binds, v)
+		values = append(values, context.Dialect.Placeholder())
+	}
+
+	sql := fmt.Sprintf(
+		"REPLACE INTO %s(%s)\nVALUES(%s)",
+		context.Compiler.VisitLabel(context, upsert.table.Name),
+		strings.Join(colNames, ", "),
+		strings.Join(values, ", "),
+	)
+
+	return sql
 }

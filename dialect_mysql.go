@@ -1,6 +1,9 @@
 package qb
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // MysqlDialect is a type of dialect that can be used with mysql driver
 type MysqlDialect struct {
@@ -79,5 +82,42 @@ func (d *MysqlDialect) Driver() string {
 }
 
 func (d *MysqlDialect) GetCompiler() Compiler {
-	return SQLCompiler{d}
+	return MysqlCompiler{SQLCompiler{d}}
+}
+
+type MysqlCompiler struct {
+	SQLCompiler
+}
+
+// VisitUpsert generates INSERT INTO ... VALUES ... ON DUPLICATE KEY UPDATE ...
+func (MysqlCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+	var (
+		colNames []string
+		values   []string
+	)
+	for k, v := range upsert.values {
+		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
+		context.Binds = append(context.Binds, v)
+		values = append(values, context.Dialect.Placeholder())
+	}
+
+	updates := []string{}
+	for k, v := range upsert.values {
+		updates = append(updates, fmt.Sprintf(
+			"%s = %s",
+			context.Dialect.Escape(k),
+			context.Dialect.Placeholder(),
+		))
+		context.Binds = append(context.Binds, v)
+	}
+
+	sql := fmt.Sprintf(
+		"INSERT INTO %s(%s)\nVALUES(%s)\nON DUPLICATE KEY UPDATE %s",
+		context.Dialect.Escape(upsert.table.Name),
+		strings.Join(colNames, ", "),
+		strings.Join(values, ", "),
+		strings.Join(updates, ", "),
+	)
+
+	return sql
 }

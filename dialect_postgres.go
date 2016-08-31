@@ -1,6 +1,9 @@
 package qb
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // PostgresDialect is a type of dialect that can be used with postgres driver
 type PostgresDialect struct {
@@ -84,5 +87,56 @@ func (d *PostgresDialect) Driver() string {
 }
 
 func (d *PostgresDialect) GetCompiler() Compiler {
-	return SQLCompiler{d}
+	return PostgresCompiler{SQLCompiler{d}}
+}
+
+type PostgresCompiler struct {
+	SQLCompiler
+}
+
+// VisitUpsert generates INSERT INTO ... VALUES ... ON CONFLICT(...) DO UPDATE SET ...
+func (PostgresCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+	var (
+		colNames []string
+		values   []string
+	)
+	for k, v := range upsert.values {
+		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
+		context.Binds = append(context.Binds, v)
+		values = append(values, context.Dialect.Placeholder())
+	}
+
+	var updates []string
+	for k, v := range upsert.values {
+		updates = append(updates, fmt.Sprintf(
+			"%s = %s",
+			context.Dialect.Escape(k),
+			context.Dialect.Placeholder()))
+		context.Binds = append(context.Binds, v)
+	}
+
+	var uniqueCols []string
+	for _, c := range upsert.table.PrimaryCols() {
+		uniqueCols = append(uniqueCols, context.Compiler.VisitLabel(context, c.Name))
+	}
+
+	sql := fmt.Sprintf(
+		"INSERT INTO %s(%s)\nVALUES(%s)\nON CONFLICT (%s) DO UPDATE SET %s",
+		context.Compiler.VisitLabel(context, upsert.table.Name),
+		strings.Join(colNames, ", "),
+		strings.Join(values, ", "),
+		strings.Join(uniqueCols, ", "),
+		strings.Join(updates, ", "))
+
+	var returning []string
+	for _, r := range upsert.returning {
+		returning = append(returning, context.Compiler.VisitLabel(context, r.Name))
+	}
+	if len(upsert.returning) > 0 {
+		sql += fmt.Sprintf(
+			"RETURNING %s",
+			strings.Join(returning, ", "),
+		)
+	}
+	return sql
 }

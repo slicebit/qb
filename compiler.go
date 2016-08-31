@@ -36,6 +36,7 @@ type Compiler interface {
 	VisitOrderBy(*CompilerContext, OrderByClause) string
 	VisitSelect(*CompilerContext, SelectStmt) string
 	VisitUpdate(*CompilerContext, UpdateStmt) string
+	VisitUpsert(*CompilerContext, UpsertStmt) string
 	VisitWhere(*CompilerContext, WhereClause) string
 }
 
@@ -263,6 +264,10 @@ func (c SQLCompiler) VisitUpdate(context *CompilerContext, update UpdateStmt) st
 	}
 
 	return sql
+}
+
+func (c SQLCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+	panic("Upsert is not Implemented in this compiler")
 }
 
 func (c SQLCompiler) VisitWhere(context *CompilerContext, where WhereClause) string {
