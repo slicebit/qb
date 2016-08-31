@@ -1,10 +1,5 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
-
 // Insert generates an insert statement and returns it
 // Insert(usersTable).Values(map[string]interface{}{"id": 1})
 func Insert(table TableElem) InsertStmt {
@@ -39,27 +34,19 @@ func (s InsertStmt) Returning(cols ...ColumnElem) InsertStmt {
 	return s
 }
 
+// Accept implements Clause.Accept
+func (s InsertStmt) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitInsert(context, s)
+}
+
 // Build generates a statement out of InsertStmt object
 func (s InsertStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
 	statement := Statement()
-	colNames := []string{}
-	values := []string{}
-	for k, v := range s.values {
-		colNames = append(colNames, dialect.Escape(k))
-		statement.AddBinding(v)
-		values = append(values, dialect.Placeholder())
-	}
-	statement.AddSQLClause(fmt.Sprintf("INSERT INTO %s(%s)", dialect.Escape(s.table.Name), strings.Join(colNames, ", ")))
-	statement.AddSQLClause(fmt.Sprintf("VALUES(%s)", strings.Join(values, ", ")))
+	context := NewCompilerContext(dialect)
+	statement.AddSQLClause(s.Accept(context))
+	statement.AddBinding(context.Binds...)
 
-	returning := []string{}
-	for _, r := range s.returning {
-		returning = append(returning, dialect.Escape(r.Name))
-	}
-	if len(s.returning) > 0 {
-		statement.AddSQLClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
-	}
 	return statement
 }
