@@ -1,23 +1,9 @@
 package qb
 
+// Clause is the base interface of all clauses that will get
+// compiled to SQL by Compiler
 type Clause interface {
 	Accept(context *CompilerContext) string
-}
-
-// Compiles is the standard interface for any compilable sql clause
-// Compiling means to post process any sql clauses if needed such as escaping, putting placeholders, etc.
-type Compiles interface {
-	// Build is the key function of any sql clause
-	// It returns sql as string and bindings as []interface{}
-	Build(dialect Dialect) (string, []interface{})
-}
-
-// SQLClause is the key interface for any sql clause
-type SQLClause interface {
-	Compiles
-	// String returns the dialect agnostic sql clause and bindings.
-	// It returns variable name as placeholders instead of $n or ?.
-	//String() (string, []interface{})
 }
 
 // TableSQLClause is the common interface for ddl generators such as Column(), PrimaryKey(), ForeignKey().Ref(), etc.
