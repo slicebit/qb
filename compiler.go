@@ -27,6 +27,7 @@ type Compiler interface {
 	VisitColumn(*CompilerContext, ColumnElem) string
 	VisitCombiner(*CompilerContext, CombinerClause) string
 	VisitCondition(*CompilerContext, Conditional) string
+	VisitDelete(*CompilerContext, DeleteStmt) string
 	VisitHaving(*CompilerContext, HavingClause) string
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
@@ -79,6 +80,26 @@ func (c SQLCompiler) VisitCondition(context *CompilerContext, condition Conditio
 		sql = fmt.Sprintf("%s %s %s", key, condition.Op, context.Dialect.Placeholder())
 		context.Binds = append(context.Binds, condition.Values...)
 	}
+	return sql
+}
+
+func (c SQLCompiler) VisitDelete(context *CompilerContext, delete DeleteStmt) string {
+	sql := "DELETE FROM "
+	sql += context.Compiler.VisitLabel(context, delete.table.Name)
+
+	if delete.where != nil {
+		sql += "\n" + delete.where.Accept(context)
+	}
+
+	returning := []string{}
+	for _, c := range delete.returning {
+		returning = append(returning, context.Dialect.Escape(c.Name))
+	}
+
+	if len(returning) > 0 {
+		sql += "\nRETURNING " + strings.Join(returning, ", ")
+	}
+
 	return sql
 }
 
