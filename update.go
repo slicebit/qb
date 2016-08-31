@@ -22,12 +22,14 @@ type UpdateStmt struct {
 	table     TableElem
 	values    map[string]interface{}
 	returning []ColumnElem
-	where     *WhereSQLClause
+	where     *WhereClause
 }
 
 // Build generates a statement out of UpdateStmt object
 func (s UpdateStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
+
+	context := NewCompilerContext(dialect)
 
 	statement := Statement()
 	statement.AddSQLClause(fmt.Sprintf("UPDATE %s", dialect.Escape(s.table.Name)))
@@ -43,10 +45,10 @@ func (s UpdateStmt) Build(dialect Dialect) *Stmt {
 	}
 
 	if s.where != nil {
-		where, whereBindings := s.where.Build(dialect)
-		bindings = append(bindings, whereBindings...)
+		where := s.where.Accept(context)
 		statement.AddSQLClause(where)
 	}
+	bindings = append(bindings, context.Binds...)
 
 	returning := []string{}
 	for _, c := range s.returning {
@@ -80,7 +82,7 @@ func (s UpdateStmt) Returning(cols ...ColumnElem) UpdateStmt {
 }
 
 // Where adds a where clause to update statement and returns the update statement
-func (s UpdateStmt) Where(clause SQLClause) UpdateStmt {
-	s.where = &WhereSQLClause{clause}
+func (s UpdateStmt) Where(clause Clause) UpdateStmt {
+	s.where = &WhereClause{clause}
 	return s
 }

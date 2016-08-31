@@ -22,34 +22,39 @@ func TestCombiners(t *testing.T) {
 	or := Or(Eq(email, "al@pacino.com"), NotEq(id, 1))
 
 	var sql string
-	var bindings []interface{}
-	sql, bindings = and.Build(sqlite)
+	ctx := NewCompilerContext(sqlite)
+	sql = and.Accept(ctx)
 
 	assert.Equal(t, "(email = ? AND id != ?)", sql)
-	assert.Equal(t, []interface{}{"al@pacino.com", 1}, bindings)
+	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
-	sql, bindings = and.Build(mysql)
+	ctx = NewCompilerContext(mysql)
+	sql = and.Accept(ctx)
 
 	assert.Equal(t, "(`email` = ? AND `id` != ?)", sql)
-	assert.Equal(t, []interface{}{"al@pacino.com", 1}, bindings)
+	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
-	sql, bindings = and.Build(postgres)
+	ctx = NewCompilerContext(postgres)
+	sql = and.Accept(ctx)
 
 	assert.Equal(t, "(\"email\" = $1 AND \"id\" != $2)", sql)
-	assert.Equal(t, []interface{}{"al@pacino.com", 1}, bindings)
+	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
-	sql, bindings = or.Build(sqlite)
+	ctx = NewCompilerContext(sqlite)
+	sql = or.Accept(ctx)
 
 	assert.Equal(t, "(email = ? OR id != ?)", sql)
-	assert.Equal(t, []interface{}{"al@pacino.com", 1}, bindings)
+	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
-	sql, bindings = or.Build(mysql)
+	ctx = NewCompilerContext(mysql)
+	sql = or.Accept(ctx)
 
 	assert.Equal(t, "(`email` = ? OR `id` != ?)", sql)
-	assert.Equal(t, []interface{}{"al@pacino.com", 1}, bindings)
+	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
-	sql, bindings = or.Build(postgres)
+	ctx = NewCompilerContext(postgres)
+	sql = or.Accept(ctx)
 
 	assert.Equal(t, "(\"email\" = $3 OR \"id\" != $4)", sql)
-	assert.Equal(t, []interface{}{"al@pacino.com", 1}, bindings)
+	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 }

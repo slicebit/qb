@@ -23,7 +23,7 @@ type SelectStmt struct {
 	groupBy []ColumnElem
 	orderBy *OrderByClause
 	having  []HavingClause
-	where   *WhereSQLClause
+	where   *WhereClause
 	offset  *int
 	count   *int
 }
@@ -35,7 +35,7 @@ func (s SelectStmt) From(table TableElem) SelectStmt {
 }
 
 // Where sets the where clause of select statement
-func (s SelectStmt) Where(clause SQLClause) SelectStmt {
+func (s SelectStmt) Where(clause Clause) SelectStmt {
 	where := Where(clause)
 	s.where = &where
 	return s
@@ -140,9 +140,8 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 
 	// where
 	if s.where != nil {
-		where, bindings := s.where.Build(dialect)
+		where := s.where.Accept(context)
 		statement.AddSQLClause(where)
-		statement.AddBinding(bindings...)
 	}
 
 	// group by

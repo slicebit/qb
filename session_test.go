@@ -133,7 +133,7 @@ func TestSessionWrappings(t *testing.T) {
 		Filter(users.C("name").Like("%Robert%")).
 		Statement()
 
-	assert.Equal(t, "SELECT id, name\nFROM users\nWHERE (users.name LIKE '%Robert%');", selLike.SQL())
+	assert.Equal(t, "SELECT id, name\nFROM users\nWHERE (name LIKE '%Robert%');", selLike.SQL())
 	assert.Equal(t, []interface{}{}, selLike.Bindings())
 
 	selAggCountMinMax := qb.

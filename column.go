@@ -103,46 +103,46 @@ func (c ColumnElem) Constraint(name string) ColumnElem {
 // conditional wrappers
 
 // Like wraps the Like(col ColumnElem, pattern string)
-func (c ColumnElem) Like(pattern string) SQLClause {
+func (c ColumnElem) Like(pattern string) Clause {
 	return Like(c, pattern)
 }
 
 // NotIn wraps the NotIn(col ColumnElem, values ...interface{})
-func (c ColumnElem) NotIn(values ...interface{}) SQLClause {
+func (c ColumnElem) NotIn(values ...interface{}) Clause {
 	return NotIn(c, values...)
 }
 
 // In wraps the In(col ColumnElem, values ...interface{})
-func (c ColumnElem) In(values ...interface{}) SQLClause {
+func (c ColumnElem) In(values ...interface{}) Clause {
 	return In(c, values...)
 }
 
 // NotEq wraps the NotEq(col ColumnElem, value interface{})
-func (c ColumnElem) NotEq(value interface{}) SQLClause {
+func (c ColumnElem) NotEq(value interface{}) Clause {
 	return NotEq(c, value)
 }
 
 // Eq wraps the Eq(col ColumnElem, value interface{})
-func (c ColumnElem) Eq(value interface{}) SQLClause {
+func (c ColumnElem) Eq(value interface{}) Clause {
 	return Eq(c, value)
 }
 
 // Gt wraps the Gt(col ColumnElem, value interface{})
-func (c ColumnElem) Gt(value interface{}) SQLClause {
+func (c ColumnElem) Gt(value interface{}) Clause {
 	return Gt(c, value)
 }
 
 // Lt wraps the Lt(col ColumnElem, value interface{})
-func (c ColumnElem) Lt(value interface{}) SQLClause {
+func (c ColumnElem) Lt(value interface{}) Clause {
 	return Lt(c, value)
 }
 
 // Gte wraps the Gte(col ColumnElem, value interface{})
-func (c ColumnElem) Gte(value interface{}) SQLClause {
+func (c ColumnElem) Gte(value interface{}) Clause {
 	return Gte(c, value)
 }
 
 // Lte wraps the Lte(col ColumnElem, value interface{})
-func (c ColumnElem) Lte(value interface{}) SQLClause {
+func (c ColumnElem) Lte(value interface{}) Clause {
 	return Lte(c, value)
 }
