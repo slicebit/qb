@@ -32,6 +32,7 @@ type Compiler interface {
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
 	VisitOrderBy(*CompilerContext, OrderByClause) string
+	VisitSelect(*CompilerContext, SelectStmt) string
 	VisitWhere(*CompilerContext, WhereClause) string
 }
 
@@ -112,6 +113,64 @@ func (c SQLCompiler) VisitOrderBy(context *CompilerContext, orderBy OrderByClaus
 	}
 
 	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), orderBy.t)
+}
+
+func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) string {
+	lines := []string{}
+	addLine := func(s string) {
+		lines = append(lines, s)
+	}
+	if len(select_.joins) == 0 {
+		context.DefaultTableName = select_.from.Name
+	}
+
+	// select
+	columns := []string{}
+	for _, c := range select_.sel {
+		sql := c.Accept(context)
+		columns = append(columns, sql)
+	}
+	addLine(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
+
+	// from
+	addLine(fmt.Sprintf("FROM %s", context.Dialect.Escape(select_.from.Name)))
+
+	// joins
+	for _, j := range select_.joins {
+		addLine(j.Accept(context))
+	}
+
+	// where
+	if select_.where != nil {
+		addLine(select_.where.Accept(context))
+	}
+
+	// group by
+	groupByCols := []string{}
+	for _, c := range select_.groupBy {
+		groupByCols = append(groupByCols, context.Dialect.Escape(c.Name))
+	}
+	if len(groupByCols) > 0 {
+		addLine(fmt.Sprintf("GROUP BY %s", strings.Join(groupByCols, ", ")))
+	}
+
+	// having
+	for _, h := range select_.having {
+		sql := h.Accept(context)
+		addLine(sql)
+	}
+
+	// order by
+	if select_.orderBy != nil {
+		sql := select_.orderBy.Accept(context)
+		addLine(sql)
+	}
+
+	if (select_.offset != nil) && (select_.count != nil) {
+		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *select_.count, *select_.offset))
+	}
+
+	return strings.Join(lines, "\n")
 }
 
 func (c SQLCompiler) VisitWhere(context *CompilerContext, where WhereClause) string {

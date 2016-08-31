@@ -1,10 +1,5 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
-
 // Select generates a select statement and returns it
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
@@ -116,59 +111,8 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 
 	context := NewCompilerContext(dialect)
 	statement := Statement()
-
-	if len(s.joins) == 0 {
-		context.DefaultTableName = s.from.Name
-	}
-
-	// select
-	columns := []string{}
-	for _, c := range s.sel {
-		sql := c.Accept(context)
-		columns = append(columns, sql)
-	}
-	statement.AddSQLClause(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
-
-	// from
-	statement.AddSQLClause(fmt.Sprintf("FROM %s", dialect.Escape(s.from.Name)))
-
-	// joins
-	for _, j := range s.joins {
-		sql := j.Accept(context)
-		statement.AddSQLClause(sql)
-	}
-
-	// where
-	if s.where != nil {
-		where := s.where.Accept(context)
-		statement.AddSQLClause(where)
-	}
-
-	// group by
-	groupByCols := []string{}
-	for _, c := range s.groupBy {
-		groupByCols = append(groupByCols, dialect.Escape(c.Name))
-	}
-	if len(groupByCols) > 0 {
-		statement.AddSQLClause(fmt.Sprintf("GROUP BY %s", strings.Join(groupByCols, ", ")))
-	}
-
-	// having
-	for _, h := range s.having {
-		sql := h.Accept(context)
-		statement.AddSQLClause(sql)
-	}
+	statement.AddSQLClause(context.Compiler.VisitSelect(context, s))
 	statement.AddBinding(context.Binds...)
-
-	// order by
-	if s.orderBy != nil {
-		sql := s.orderBy.Accept(context)
-		statement.AddSQLClause(sql)
-	}
-
-	if (s.offset != nil) && (s.count != nil) {
-		statement.AddSQLClause(fmt.Sprintf("LIMIT %d OFFSET %d", *s.count, *s.offset))
-	}
 
 	return statement
 }
