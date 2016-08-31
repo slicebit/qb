@@ -21,7 +21,7 @@ type SelectStmt struct {
 	from    TableElem
 	joins   []JoinClause
 	groupBy []ColumnElem
-	orderBy *OrderBySQLClause
+	orderBy *OrderByClause
 	having  []HavingSQLClause
 	where   *WhereSQLClause
 	offset  *int
@@ -69,11 +69,11 @@ func (s SelectStmt) RightJoin(table TableElem, fromCol ColumnElem, col ColumnEle
 	return s
 }
 
-// OrderBy generates an OrderBySQLClause and sets select statement's orderbyclause
+// OrderBy generates an OrderByClause and sets select statement's orderbyclause
 // OrderBy(usersTable.C("id")).Asc()
 // OrderBy(usersTable.C("email")).Desc()
 func (s SelectStmt) OrderBy(columns ...ColumnElem) SelectStmt {
-	s.orderBy = &OrderBySQLClause{columns, "ASC"}
+	s.orderBy = &OrderByClause{columns, "ASC"}
 	return s
 }
 
@@ -163,7 +163,7 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 
 	// order by
 	if s.orderBy != nil {
-		sql, _ := s.orderBy.Build(dialect)
+		sql := s.orderBy.Accept(context)
 		statement.AddSQLClause(sql)
 	}
 
@@ -185,7 +185,7 @@ func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnE
 }
 
 // JoinClause is the base struct for generating join clauses when using select
-// It satisfies SQLClause interface
+// It satisfies Clause interface
 type JoinClause struct {
 	joinType  string
 	fromTable TableElem
@@ -198,21 +198,16 @@ func (c JoinClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitJoin(context, c)
 }
 
-// OrderBySQLClause is the base struct for generating order by clauses when using select
+// OrderByClause is the base struct for generating order by clauses when using select
 // It satisfies SQLClause interface
-type OrderBySQLClause struct {
+type OrderByClause struct {
 	columns []ColumnElem
 	t       string
 }
 
-// Build generates an order by clause
-func (c OrderBySQLClause) Build(dialect Dialect) (string, []interface{}) {
-	cols := []string{}
-	for _, c := range c.columns {
-		cols = append(cols, dialect.Escape(c.Name))
-	}
-
-	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), c.t), []interface{}{}
+// Accept generates an order by clause
+func (c OrderByClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitOrderBy(context, c)
 }
 
 // HavingSQLClause is the base struct for generating having clauses when using select
