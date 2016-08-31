@@ -2,6 +2,7 @@ package qb
 
 import (
 	"fmt"
+	"strings"
 )
 
 func NewCompilerContext(compiler Compiler) *CompilerContext {
@@ -24,6 +25,7 @@ type Compiler interface {
 	VisitColumn(*CompilerContext, ColumnElem) string
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
+	VisitOrderBy(*CompilerContext, OrderByClause) string
 }
 
 type SQLCompiler struct {
@@ -58,4 +60,13 @@ func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string
 
 func (c SQLCompiler) VisitLabel(context *CompilerContext, label string) string {
 	return c.Dialect.Escape(label)
+}
+
+func (c SQLCompiler) VisitOrderBy(context *CompilerContext, orderBy OrderByClause) string {
+	cols := []string{}
+	for _, c := range orderBy.columns {
+		cols = append(cols, c.Accept(context))
+	}
+
+	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), orderBy.t)
 }
