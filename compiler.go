@@ -34,6 +34,7 @@ type Compiler interface {
 	VisitLabel(*CompilerContext, string) string
 	VisitOrderBy(*CompilerContext, OrderByClause) string
 	VisitSelect(*CompilerContext, SelectStmt) string
+	VisitUpdate(*CompilerContext, UpdateStmt) string
 	VisitWhere(*CompilerContext, WhereClause) string
 }
 
@@ -228,6 +229,39 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+func (c SQLCompiler) VisitUpdate(context *CompilerContext, update UpdateStmt) string {
+	sql := "UPDATE " + context.Compiler.VisitLabel(context, update.table.Name)
+
+	var sets []string
+	for k, v := range update.values {
+		sets = append(sets, fmt.Sprintf(
+			"%s = %s",
+			context.Compiler.VisitLabel(context, k),
+			context.Dialect.Placeholder(),
+		))
+		context.Binds = append(context.Binds, v)
+	}
+
+	if len(sets) > 0 {
+		sql += "\nSET " + strings.Join(sets, ", ")
+	}
+
+	if update.where != nil {
+		sql += "\n" + update.where.Accept(context)
+	}
+
+	returning := []string{}
+	for _, c := range update.returning {
+		returning = append(returning, context.Dialect.Escape(c.Name))
+	}
+
+	if len(returning) > 0 {
+		sql += "\nRETURNING " + strings.Join(returning, ", ")
+	}
+
+	return sql
 }
 
 func (c SQLCompiler) VisitWhere(context *CompilerContext, where WhereClause) string {
