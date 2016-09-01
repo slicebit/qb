@@ -176,3 +176,8 @@ func (t TableElem) Upsert() UpsertStmt {
 func (t TableElem) Select(clauses ...Clause) SelectStmt {
 	return Select(clauses...).From(t)
 }
+
+// Accept implements Clause.Accept
+func (t TableElem) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitTable(context, t)
+}
