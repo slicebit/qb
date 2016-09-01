@@ -153,10 +153,10 @@ func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string
 	sql := fmt.Sprintf(
 		"%s %s",
 		join.joinType,
-		context.Compiler.VisitLabel(context, join.table.Name),
+		join.right.Accept(context),
 	)
-	if (join.fromCol.Name != "") || (join.col.Name != "") {
-		sql += " ON " + join.fromCol.Accept(context) + " = " + join.col.Accept(context)
+	if (join.leftCol.Name != "") || (join.rightCol.Name != "") {
+		sql += " ON " + join.leftCol.Accept(context) + " = " + join.rightCol.Accept(context)
 	}
 
 	return sql
@@ -181,7 +181,7 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 		lines = append(lines, s)
 	}
 	if len(select_.joins) == 0 {
-		context.DefaultTableName = select_.from.Name
+		context.DefaultTableName = select_.from.DefaultName()
 	}
 
 	// select
