@@ -86,9 +86,9 @@ func (c ColumnElem) Gt(value interface{}) Clause {
 	return Gt(c, value)
 }
 
-// St wraps the St(col ColumnElem, value interface{})
-func (c ColumnElem) St(value interface{}) Clause {
-	return St(c, value)
+// Lt wraps the Lt(col ColumnElem, value interface{})
+func (c ColumnElem) Lt(value interface{}) Clause {
+	return Lt(c, value)
 }
 
 // Gte wraps the Gte(col ColumnElem, value interface{})
@@ -96,7 +96,7 @@ func (c ColumnElem) Gte(value interface{}) Clause {
 	return Gte(c, value)
 }
 
-// Ste wraps the Ste(col ColumnElem, value interface{})
-func (c ColumnElem) Ste(value interface{}) Clause {
-	return Ste(c, value)
+// Lte wraps the Lte(col ColumnElem, value interface{})
+func (c ColumnElem) Lte(value interface{}) Clause {
+	return Lte(c, value)
 }

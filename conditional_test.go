@@ -104,17 +104,17 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, "\"score\" > $9", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
-	st := St(score, 1500)
+	lt := Lt(score, 1500)
 
-	sql, bindings = st.Build(sqlite)
+	sql, bindings = lt.Build(sqlite)
 	assert.Equal(t, "score < ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
-	sql, bindings = st.Build(mysql)
+	sql, bindings = lt.Build(mysql)
 	assert.Equal(t, "`score` < ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
-	sql, bindings = st.Build(postgres)
+	sql, bindings = lt.Build(postgres)
 	assert.Equal(t, "\"score\" < $10", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
@@ -132,17 +132,17 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, "\"score\" >= $11", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
-	ste := Ste(score, 1500)
+	lte := Lte(score, 1500)
 
-	sql, bindings = ste.Build(sqlite)
+	sql, bindings = lte.Build(sqlite)
 	assert.Equal(t, "score <= ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
-	sql, bindings = ste.Build(mysql)
+	sql, bindings = lte.Build(mysql)
 	assert.Equal(t, "`score` <= ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
-	sql, bindings = ste.Build(postgres)
+	sql, bindings = lte.Build(postgres)
 	assert.Equal(t, "\"score\" <= $12", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
