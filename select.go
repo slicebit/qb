@@ -1,5 +1,13 @@
 package qb
 
+// Selectable is any clause from which we can select columns and is suitable
+// as a FROM clause element
+type Selectable interface {
+	Clause
+	C(column string) ColumnElem
+	DefaultName() string
+}
+
 // Select generates a select statement and returns it
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
@@ -13,7 +21,7 @@ func Select(clauses ...Clause) SelectStmt {
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
 	sel     []Clause
-	from    TableElem
+	from    Selectable
 	joins   []JoinClause
 	groupBy []ColumnElem
 	orderBy *OrderByClause
@@ -23,9 +31,9 @@ type SelectStmt struct {
 	count   *int
 }
 
-// From sets the from table of select statement
-func (s SelectStmt) From(table TableElem) SelectStmt {
-	s.from = table
+// From sets the from selectable of select statement
+func (s SelectStmt) From(selectable Selectable) SelectStmt {
+	s.from = selectable
 	return s
 }
 
@@ -37,29 +45,29 @@ func (s SelectStmt) Where(clause Clause) SelectStmt {
 }
 
 // InnerJoin appends an inner join clause to the select statement
-func (s SelectStmt) InnerJoin(table TableElem, fromCol ColumnElem, col ColumnElem) SelectStmt {
-	join := join("INNER JOIN", s.from, table, fromCol, col)
+func (s SelectStmt) InnerJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
+	join := join("INNER JOIN", s.from, right, leftCol, rightCol)
 	s.joins = append(s.joins, join)
 	return s
 }
 
 // CrossJoin appends an cross join clause to the select statement
-func (s SelectStmt) CrossJoin(table TableElem) SelectStmt {
-	join := join("CROSS JOIN", s.from, table, ColumnElem{}, ColumnElem{})
+func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
+	join := join("CROSS JOIN", s.from, right, ColumnElem{}, ColumnElem{})
 	s.joins = append(s.joins, join)
 	return s
 }
 
 // LeftJoin appends an left outer join clause to the select statement
-func (s SelectStmt) LeftJoin(table TableElem, fromCol ColumnElem, col ColumnElem) SelectStmt {
-	join := join("LEFT OUTER JOIN", s.from, table, fromCol, col)
+func (s SelectStmt) LeftJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
+	join := join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol)
 	s.joins = append(s.joins, join)
 	return s
 }
 
 // RightJoin appends a right outer join clause to select statement
-func (s SelectStmt) RightJoin(table TableElem, fromCol ColumnElem, col ColumnElem) SelectStmt {
-	join := join("RIGHT OUTER JOIN", s.from, table, fromCol, col)
+func (s SelectStmt) RightJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
+	join := join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol)
 	s.joins = append(s.joins, join)
 	return s
 }
@@ -117,24 +125,24 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	return statement
 }
 
-func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnElem, col ColumnElem) JoinClause {
+func join(joinType string, left Selectable, right Selectable, leftCol ColumnElem, rightCol ColumnElem) JoinClause {
 	return JoinClause{
 		joinType,
-		fromTable,
-		table,
-		fromCol,
-		col,
+		left,
+		right,
+		leftCol,
+		rightCol,
 	}
 }
 
 // JoinClause is the base struct for generating join clauses when using select
 // It satisfies Clause interface
 type JoinClause struct {
-	joinType  string
-	fromTable TableElem
-	table     TableElem
-	fromCol   ColumnElem
-	col       ColumnElem
+	joinType string
+	left     Selectable
+	right    Selectable
+	leftCol  ColumnElem
+	rightCol ColumnElem
 }
 
 func (c JoinClause) Accept(context *CompilerContext) string {

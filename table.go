@@ -65,6 +65,11 @@ type TableElem struct {
 	Indices               []IndexElem
 }
 
+// DefaultName returns the name of the table
+func (t TableElem) DefaultName() string {
+	return t.Name
+}
+
 // All returns all columns of table as a column slice
 func (t TableElem) All() []Clause {
 	cols := []Clause{}
