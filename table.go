@@ -79,6 +79,14 @@ func (t TableElem) All() []Clause {
 	return cols
 }
 
+func (t TableElem) ColumnList() []ColumnElem {
+	cols := []ColumnElem{}
+	for _, v := range t.Columns {
+		cols = append(cols, v)
+	}
+	return cols
+}
+
 // Index appends an IndexElem to current table without giving table name
 func (t TableElem) Index(cols ...string) TableElem {
 	t.Indices = append(t.Indices, Index(t.Name, cols...))
