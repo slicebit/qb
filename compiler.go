@@ -35,6 +35,7 @@ type Compiler interface {
 	VisitLabel(*CompilerContext, string) string
 	VisitOrderBy(*CompilerContext, OrderByClause) string
 	VisitSelect(*CompilerContext, SelectStmt) string
+	VisitTable(*CompilerContext, TableElem) string
 	VisitUpdate(*CompilerContext, UpdateStmt) string
 	VisitUpsert(*CompilerContext, UpsertStmt) string
 	VisitWhere(*CompilerContext, WhereClause) string
@@ -88,8 +89,7 @@ func (c SQLCompiler) VisitCondition(context *CompilerContext, condition Conditio
 }
 
 func (c SQLCompiler) VisitDelete(context *CompilerContext, delete DeleteStmt) string {
-	sql := "DELETE FROM "
-	sql += context.Compiler.VisitLabel(context, delete.table.Name)
+	sql := "DELETE FROM " + delete.table.Accept(context)
 
 	if delete.where != nil {
 		sql += "\n" + delete.where.Accept(context)
@@ -130,7 +130,7 @@ func (c SQLCompiler) VisitInsert(context *CompilerContext, insert InsertStmt) st
 
 	sql := fmt.Sprintf(
 		"INSERT INTO %s(%s)\nVALUES(%s)",
-		context.Compiler.VisitLabel(context, insert.table.Name),
+		insert.table.Accept(context),
 		strings.Join(colNames, ", "),
 		strings.Join(placeholders, ", "),
 	)
@@ -193,7 +193,7 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 	addLine(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
 
 	// from
-	addLine(fmt.Sprintf("FROM %s", context.Dialect.Escape(select_.from.Name)))
+	addLine(fmt.Sprintf("FROM %s", select_.from.Accept(context)))
 
 	// joins
 	for _, j := range select_.joins {
@@ -233,8 +233,12 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 	return strings.Join(lines, "\n")
 }
 
+func (SQLCompiler) VisitTable(context *CompilerContext, table TableElem) string {
+	return context.Compiler.VisitLabel(context, table.Name)
+}
+
 func (c SQLCompiler) VisitUpdate(context *CompilerContext, update UpdateStmt) string {
-	sql := "UPDATE " + context.Compiler.VisitLabel(context, update.table.Name)
+	sql := "UPDATE " + update.table.Accept(context)
 
 	var sets []string
 	for k, v := range update.values {
