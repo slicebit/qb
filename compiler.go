@@ -24,6 +24,7 @@ type CompilerContext struct {
 
 type Compiler interface {
 	VisitAggregate(*CompilerContext, AggregateClause) string
+	VisitAlias(*CompilerContext, AliasClause) string
 	VisitColumn(*CompilerContext, ColumnElem) string
 	VisitCombiner(*CompilerContext, CombinerClause) string
 	VisitCondition(*CompilerContext, Conditional) string
@@ -46,6 +47,14 @@ type SQLCompiler struct {
 
 func (c SQLCompiler) VisitAggregate(context *CompilerContext, aggregate AggregateClause) string {
 	return fmt.Sprintf("%s(%s)", aggregate.fn, aggregate.column.Accept(context))
+}
+
+func (SQLCompiler) VisitAlias(context *CompilerContext, alias AliasClause) string {
+	return fmt.Sprintf(
+		"%s AS %s",
+		alias.Selectable.Accept(context),
+		context.Dialect.Escape(alias.Name),
+	)
 }
 
 func (c SQLCompiler) VisitColumn(context *CompilerContext, column ColumnElem) string {

@@ -6,6 +6,7 @@ import "fmt"
 // as a FROM clause element
 type Selectable interface {
 	Clause
+	All() []Clause
 	ColumnList() []ColumnElem
 	C(column string) ColumnElem
 	DefaultName() string
@@ -142,6 +143,10 @@ func (c JoinClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitJoin(context, c)
 }
 
+func (c JoinClause) All() []Clause {
+	return append(c.left.All(), c.right.All()...)
+}
+
 func (c JoinClause) ColumnList() []ColumnElem {
 	return append(c.left.ColumnList(), c.right.ColumnList()...)
 }
@@ -182,4 +187,47 @@ type HavingClause struct {
 // Accept generates having sql & bindings out of HavingClause struct
 func (c HavingClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitHaving(context, c)
+}
+
+func Alias(name string, selectable Selectable) AliasClause {
+	return AliasClause{
+		Name:       name,
+		Selectable: selectable,
+	}
+}
+
+type AliasClause struct {
+	Name       string
+	Selectable Selectable
+}
+
+func (c AliasClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitAlias(context, c)
+}
+
+func (c AliasClause) C(name string) ColumnElem {
+	col := c.Selectable.C(name)
+	col.Table = c.Name
+	return col
+}
+
+func (c AliasClause) All() []Clause {
+	var clauses []Clause
+	for _, col := range c.ColumnList() {
+		clauses = append(clauses, col)
+	}
+	return clauses
+}
+
+func (c AliasClause) ColumnList() []ColumnElem {
+	var cols []ColumnElem
+	for _, col := range c.Selectable.ColumnList() {
+		col.Table = c.Name
+		cols = append(cols, col)
+	}
+	return cols
+}
+
+func (c AliasClause) DefaultName() string {
+	return c.Name
 }
