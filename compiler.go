@@ -151,7 +151,8 @@ func (c SQLCompiler) VisitInsert(context *CompilerContext, insert InsertStmt) st
 
 func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string {
 	sql := fmt.Sprintf(
-		"%s %s",
+		"%s\n%s %s",
+		join.left.Accept(context),
 		join.joinType,
 		join.right.Accept(context),
 	)
@@ -180,9 +181,7 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 	addLine := func(s string) {
 		lines = append(lines, s)
 	}
-	if len(select_.joins) == 0 {
-		context.DefaultTableName = select_.from.DefaultName()
-	}
+	context.DefaultTableName = select_.from.DefaultName()
 
 	// select
 	columns := []string{}
@@ -194,11 +193,6 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 
 	// from
 	addLine(fmt.Sprintf("FROM %s", select_.from.Accept(context)))
-
-	// joins
-	for _, j := range select_.joins {
-		addLine(j.Accept(context))
-	}
 
 	// where
 	if select_.where != nil {

@@ -1,9 +1,12 @@
 package qb
 
+import "fmt"
+
 // Selectable is any clause from which we can select columns and is suitable
 // as a FROM clause element
 type Selectable interface {
 	Clause
+	ColumnList() []ColumnElem
 	C(column string) ColumnElem
 	DefaultName() string
 }
@@ -12,7 +15,6 @@ type Selectable interface {
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
 		sel:     clauses,
-		joins:   []JoinClause{},
 		groupBy: []ColumnElem{},
 		having:  []HavingClause{},
 	}
@@ -22,7 +24,6 @@ func Select(clauses ...Clause) SelectStmt {
 type SelectStmt struct {
 	sel     []Clause
 	from    Selectable
-	joins   []JoinClause
 	groupBy []ColumnElem
 	orderBy *OrderByClause
 	having  []HavingClause
@@ -46,30 +47,22 @@ func (s SelectStmt) Where(clause Clause) SelectStmt {
 
 // InnerJoin appends an inner join clause to the select statement
 func (s SelectStmt) InnerJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	join := join("INNER JOIN", s.from, right, leftCol, rightCol)
-	s.joins = append(s.joins, join)
-	return s
+	return s.From(join("INNER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // CrossJoin appends an cross join clause to the select statement
 func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
-	join := join("CROSS JOIN", s.from, right, ColumnElem{}, ColumnElem{})
-	s.joins = append(s.joins, join)
-	return s
+	return s.From(join("CROSS JOIN", s.from, right, ColumnElem{}, ColumnElem{}))
 }
 
 // LeftJoin appends an left outer join clause to the select statement
 func (s SelectStmt) LeftJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	join := join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol)
-	s.joins = append(s.joins, join)
-	return s
+	return s.From(join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // RightJoin appends a right outer join clause to select statement
 func (s SelectStmt) RightJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	join := join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol)
-	s.joins = append(s.joins, join)
-	return s
+	return s.From(join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // OrderBy generates an OrderByClause and sets select statement's orderbyclause
@@ -147,6 +140,23 @@ type JoinClause struct {
 
 func (c JoinClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitJoin(context, c)
+}
+
+func (c JoinClause) ColumnList() []ColumnElem {
+	return append(c.left.ColumnList(), c.right.ColumnList()...)
+}
+
+func (c JoinClause) C(name string) ColumnElem {
+	for _, c := range c.ColumnList() {
+		if c.Name == name {
+			return c
+		}
+	}
+	panic(fmt.Sprintf("No such column '%s' in join %v", name, c))
+}
+
+func (c JoinClause) DefaultName() string {
+	return ""
 }
 
 // OrderByClause is the base struct for generating order by clauses when using select

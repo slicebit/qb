@@ -143,6 +143,9 @@ func (suite *SelectTestSuite) TestJoin() {
 		InnerJoin(suite.users, suite.sessions.C("user_id"), suite.users.C("id")).
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
+	assert.Equal(suite.T(), suite.sessions.C("user_id"), selInnerJoin.from.C("user_id"))
+	assert.Panics(suite.T(), func() { selInnerJoin.from.C("invalid") })
+
 	var statement *Stmt
 
 	statement = selInnerJoin.Build(suite.sqlite)
