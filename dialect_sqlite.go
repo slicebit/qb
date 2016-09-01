@@ -5,6 +5,16 @@ type SqliteDialect struct {
 	escaping bool
 }
 
+// NewSqliteDialect instanciate a SqliteDialect
+func NewSqliteDialect() Dialect {
+	return &SqliteDialect{false}
+}
+
+func init() {
+	RegisterDialect("sqlite3", NewSqliteDialect)
+	RegisterDialect("sqlite", NewSqliteDialect)
+}
+
 // CompileType compiles a type into its DDL
 func (d *SqliteDialect) CompileType(t TypeElem) string {
 	if t.Name == "UUID" {

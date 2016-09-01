@@ -7,6 +7,15 @@ type MysqlDialect struct {
 	escaping bool
 }
 
+// NewMysqlDialect returns a new MysqlDialect
+func NewMysqlDialect() Dialect {
+	return &MysqlDialect{false}
+}
+
+func init() {
+	RegisterDialect("mysql", NewMysqlDialect)
+}
+
 // CompileType compiles a type into its DDL
 func (d *MysqlDialect) CompileType(t TypeElem) string {
 	if t.Name == "UUID" {

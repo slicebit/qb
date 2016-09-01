@@ -2,16 +2,22 @@ package qb
 
 // NewDialect returns a dialect pointer given driver
 func NewDialect(driver string) Dialect {
-	switch driver {
-	case "postgres":
-		return &PostgresDialect{escaping: false, bindingIndex: 0}
-	case "mysql":
-		return &MysqlDialect{false}
-	case "sqlite3":
-		return &SqliteDialect{false}
-	default:
-		return &DefaultDialect{false}
+	factory, ok := DialectRegistry[driver]
+	if ok {
+		return factory()
 	}
+	return &DefaultDialect{false}
+}
+
+// A DialectFactory is a Dialect Factory
+type DialectFactory func() Dialect
+
+// Global registry of dialects
+var DialectRegistry = make(map[string]DialectFactory)
+
+// RegisterDialect add a new dialect to the registry
+func RegisterDialect(name string, factory DialectFactory) {
+	DialectRegistry[name] = factory
 }
 
 // Dialect is the common interface for driver changes
