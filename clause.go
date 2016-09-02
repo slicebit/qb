@@ -1,5 +1,6 @@
 package qb
 
+// Clause is the common interface of any SQL expression
 type Clause interface {
 	Accept(context *CompilerContext) string
 }
