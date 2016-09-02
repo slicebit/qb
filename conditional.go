@@ -37,8 +37,8 @@ func Gt(col ColumnElem, value interface{}) Conditional {
 	return Condition(col, ">", value)
 }
 
-// St generates a smaller than conditional sql clause
-func St(col ColumnElem, value interface{}) Conditional {
+// Lt generates a less than conditional sql clause
+func Lt(col ColumnElem, value interface{}) Conditional {
 	return Condition(col, "<", value)
 }
 
@@ -47,8 +47,8 @@ func Gte(col ColumnElem, value interface{}) Conditional {
 	return Condition(col, ">=", value)
 }
 
-// Ste generates a smaller than or equal to conditional sql clause
-func Ste(col ColumnElem, value interface{}) Conditional {
+// Lte generates a less than or equal to conditional sql clause
+func Lte(col ColumnElem, value interface{}) Conditional {
 	return Condition(col, "<=", value)
 }
 

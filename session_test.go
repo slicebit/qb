@@ -95,8 +95,8 @@ func TestSessionWrappings(t *testing.T) {
 		Limit(0, 20).
 		Filter(sessions.C("user_id").Eq("9efbc9ab-7914-426c-8818-7d40b0427c8f")).
 		Filter(sessions.C("user_id").NotEq("9efbc9ac-7914-426c-8818-7d40b0427c8f")).
-		Filter(sessions.C("created_at").Ste("2016-06-10")).
-		Filter(sessions.C("created_at").St("2016-06-10")).
+		Filter(sessions.C("created_at").Lte("2016-06-10")).
+		Filter(sessions.C("created_at").Lt("2016-06-10")).
 		Filter(sessions.C("created_at").Gte("2016-06-09")).
 		Filter(sessions.C("created_at").Gt("2016-06-09")).
 		Statement()
