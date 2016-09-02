@@ -18,7 +18,7 @@ func TestDelete(t *testing.T) {
 	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
-		Column("email", Varchar().Unique()),
+		Column("email", Varchar()).Unique(),
 	)
 
 	var statement *Stmt

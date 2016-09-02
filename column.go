@@ -1,24 +1,32 @@
 package qb
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Column generates a ColumnElem given name and type
 func Column(name string, t TypeElem) ColumnElem {
-	return ColumnElem{name, t, "", ColumnOptions{}}
+	return ColumnElem{
+		Name: name,
+		Type: t,
+	}
 }
 
 // ColumnOptions holds options for a column
 type ColumnOptions struct {
 	AutoIncrement bool
 	PrimaryKey    bool
+	Unique        bool
 }
 
 // ColumnElem is the definition of any columns defined in a table
 type ColumnElem struct {
-	Name    string
-	Type    TypeElem
-	Table   string // This field should be lazily set by Table() function
-	Options ColumnOptions
+	Name        string
+	Type        TypeElem
+	Table       string // This field should be lazily set by Table() function
+	Constraints []ConstraintElem
+	Options     ColumnOptions
 }
 
 // AutoIncrement set up “auto increment” semantics for an integer column.
@@ -43,6 +51,13 @@ func (c ColumnElem) String(dialect Dialect) string {
 	}
 	if colSpec == "" {
 		colSpec = dialect.CompileType(c.Type)
+		constraintNames := []string{}
+		for _, constraint := range c.Constraints {
+			constraintNames = append(constraintNames, constraint.String())
+		}
+		if len(constraintNames) != 0 {
+			colSpec = fmt.Sprintf("%s %s", colSpec, strings.Join(constraintNames, " "))
+		}
 	}
 	res := fmt.Sprintf("%s %s", dialect.Escape(c.Name), colSpec)
 	return res
@@ -51,7 +66,40 @@ func (c ColumnElem) String(dialect Dialect) string {
 // Build compiles the column element and returns sql, bindings
 // It satisfies the Clause interface
 func (c ColumnElem) Build(dialect Dialect) (string, []interface{}) {
-	return fmt.Sprintf("%s", dialect.Escape(c.Name)), []interface{}{}
+	return dialect.Escape(c.Name), []interface{}{}
+}
+
+// constraints setters
+
+// Default adds a default constraint to column type
+func (c ColumnElem) Default(def interface{}) ColumnElem {
+	c.Constraints = append(c.Constraints, Default(def))
+	return c
+}
+
+// Null adds null constraint to column type
+func (c ColumnElem) Null() ColumnElem {
+	c.Constraints = append(c.Constraints, Null())
+	return c
+}
+
+// NotNull adds not null constraint to column type
+func (c ColumnElem) NotNull() ColumnElem {
+	c.Constraints = append(c.Constraints, NotNull())
+	return c
+}
+
+// Unique adds a unique constraint to column type
+func (c ColumnElem) Unique() ColumnElem {
+	c.Constraints = append(c.Constraints, Unique())
+	c.Options.Unique = true
+	return c
+}
+
+// Constraint adds a custom constraint to column type
+func (c ColumnElem) Constraint(name string) ColumnElem {
+	c.Constraints = append(c.Constraints, Constraint(name))
+	return c
 }
 
 // conditional wrappers

@@ -19,7 +19,7 @@ func TestSessionCommitError(t *testing.T) {
 	assert.Nil(t, err)
 	users := Table(
 		"user",
-		Column("id", BigInt().NotNull()),
+		Column("id", BigInt()).NotNull(),
 	)
 	ins := Insert(users).Values(map[string]interface{}{}).Build(session.Dialect())
 	session.AddStatement(ins)
@@ -63,8 +63,8 @@ func TestSessionWrappings(t *testing.T) {
 	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
-		Column("name", Varchar().NotNull()),
-		Column("score", BigInt().Default(0)),
+		Column("name", Varchar()).NotNull(),
+		Column("score", BigInt()).Default(0),
 		PrimaryKey("id"),
 	)
 
@@ -72,7 +72,7 @@ func TestSessionWrappings(t *testing.T) {
 		"sessions",
 		Column("id", Varchar().Size(36)),
 		Column("user_id", Varchar().Size(36)),
-		Column("created_at", Timestamp().NotNull()),
+		Column("created_at", Timestamp()).NotNull(),
 		PrimaryKey("id"),
 		ForeignKey().Ref("user_id", "users", "id"),
 	)

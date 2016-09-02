@@ -29,7 +29,7 @@ func TestEngineExec(t *testing.T) {
 
 	usersTable := Table(
 		"users",
-		Column("full_name", Varchar().NotNull()),
+		Column("full_name", Varchar()).NotNull(),
 	)
 
 	ins := Insert(usersTable).
@@ -51,7 +51,7 @@ func TestEngineFail(t *testing.T) {
 
 	usersTable := Table(
 		"users",
-		Column("full_name", Varchar().NotNull()),
+		Column("full_name", Varchar()).NotNull(),
 	)
 
 	statement := Insert(usersTable).

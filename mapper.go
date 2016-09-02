@@ -145,20 +145,21 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 		}
 
 		colType := m.ToType(fmt.Sprintf("%T", f.Value()), tag.Type)
-		autoIncrement := false
+
+		col := Column(colName, colType)
 
 		// convert tag into constraints
 		for _, v := range tag.Constraints {
 			if v == "null" {
-				colType = colType.Null()
+				col = col.Null()
 			} else if v == "notnull" || v == "not_null" {
-				colType = colType.NotNull()
+				col = col.NotNull()
 			} else if v == "unique" {
-				colType = colType.Unique()
+				col = col.Unique()
 			} else if v == "auto_increment" || v == "autoincrement" {
-				autoIncrement = true
+				col = col.AutoIncrement()
 			} else if strings.Contains(v, "default") {
-				colType = colType.Default(m.extractValue(v))
+				col = col.Default(m.extractValue(v))
 			} else if strings.Contains(v, "primary_key") {
 				// TODO: Possible performance issue, fix this when possible, maybe table.AddPrimary option should be thought
 				pkDefined := false
@@ -213,10 +214,6 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			continue
 		}
 
-		col := Column(colName, colType)
-		if autoIncrement {
-			col = col.AutoIncrement()
-		}
 		colClauses = append(colClauses, col)
 	}
 

@@ -15,8 +15,8 @@ func TestCombiners(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
-	email := Column("email", Varchar().NotNull().Unique())
-	id := Column("id", Int().NotNull())
+	email := Column("email", Varchar()).NotNull().Unique()
+	id := Column("id", Int()).NotNull()
 
 	and := And(Eq(email, "al@pacino.com"), NotEq(id, 1))
 	or := Or(Eq(email, "al@pacino.com"), NotEq(id, 1))

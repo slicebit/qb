@@ -83,61 +83,50 @@ func Type(name string) TypeElem {
 
 // TypeElem is the struct for defining column types
 type TypeElem struct {
-	Name        string
-	constraints []ConstraintElem
-	size        int
-	precision   []int
-	unsigned    bool
-	unique      bool
+	Name      string
+	size      int
+	precision []int
+	unsigned  bool
 }
 
 // DefaultCompileType is a default implementation for Dialect.CompileType
 func DefaultCompileType(t TypeElem, supportsUnsigned bool) string {
 	name := t.Name
-	constraintNames := []string{}
-	for _, c := range t.constraints {
-		constraintNames = append(constraintNames, c.String())
-	}
 
-	if t.unsigned {
-		if supportsUnsigned {
-			constraintNames = append([]string{"UNSIGNED"}, constraintNames...)
-		} else {
-			// use a bigger int type so the unsigned values can fit in
-			switch name {
-			case "TINYINT":
-				name = "SMALLINT"
-			case "SMALLINT":
-				name = "INT"
-			case "INT":
-				name = "BIGINT"
-			}
+	if t.unsigned && !supportsUnsigned {
+		// use a bigger int type so the unsigned values can fit in
+		switch name {
+		case "TINYINT":
+			name = "SMALLINT"
+		case "SMALLINT":
+			name = "INT"
+		case "INT":
+			name = "BIGINT"
 		}
 	}
 
 	sizeSpecified := false
+	precisionSpecified := false
 	if t.size != defaultTypeSize {
 		sizeSpecified = true
-	}
-
-	if sizeSpecified {
-		return strings.Trim(fmt.Sprintf("%s(%d) %s", name, t.size, strings.Join(constraintNames, " ")), " ")
-	}
-
-	precisionSpecified := false
-	if len(t.precision) > 0 {
+	} else if len(t.precision) > 0 {
 		precisionSpecified = true
 	}
 
-	if precisionSpecified {
+	if sizeSpecified {
+		name = fmt.Sprintf("%s(%d)", name, t.size)
+	} else if precisionSpecified {
 		precision := []string{}
 		for _, p := range t.precision {
 			precision = append(precision, fmt.Sprintf("%v", p))
 		}
-		return strings.Trim(fmt.Sprintf("%s(%s) %s", name, strings.Join(precision, ", "), strings.Join(constraintNames, " ")), " ")
+		name = fmt.Sprintf("%s(%s)", name, strings.Join(precision, ", "))
 	}
 
-	return strings.Trim(fmt.Sprintf("%s %s", name, strings.Join(constraintNames, " ")), " ")
+	if t.unsigned && supportsUnsigned {
+		name = fmt.Sprintf("%s UNSIGNED", name)
+	}
+	return name
 }
 
 // Size adds size constraint to column type
@@ -164,36 +153,5 @@ func (t TypeElem) Unsigned() TypeElem {
 // Note: Use it in Float, Decimal and Numeric types
 func (t TypeElem) Signed() TypeElem {
 	t.unsigned = false
-	return t
-}
-
-// Default adds a default constraint to column type
-func (t TypeElem) Default(def interface{}) TypeElem {
-	t.constraints = append(t.constraints, Default(def))
-	return t
-}
-
-// Null adds null constraint to column type
-func (t TypeElem) Null() TypeElem {
-	t.constraints = append(t.constraints, Null())
-	return t
-}
-
-// NotNull adds not null constraint to column type
-func (t TypeElem) NotNull() TypeElem {
-	t.constraints = append(t.constraints, NotNull())
-	return t
-}
-
-// Unique adds a unique constraint to column type
-func (t TypeElem) Unique() TypeElem {
-	t.constraints = append(t.constraints, Unique())
-	t.unique = true
-	return t
-}
-
-// Constraint adds a custom constraint to column type
-func (t TypeElem) Constraint(name string) TypeElem {
-	t.constraints = append(t.constraints, Constraint(name))
 	return t
 }

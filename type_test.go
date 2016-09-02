@@ -13,13 +13,9 @@ type TypeTestSuite struct {
 func (suite *TypeTestSuite) TestConstraints() {
 	dialect := NewDialect("")
 
-	sizeType := Varchar().Size(255).Unique().NotNull().Default("hello")
+	precisionType := Type("FLOAT").Precision(2, 5)
 
-	assert.Equal(suite.T(), "VARCHAR(255) UNIQUE NOT NULL DEFAULT 'hello'", dialect.CompileType(sizeType))
-
-	precisionType := Type("FLOAT").Precision(2, 5).Null()
-
-	assert.Equal(suite.T(), "FLOAT(2, 5) NULL", dialect.CompileType(precisionType))
+	assert.Equal(suite.T(), "FLOAT(2, 5)", dialect.CompileType(precisionType))
 
 	assert.Equal(suite.T(), "CHAR", dialect.CompileType(Char()))
 	assert.Equal(suite.T(), "VARCHAR(255)", dialect.CompileType(Varchar()))
@@ -32,8 +28,6 @@ func (suite *TypeTestSuite) TestConstraints() {
 	assert.Equal(suite.T(), "FLOAT", dialect.CompileType(Float()))
 	assert.Equal(suite.T(), "BOOLEAN", dialect.CompileType(Boolean()))
 	assert.Equal(suite.T(), "TIMESTAMP", dialect.CompileType(Timestamp()))
-
-	assert.Equal(suite.T(), "INT TEST", dialect.CompileType(Int().Constraint("TEST")))
 }
 
 func TestTypeTestSuite(t *testing.T) {

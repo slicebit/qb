@@ -19,8 +19,8 @@ func TestUpsert(t *testing.T) {
 	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
-		Column("email", Varchar().Unique()),
-		Column("created_at", Timestamp().NotNull()),
+		Column("email", Varchar()).Unique(),
+		Column("created_at", Timestamp()).NotNull(),
 		PrimaryKey("id"),
 	)
 

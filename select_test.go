@@ -26,8 +26,8 @@ func (suite *SelectTestSuite) SetupTest() {
 	suite.users = Table(
 		"users",
 		Column("id", BigInt()),
-		Column("email", Varchar().NotNull().Unique()),
-		Column("password", Varchar().NotNull()),
+		Column("email", Varchar()).NotNull().Unique(),
+		Column("password", Varchar()).NotNull(),
 		PrimaryKey("id"),
 	)
 
@@ -35,7 +35,7 @@ func (suite *SelectTestSuite) SetupTest() {
 		"sessions",
 		Column("id", BigInt()),
 		Column("user_id", BigInt()),
-		Column("auth_token", Varchar().Size(36).Unique().NotNull()),
+		Column("auth_token", Varchar().Size(36)).Unique().NotNull(),
 		PrimaryKey("id"),
 		ForeignKey().Ref("user_id", "users", "id"),
 	)

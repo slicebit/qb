@@ -10,7 +10,7 @@ import (
 func TestLogger(t *testing.T) {
 	db, err := New("sqlite3", ":memory:")
 	actors := Table("actors",
-		Column("id", BigInt().NotNull()),
+		Column("id", BigInt()).NotNull(),
 		PrimaryKey("id"),
 	)
 	db.Metadata().AddTable(actors)
