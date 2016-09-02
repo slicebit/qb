@@ -16,6 +16,7 @@ func NewCompilerContext(dialect Dialect) *CompilerContext {
 type CompilerContext struct {
 	Binds            []interface{}
 	DefaultTableName string
+	InSubQuery       bool
 	Vars             map[string]interface{}
 
 	Dialect  Dialect
@@ -30,6 +31,7 @@ type Compiler interface {
 	VisitColumn(*CompilerContext, ColumnElem) string
 	VisitCombiner(*CompilerContext, CombinerClause) string
 	VisitDelete(*CompilerContext, DeleteStmt) string
+	VisitExists(*CompilerContext, ExistsClause) string
 	VisitHaving(*CompilerContext, HavingClause) string
 	VisitInsert(*CompilerContext, InsertStmt) string
 	VisitJoin(*CompilerContext, JoinClause) string
@@ -78,7 +80,7 @@ func (SQLCompiler) VisitBind(context *CompilerContext, bind BindClause) string {
 
 func (c SQLCompiler) VisitColumn(context *CompilerContext, column ColumnElem) string {
 	sql := ""
-	if context.DefaultTableName != column.Table {
+	if context.InSubQuery || context.DefaultTableName != column.Table {
 		sql += c.Dialect.Escape(column.Table) + "."
 	}
 	sql += c.Dialect.Escape(column.Name)
@@ -112,6 +114,18 @@ func (c SQLCompiler) VisitDelete(context *CompilerContext, delete DeleteStmt) st
 	}
 
 	return sql
+}
+
+// VisitExists compile a EXISTS clause
+func (SQLCompiler) VisitExists(context *CompilerContext, exists ExistsClause) string {
+	var sql string
+	if exists.Not {
+		sql = "NOT "
+	}
+	sql += "EXISTS(%s)"
+	context.InSubQuery = true
+	defer func() { context.InSubQuery = false }()
+	return fmt.Sprintf(sql, exists.Select.Accept(context))
 }
 
 func (c SQLCompiler) VisitHaving(context *CompilerContext, having HavingClause) string {
@@ -196,7 +210,9 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 	addLine := func(s string) {
 		lines = append(lines, s)
 	}
-	context.DefaultTableName = select_.from.DefaultName()
+	if !context.InSubQuery {
+		context.DefaultTableName = select_.from.DefaultName()
+	}
 
 	// select
 	columns := []string{}
