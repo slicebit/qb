@@ -36,6 +36,7 @@ type Compiler interface {
 	VisitOrderBy(*CompilerContext, OrderByClause) string
 	VisitSelect(*CompilerContext, SelectStmt) string
 	VisitTable(*CompilerContext, TableElem) string
+	VisitText(*CompilerContext, TextClause) string
 	VisitUpdate(*CompilerContext, UpdateStmt) string
 	VisitUpsert(*CompilerContext, UpsertStmt) string
 	VisitWhere(*CompilerContext, WhereClause) string
@@ -237,6 +238,10 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 
 func (SQLCompiler) VisitTable(context *CompilerContext, table TableElem) string {
 	return context.Compiler.VisitLabel(context, table.Name)
+}
+
+func (SQLCompiler) VisitText(context *CompilerContext, text TextClause) string {
+	return text.Text
 }
 
 func (c SQLCompiler) VisitUpdate(context *CompilerContext, update UpdateStmt) string {
