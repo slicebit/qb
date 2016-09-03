@@ -2,6 +2,7 @@ package qb
 
 import (
 	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -104,9 +105,9 @@ func (suite *MysqlTestSuite) TestMysql() {
 	res, err := suite.engine.Exec(ins)
 	assert.Nil(suite.T(), err)
 
-	lastInsertId, err := res.LastInsertId()
+	lastInsertID, err := res.LastInsertId()
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), lastInsertId, int64(1))
+	assert.Equal(suite.T(), lastInsertID, int64(1))
 
 	rowsAffected, err := res.RowsAffected()
 	assert.Equal(suite.T(), rowsAffected, int64(1))

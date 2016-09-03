@@ -2,10 +2,7 @@ package qb
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/serenize/snaker"
 	"log"
 	"os"

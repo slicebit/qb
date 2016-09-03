@@ -57,6 +57,7 @@ package main
 import (
 	"fmt"
 	"github.com/aacanakin/qb"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type User struct {
