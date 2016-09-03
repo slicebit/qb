@@ -6,6 +6,11 @@ import (
 	"testing"
 )
 
+func asSQL(clause Clause) string {
+	ctx := NewCompilerContext(NewDialect("default"))
+	return clause.Accept(ctx)
+}
+
 type SelectTestSuite struct {
 	suite.Suite
 	sqlite   Dialect
@@ -259,6 +264,64 @@ func (suite *SelectTestSuite) TestAlias() {
 FROM "users" AS "u"
 LEFT OUTER JOIN "sessions" AS "newname" ON "u"."id" = "newname"."user_id"
 WHERE "newname"."auth_token" = $1;`, st.SQL())
+}
+
+func (suite *SelectTestSuite) TestGuessJoinOnClause() {
+	t1 := Table(
+		"t1",
+		Column("c1", Int()),
+		Column("c2", Int()),
+	)
+	t2 := Table(
+		"t2",
+		Column("c1", Int()),
+		Column("c2", Int()),
+	)
+	t3 := Table(
+		"t3",
+		Column("c1", Int()),
+		Column("c2", Int()),
+		ForeignKey().Ref("c1", "t1", "c1"),
+	)
+	t3.ForeignKeyConstraints.Refs = append(
+		t3.ForeignKeyConstraints.Refs,
+		Reference{[]string{"c1"}, "t2", []string{"c1"}},
+		Reference{[]string{"c2"}, "t2", []string{"c2"}},
+	)
+	t4 := Table(
+		"t4",
+		Column("c1", Int()),
+		Column("c2", Int()),
+		ForeignKey().
+			Ref("c1", "t1", "c1").
+			Ref("c2", "t1", "c2"),
+	)
+
+	assert.Panics(suite.T(), func() {
+		GuessJoinOnClause(t1, Alias("tt", t3))
+	})
+
+	assert.Panics(suite.T(), func() {
+		GuessJoinOnClause(Alias("tt", t3), t2)
+	})
+
+	assert.Panics(suite.T(), func() {
+		GuessJoinOnClause(t1, t2)
+	})
+
+	assert.Equal(suite.T(), "t3.c1 = t1.c1", asSQL(GuessJoinOnClause(t3, t1)))
+	assert.Equal(suite.T(), "t3.c1 = t1.c1", asSQL(GuessJoinOnClause(t1, t3)))
+	assert.Equal(suite.T(), "(t4.c1 = t1.c1 AND t4.c2 = t1.c2)", asSQL(GuessJoinOnClause(t4, t1)))
+
+	assert.Panics(suite.T(), func() {
+		GuessJoinOnClause(t2, t3)
+	})
+}
+
+func (suite *SelectTestSuite) TestMakeJoinOnClause() {
+	assert.Panics(suite.T(), func() {
+		MakeJoinOnClause(TableElem{}, TableElem{}, And(), And(), And())
+	})
 }
 
 func TestSelectTestSuite(t *testing.T) {
