@@ -13,101 +13,122 @@ var postgresDsn = "user=postgres dbname=qb_test sslmode=disable"
 
 type PostgresTestSuite struct {
 	suite.Suite
-	db *Session
+	engine   *Engine
+	metadata *MetaDataElem
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
-
 	var err error
 
-	suite.db, err = New("postgres", postgresDsn)
-	suite.db.Dialect().SetEscaping(true)
+	suite.engine, err = New("postgres", postgresDsn)
+	suite.engine.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), suite.db)
+	assert.NotNil(suite.T(), suite.engine)
+
+	suite.metadata = MetaData()
 }
 
 func (suite *PostgresTestSuite) TestUUID() {
-	assert.Equal(suite.T(), "UUID", suite.db.Dialect().CompileType(UUID()))
+	assert.Equal(suite.T(), "UUID", suite.engine.Dialect().CompileType(UUID()))
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {
 	type User struct {
-		ID          string         `db:"_id" qb:"type:uuid; constraints:primary_key"`
-		Email       string         `qb:"constraints:unique, notnull"`
-		FullName    string         `qb:"constraints:notnull"`
-		Bio         sql.NullString `qb:"type:text; constraints:null"`
-		Oscars      int            `qb:"constraints:default(0)"`
-		IgnoreField string         `qb:"-"`
+		ID          string         `db:"id"`
+		Email       string         `db:"email"`
+		FullName    string         `db:"full_name"`
+		Bio         sql.NullString `db:"bio"`
+		Oscars      int            `db:"oscars"`
+		IgnoreField string         `db:"-"`
 	}
 
 	type Session struct {
-		ID             int64     `qb:"type:bigserial; constraints:primary_key"`
-		UserID         string    `qb:"type:uuid; constraints:ref(user._id)"`
-		AuthToken      string    `qb:"type:uuid; constraints:notnull, unique; index"`
-		CreatedAt      time.Time `qb:"constraints:notnull"`
-		ExpiresAt      time.Time `qb:"constraints:notnull"`
-		CompositeIndex `qb:"index:created_at, expires_at"`
+		ID        int64      `db:"id"`
+		UserID    string     `db:"user_id"`
+		AuthToken string     `db:"auth_token"`
+		CreatedAt *time.Time `db:"created_at"`
+		ExpiresAt *time.Time `db:"expires_at"`
 	}
+
+	users := Table(
+		"user",
+		Column("id", Type("UUID")),
+		Column("email", Varchar()).Unique().NotNull(),
+		Column("full_name", Varchar()).NotNull(),
+		Column("bio", Text()).Null(),
+		Column("oscars", Int()).Default(0),
+		PrimaryKey("id"),
+	)
+
+	sessions := Table(
+		"session",
+		Column("id", Type("BIGSERIAL")),
+		Column("user_id", Type("UUID")),
+		Column("auth_token", Type("UUID")),
+		Column("created_at", Timestamp()).NotNull(),
+		Column("expires_at", Timestamp()).NotNull(),
+		PrimaryKey("id"),
+		ForeignKey("user_id").References("user", "id"),
+	).Index("created_at", "expires_at")
 
 	var err error
 
-	suite.db.AddTable(User{})
-	suite.db.AddTable(Session{})
+	suite.metadata.AddTable(users)
+	suite.metadata.AddTable(sessions)
 
-	err = suite.db.CreateAll()
+	err = suite.metadata.CreateAll(suite.engine)
 	assert.Nil(suite.T(), err)
 
-	// add sample user & session
-	suite.db.AddAll(
-		&User{
-			ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			Email:    "jack@nicholson.com",
-			FullName: "Jack Nicholson",
-			Bio:      sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
-		}, &Session{
-			UserID:    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			AuthToken: "e4968197-6137-47a4-ba79-690d8c552248",
-			CreatedAt: time.Now(),
-			ExpiresAt: time.Now().Add(24 * time.Hour),
-		},
-	)
+	ins := Insert(users).Values(map[string]interface{}{
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"email":     "jack@nicholson.com",
+		"full_name": "Jack Nicholson",
+		"bio":       sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
+	})
 
-	err = suite.db.Commit()
+	_, err = suite.engine.Exec(ins)
+
+	ins = Insert(sessions).Values(map[string]interface{}{
+		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
+		"created_at": time.Now(),
+		"expires_at": time.Now().Add(24 * time.Hour),
+	}).Returning(sessions.C("id"))
+
+	var id int64
+	err = suite.engine.QueryRow(ins).Scan(&id)
 	assert.Nil(suite.T(), err)
 
-	statement := Insert(suite.db.T("user")).Values(map[string]interface{}{
-		"_id":       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+	statement := Insert(users).Values(map[string]interface{}{
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
 		"bio":       sql.NullString{},
 	})
 
-	_, err = suite.db.Engine().Exec(statement)
+	_, err = suite.engine.Exec(statement)
 	assert.NotNil(suite.T(), err)
 
-	statement = Insert(suite.db.T("user")).
-		Values(map[string]interface{}{
-			"_id":       "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
-			"email":     "jack@nicholson2.com",
-			"full_name": "Jack Nicholson",
-			"bio":       sql.NullString{},
-		})
+	statement = Insert(users).Values(map[string]interface{}{
+		"id":        "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
+		"email":     "jack@nicholson2.com",
+		"full_name": "Jack Nicholson",
+		"bio":       sql.NullString{},
+	})
 
-	_, err = suite.db.Engine().Exec(statement)
+	_, err = suite.engine.Exec(statement)
 	assert.Nil(suite.T(), err)
 
-	err = suite.db.Rollback()
-	assert.NotNil(suite.T(), err)
-
 	// find user using QueryRow()
-	sel := suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Builder()
-	row := suite.db.Engine().QueryRow(sel)
+	sel := Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
+		Where(users.C("id").Eq("cf28d117-a12d-4b75-acd8-73a7d3cbb15f"))
+
+	row := suite.engine.QueryRow(sel)
 	assert.NotNil(suite.T(), row)
 
 	// find user using Query()
-	sel = suite.db.Find(&User{ID: "cf28d117-a12d-4b75-acd8-73a7d3cbb15f"}).Builder()
-	rows, err := suite.db.Engine().Query(sel)
+	rows, err := suite.engine.Query(sel)
 	assert.Nil(suite.T(), err)
 	rowLength := 0
 	for rows.Next() {
@@ -118,49 +139,57 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// find user using session api's Find()
 	var user User
 
-	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
+	sel = Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
+		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
+
+	err = suite.engine.Get(sel, &user)
+	assert.Nil(suite.T(), err)
 
 	assert.Equal(suite.T(), "jack@nicholson.com", user.Email)
 	assert.Equal(suite.T(), "Jack Nicholson", user.FullName)
 	assert.Equal(suite.T(), "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", user.Bio.String)
 
 	// select using join
-	sessions := []Session{}
+	sessionSlice := []Session{}
 
-	err = suite.db.Query(
-		suite.db.T("session").C("user_id"),
-		suite.db.T("session").C("id"),
-		suite.db.T("session").C("auth_token"),
-		suite.db.T("session").C("created_at"),
-		suite.db.T("session").C("expires_at")).
-		InnerJoin(suite.db.T("user"), suite.db.T("session").C("user_id"), suite.db.T("user").C("_id")).
-		Filter(suite.db.T("session").C("user_id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95")).
-		All(&sessions)
+	sel = Select(sessions.C("id"), sessions.C("user_id"), sessions.C("auth_token"), sessions.C("created_at"), sessions.C("expires_at")).
+		From(sessions).
+		InnerJoin(users, sessions.C("user_id"), users.C("id")).
+		Where(sessions.C("user_id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
+
+	err = suite.engine.Select(sel, &sessionSlice)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), 1, len(sessions))
+	assert.Equal(suite.T(), 1, len(sessionSlice))
 
-	assert.Equal(suite.T(), int64(1), sessions[0].ID)
-	assert.Equal(suite.T(), "b6f8bfe3-a830-441a-a097-1777e6bfae95", sessions[0].UserID)
-	assert.Equal(suite.T(), "e4968197-6137-47a4-ba79-690d8c552248", sessions[0].AuthToken)
+	assert.Equal(suite.T(), int64(1), sessionSlice[0].ID)
+	assert.Equal(suite.T(), "b6f8bfe3-a830-441a-a097-1777e6bfae95", sessionSlice[0].UserID)
+	assert.Equal(suite.T(), "e4968197-6137-47a4-ba79-690d8c552248", sessionSlice[0].AuthToken)
 
 	// update user
-	user.Bio = sql.NullString{String: "nil", Valid: false}
-	suite.db.Add(user)
 
-	err = suite.db.Commit()
+	upd := Update(users).Values(map[string]interface{}{
+		"bio": sql.NullString{Valid: false},
+	})
+
+	_, err = suite.engine.Exec(upd)
+
 	assert.Nil(suite.T(), err)
 
-	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
-	assert.Equal(suite.T(), sql.NullString{String: "", Valid: false}, user.Bio)
+	sel = Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
+		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
+
+	err = suite.engine.Get(sel, &user)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), user.Bio, sql.NullString{Valid: false})
 
 	// delete session
-	suite.db.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
-	err = suite.db.Commit()
+	del := Delete(sessions).Where(sessions.C("auth_token").Eq("99e591f8-1025-41ef-a833-6904a0f89a38"))
+	_, err = suite.engine.Exec(del)
 	assert.Nil(suite.T(), err)
 
 	// drop tables
-	assert.Nil(suite.T(), suite.db.DropAll())
+	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
 func TestPostgresTestSuite(t *testing.T) {

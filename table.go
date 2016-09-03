@@ -29,10 +29,10 @@ func Table(name string, clauses ...TableClause) TableElem {
 		case PrimaryKeyConstraint:
 			table.PrimaryKeyConstraint = clause.(PrimaryKeyConstraint)
 			break
-		case ForeignKeyConstraints:
-			table.ForeignKeyConstraints.FKeys = append(
-				table.ForeignKeyConstraints.FKeys,
-				clause.(ForeignKeyConstraints).FKeys...)
+		//case ForeignKeyConstraints:
+		//	table.ForeignKeyConstraints.FKeys = append(
+		//		table.ForeignKeyConstraints.FKeys,
+		//		clause.(ForeignKeyConstraints).FKeys...)
 		case ForeignKeyConstraint:
 			table.ForeignKeyConstraints.FKeys = append(
 				table.ForeignKeyConstraints.FKeys,

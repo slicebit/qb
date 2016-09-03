@@ -13,6 +13,7 @@ type TableTestSuite struct {
 func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
 	dialect := NewDialect("mysql")
 	usersTable := Table("users", Column("id", Varchar().Size(40)))
+	assert.Equal(suite.T(), 1, len(usersTable.All()))
 
 	ddl := usersTable.Create(dialect)
 	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);", ddl)

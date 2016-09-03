@@ -13,104 +13,155 @@ var mysqlDsn = "root:@tcp(localhost:3306)/qb_test?charset=utf8"
 
 type MysqlTestSuite struct {
 	suite.Suite
-	db *Session
+	engine   *Engine
+	metadata *MetaDataElem
 }
 
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
-	suite.db, err = New("mysql", mysqlDsn)
+	suite.engine, err = New("mysql", mysqlDsn)
+
 	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), suite.db)
-	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS user")
-	suite.db.Engine().DB().Exec("DROP TABLE IF EXISTS session")
+	err = suite.engine.Ping()
+
+	assert.Nil(suite.T(), err)
+	suite.metadata = MetaData()
+
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), suite.engine)
+
+	suite.engine.DB().Exec("DROP TABLE IF EXISTS user")
+	suite.engine.DB().Exec("DROP TABLE IF EXISTS session")
 }
 
 func (suite *MysqlTestSuite) TestUUID() {
-	assert.Equal(suite.T(), "VARCHAR(36)", suite.db.Dialect().CompileType(UUID()))
+	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(UUID()))
 }
 
 func (suite *MysqlTestSuite) TestMysql() {
 	type User struct {
-		ID       string         `qb:"type:varchar(40); constraints:primary_key"`
-		Email    string         `qb:"constraints:unique, notnull"`
-		FullName string         `qb:"constraints:notnull"`
-		Bio      sql.NullString `qb:"type:text; constraints:null"`
-		Oscars   int            `qb:"constraints:default(0)"`
+		ID       string         `db:"id"`
+		Email    string         `db:"email"`
+		FullName string         `db:"full_name"`
+		Bio      sql.NullString `db:"bio"`
+		Oscars   int            `db:"oscars"`
 	}
 
 	type Session struct {
-		ID        int64     `qb:"type:bigint; constraints:primary_key, auto_increment"`
-		UserID    string    `qb:"type:varchar(40); constraints:ref(user.id)"`
-		AuthToken string    `qb:"type:varchar(40); constraints:notnull, unique"`
-		CreatedAt time.Time `qb:"constraints:null"`
-		ExpiresAt time.Time `qb:"constraints:null"`
+		ID        int64      `db:"id"`
+		UserID    string     `db:"user_id"`
+		AuthToken string     `db:"auth_token"`
+		CreatedAt *time.Time `db:"created_at"`
+		ExpiresAt *time.Time `db:"expires_at"`
 	}
+
+	users := Table(
+		"user",
+		Column("id", Varchar().Size(40)),
+		Column("email", Varchar()).Unique().NotNull(),
+		Column("full_name", Varchar()).NotNull(),
+		Column("bio", Text()).Null(),
+		Column("oscars", Int()).Default(0),
+		PrimaryKey("id"),
+	)
+
+	sessions := Table(
+		"session",
+		Column("id", BigInt()).AutoIncrement(),
+		Column("user_id", Varchar().Size(40)).NotNull(),
+		Column("auth_token", Varchar().Size(40)).NotNull().Unique(),
+		Column("created_at", Timestamp()).Null(),
+		Column("expires_at", Timestamp()).Null(),
+		PrimaryKey("id"),
+		ForeignKey("user_id").References("user", "id"),
+	)
 
 	var err error
 
-	suite.db.AddTable(User{})
-	suite.db.AddTable(Session{})
+	suite.metadata.AddTable(users)
+	suite.metadata.AddTable(sessions)
 
-	err = suite.db.CreateAll()
+	err = suite.metadata.CreateAll(suite.engine)
 	assert.Nil(suite.T(), err)
 
-	// add sample user & session
-	suite.db.AddAll(
-		&User{
-			ID:       "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			Email:    "jack@nicholson.com",
-			FullName: "Jack Nicholson",
-			Bio:      sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
-		}, &Session{
-			UserID:    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
-			AuthToken: "e4968197-6137-47a4-ba79-690d8c552248",
-			CreatedAt: time.Now(),
-			ExpiresAt: time.Now().Add(24 * time.Hour),
-		},
-	)
+	ins := Insert(users).Values(map[string]interface{}{
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"email":     "jack@nicholson.com",
+		"full_name": "Jack Nicholson",
+		"bio":       sql.NullString{String: "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", Valid: true},
+	})
 
-	err = suite.db.Commit()
+	_, err = suite.engine.Exec(ins)
 	assert.Nil(suite.T(), err)
+
+	ins = Insert(sessions).Values(map[string]interface{}{
+		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
+		"created_at": time.Now(),
+		"expires_at": time.Now().Add(24 * time.Hour),
+	})
+
+	res, err := suite.engine.Exec(ins)
+	assert.Nil(suite.T(), err)
+
+	lastInsertId, err := res.LastInsertId()
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), lastInsertId, int64(1))
+
+	rowsAffected, err := res.RowsAffected()
+	assert.Equal(suite.T(), rowsAffected, int64(1))
 
 	// find user
 	var user User
 
-	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
+	sel := Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).
+		From(users).
+		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
+
+	err = suite.engine.Get(sel, &user)
+	assert.Nil(suite.T(), err)
 
 	assert.Equal(suite.T(), "jack@nicholson.com", user.Email)
 	assert.Equal(suite.T(), "Jack Nicholson", user.FullName)
 	assert.Equal(suite.T(), "Jack Nicholson, an American actor, producer, screen-writer and director, is a three-time Academy Award winner and twelve-time nominee.", user.Bio.String)
 
 	// select using join
-	sessions := []Session{}
-	err = suite.db.Query(suite.db.T("session").C("user_id"), suite.db.T("session").C("id"), suite.db.T("session").C("auth_token")).
-		InnerJoin(suite.db.T("user"), suite.db.T("session").C("user_id"), suite.db.T("user").C("id")).
-		Filter(suite.db.T("user").C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95")).
-		All(&sessions)
+	sessionSlice := []Session{}
+	sel = Select(sessions.C("id"), sessions.C("user_id"), sessions.C("auth_token")).
+		From(sessions).
+		InnerJoin(users, sessions.C("user_id"), users.C("id")).
+		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
+
+	err = suite.engine.Select(sel, &sessionSlice)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), 1, len(sessions))
+	assert.Equal(suite.T(), len(sessionSlice), 1)
 
-	assert.Equal(suite.T(), int64(1), sessions[0].ID)
-	assert.Equal(suite.T(), "b6f8bfe3-a830-441a-a097-1777e6bfae95", sessions[0].UserID)
-	assert.Equal(suite.T(), "e4968197-6137-47a4-ba79-690d8c552248", sessions[0].AuthToken)
+	assert.Equal(suite.T(), sessionSlice[0].ID, int64(1))
+	assert.Equal(suite.T(), sessionSlice[0].UserID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
+	assert.Equal(suite.T(), sessionSlice[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
 
-	user.Bio = sql.NullString{String: "nil", Valid: false}
-	suite.db.Add(user)
+	upd := Update(users).
+		Values(map[string]interface{}{
+			"bio": sql.NullString{String: "nil", Valid: false},
+		}).Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
-	err = suite.db.Commit()
+	_, err = suite.engine.Exec(upd)
 	assert.Nil(suite.T(), err)
 
-	suite.db.Find(&User{ID: "b6f8bfe3-a830-441a-a097-1777e6bfae95"}).One(&user)
-	assert.Equal(suite.T(), sql.NullString{String: "", Valid: false}, user.Bio)
+	sel = Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).
+		From(users).
+		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
-	// delete session
-	suite.db.Delete(&Session{AuthToken: "99e591f8-1025-41ef-a833-6904a0f89a38"})
-	err = suite.db.Commit()
+	err = suite.engine.Get(sel, &user)
+	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
+
+	del := Delete(sessions).Where(sessions.C("auth_token").Eq("99e591f8-1025-41ef-a833-6904a0f89a38"))
+	_, err = suite.engine.Exec(del)
 	assert.Nil(suite.T(), err)
 
 	// drop tables
-	assert.Nil(suite.T(), suite.db.DropAll())
+	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
 func TestMysqlTestSuite(t *testing.T) {

@@ -12,7 +12,7 @@ type Compiles interface {
 type Clause interface {
 	Compiles
 	// String returns the dialect agnostic sql clause and bindings.
-	// It returns :varname as placeholders instead of $n or ?.
+	// It returns variable name as placeholders instead of $n or ?.
 	//String() (string, []interface{})
 }
 

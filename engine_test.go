@@ -7,7 +7,7 @@ import (
 )
 
 func TestEngine(t *testing.T) {
-	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
+	engine, err := New("postgres", "user=root dbname=pqtest")
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "postgres", engine.Driver())
@@ -16,13 +16,13 @@ func TestEngine(t *testing.T) {
 }
 
 func TestInvalidEngine(t *testing.T) {
-	engine, err := NewEngine("invalid", "")
+	engine, err := New("invalid", "")
 	assert.NotEqual(t, nil, err)
 	assert.Equal(t, (*Engine)(nil), engine)
 }
 
 func TestEngineExec(t *testing.T) {
-	engine, err := NewEngine("postgres", "user=root dbname=pqtest")
+	engine, err := New("postgres", "user=root dbname=pqtest")
 	dialect := NewDialect("postgres")
 	dialect.SetEscaping(true)
 	engine.SetDialect(dialect)
@@ -45,7 +45,7 @@ func TestEngineExec(t *testing.T) {
 }
 
 func TestEngineFail(t *testing.T) {
-	engine, err := NewEngine("sqlite3", "./qb_test.db")
+	engine, err := New("sqlite3", "./qb_test.db")
 	engine.SetDialect(NewDialect("sqlite3"))
 	assert.Nil(t, err)
 

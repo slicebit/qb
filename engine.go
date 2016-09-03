@@ -11,8 +11,8 @@ import (
 	"os"
 )
 
-// NewEngine generates a new engine and returns it as an engine pointer
-func NewEngine(driver string, dsn string) (*Engine, error) {
+// New generates a new engine and returns it as an engine pointer
+func New(driver string, dsn string) (*Engine, error) {
 	conn, err := sqlx.Open(driver, dsn)
 	if err != nil {
 		return nil, err
@@ -24,16 +24,15 @@ func NewEngine(driver string, dsn string) (*Engine, error) {
 	})
 
 	return &Engine{
-		driver: driver,
-		dsn:    dsn,
-		db:     conn,
-		logger: DefaultLogger{LDefault, log.New(os.Stdout, "", -1)},
+		dialect: NewDialect(driver),
+		dsn:     dsn,
+		db:      conn,
+		logger:  &DefaultLogger{LDefault, log.New(os.Stdout, "", -1)},
 	}, err
 }
 
 // Engine is the generic struct for handling db connections
 type Engine struct {
-	driver  string
 	dsn     string
 	db      *sqlx.DB
 	dialect Dialect
@@ -45,8 +44,8 @@ func (e Engine) Dialect() Dialect {
 	return e.dialect
 }
 
-// SetDialect sets the dialect of engine lazily
-func (e *Engine) SetDialect(dialect Dialect) {
+// SetDialect sets the current engine dialect
+func (e Engine) SetDialect(dialect Dialect) {
 	e.dialect = dialect
 }
 
@@ -76,19 +75,9 @@ func (e *Engine) log(statement *Stmt) {
 // Exec executes insert & update type queries and returns sql.Result and error
 func (e *Engine) Exec(builder Builder) (sql.Result, error) {
 	statement := builder.Build(e.dialect)
-	stmt, err := e.db.Prepare(statement.SQL())
-	if err != nil {
-		return nil, err
-	}
-
 	e.log(statement)
-
-	res, err := stmt.Exec(statement.Bindings()...)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	res, err := e.db.Exec(statement.SQL(), statement.Bindings()...)
+	return res, err
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
@@ -131,7 +120,7 @@ func (e *Engine) Ping() error {
 
 // Driver returns the driver as string
 func (e *Engine) Driver() string {
-	return e.driver
+	return e.dialect.Driver()
 }
 
 // Dsn returns the connection dsn

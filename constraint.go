@@ -71,23 +71,6 @@ type ForeignKeyConstraints struct {
 	FKeys []ForeignKeyConstraint
 }
 
-// Ref generates a reference after the definition of foreign key by chaining
-func (c ForeignKeyConstraints) Ref(col string, refTable string, refCol string) ForeignKeyConstraints {
-	for k, v := range c.FKeys {
-		if refTable == v.RefTable {
-			c.FKeys[k].Cols = append(c.FKeys[k].Cols, col)
-			c.FKeys[k].RefCols = append(c.FKeys[k].RefCols, refCol)
-			return c
-		}
-	}
-
-	ref := ForeignKeyConstraint{[]string{}, refTable, []string{}}
-	ref.Cols = append(ref.Cols, col)
-	ref.RefCols = append(ref.RefCols, refCol)
-	c.FKeys = append(c.FKeys, ref)
-	return c
-}
-
 func (c ForeignKeyConstraints) String(dialect Dialect) string {
 	clauses := []string{}
 	for _, fkey := range c.FKeys {

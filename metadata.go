@@ -9,24 +9,12 @@ import (
 func MetaData() *MetaDataElem {
 	return &MetaDataElem{
 		tables: []TableElem{},
-		mapper: Mapper(),
 	}
 }
 
 // MetaDataElem is the container for database structs and tables
 type MetaDataElem struct {
 	tables []TableElem
-	mapper MapperElem
-}
-
-// Add retrieves the struct and converts it using mapper and appends to tables slice
-func (m *MetaDataElem) Add(model interface{}) {
-	table, err := m.mapper.ToTable(model)
-	if err != nil {
-		panic(err)
-	}
-
-	m.AddTable(table)
 }
 
 // AddTable appends table to tables slice

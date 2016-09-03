@@ -6,40 +6,38 @@ import (
 )
 
 func TestMetadataCreateAllDropAllError(t *testing.T) {
-	type Account struct {
-		ID string `qb:"type:uuid; constraints:primary_key"`
-	}
-	qb, err := New("postgres", postgresDsn)
+	accounts := Table(
+		"account",
+		Column("id", Type("UUID")),
+		PrimaryKey("id"),
+	)
+	engine, err := New("postgres", postgresDsn)
+	metadata := MetaData()
 
-	qb.Dialect().SetEscaping(true)
+	engine.Dialect().SetEscaping(true)
 	assert.Nil(t, err)
-	qb.AddTable(&Account{})
-	err = qb.Metadata().CreateAll(qb.Engine())
+	metadata.AddTable(accounts)
+	err = metadata.CreateAll(engine)
 	assert.Nil(t, err)
 
-	qbNew, err := New("postgres", postgresDsn)
-	qbNew.Dialect().SetEscaping(true)
+	engineNew, err := New("postgres", postgresDsn)
+	engineNew.Dialect().SetEscaping(true)
+	metadataNew := MetaData()
 	assert.Nil(t, err)
-	qbNew.AddTable(&Account{})
-	err = qbNew.Metadata().CreateAll(qbNew.Engine())
+	metadataNew.AddTable(accounts)
+	err = metadataNew.CreateAll(engineNew)
 	assert.NotNil(t, err)
 
-	err = qb.Metadata().DropAll(qb.Engine())
+	err = metadataNew.DropAll(engine)
 	assert.Nil(t, err)
 
-	err = qbNew.Metadata().DropAll(qbNew.Engine())
+	err = metadataNew.DropAll(engineNew)
 	assert.NotNil(t, err)
-}
-
-type UserMetadataError struct {
-	ID int `qb:"constraints:i:nvalid"`
 }
 
 func TestMetadataAddError(t *testing.T) {
 	metadata := MetaData()
-
-	assert.Panics(t, func() { metadata.Add(UserMetadataError{}) })
-	assert.Equal(t, 0, len(metadata.Tables()))
+	assert.Equal(t, len(metadata.Tables()), 0)
 }
 
 func TestMetadataAddTable(t *testing.T) {
@@ -61,9 +59,7 @@ func TestMetadataTable(t *testing.T) {
 }
 
 func TestMetadataFailCreateDropAll(t *testing.T) {
-	engine, _ := NewEngine("postgres", postgresDsn)
-	dialect := NewDialect(engine.Driver())
-	engine.SetDialect(dialect)
+	engine, _ := New("postgres", postgresDsn)
 	metadata := MetaData()
 
 	var err error
@@ -76,9 +72,8 @@ func TestMetadataFailCreateDropAll(t *testing.T) {
 }
 
 func TestMetadataWithNoConnection(t *testing.T) {
-	engine, _ := NewEngine("postgres", postgresDsn)
+	engine, _ := New("postgres", postgresDsn)
 	engine.DB().Close()
-	engine.SetDialect(NewDialect(engine.Driver()))
 
 	metadata := MetaData()
 	assert.NotNil(t, metadata.CreateAll(engine))
