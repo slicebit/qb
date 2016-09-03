@@ -42,8 +42,8 @@ func (s *Stmt) SetDelimiter(delimiter string) {
 	s.delimiter = delimiter
 }
 
-// AddClause appends a new clause to current query
-func (s *Stmt) AddClause(clause string) {
+// AddSQLClause appends a new clause to current query
+func (s *Stmt) AddSQLClause(clause string) {
 	s.clauses = append(s.clauses, clause)
 }
 
@@ -54,8 +54,8 @@ func (s *Stmt) AddBinding(bindings ...interface{}) {
 	}
 }
 
-// Clauses returns all clauses of current query
-func (s *Stmt) Clauses() []string {
+// SQLClauses returns all clauses of current query
+func (s *Stmt) SQLClauses() []string {
 	return s.clauses
 }
 

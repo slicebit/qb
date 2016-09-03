@@ -1,10 +1,5 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
-
 // Delete generates a delete statement and returns it for chaining
 // qb.Delete(usersTable).Where(qb.Eq("id", 5))
 func Delete(table TableElem) DeleteStmt {
@@ -34,26 +29,19 @@ func (s DeleteStmt) Returning(cols ...ColumnElem) DeleteStmt {
 	return s
 }
 
+// Accept implements Clause.Accept
+func (s DeleteStmt) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitDelete(context, s)
+}
+
 // Build generates a statement out of DeleteStmt object
 func (s DeleteStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
+	context := NewCompilerContext(dialect)
 	statement := Statement()
-	statement.AddClause(fmt.Sprintf("DELETE FROM %s", dialect.Escape(s.table.Name)))
-	if s.where != nil {
-		where, whereBindings := s.where.Build(dialect)
-		statement.AddClause(where)
-		statement.AddBinding(whereBindings...)
-	}
-
-	returning := []string{}
-	for _, c := range s.returning {
-		returning = append(returning, dialect.Escape(c.Name))
-	}
-
-	if len(returning) > 0 {
-		statement.AddClause(fmt.Sprintf("RETURNING %s", strings.Join(returning, ", ")))
-	}
+	statement.AddSQLClause(s.Accept(context))
+	statement.AddBinding(context.Binds...)
 
 	return statement
 }

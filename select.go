@@ -1,15 +1,21 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
+
+// Selectable is any clause from which we can select columns and is suitable
+// as a FROM clause element
+type Selectable interface {
+	Clause
+	All() []Clause
+	ColumnList() []ColumnElem
+	C(column string) ColumnElem
+	DefaultName() string
+}
 
 // Select generates a select statement and returns it
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
 		sel:     clauses,
-		joins:   []JoinClause{},
 		groupBy: []ColumnElem{},
 		having:  []HavingClause{},
 	}
@@ -18,8 +24,7 @@ func Select(clauses ...Clause) SelectStmt {
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
 	sel     []Clause
-	from    TableElem
-	joins   []JoinClause
+	from    Selectable
 	groupBy []ColumnElem
 	orderBy *OrderByClause
 	having  []HavingClause
@@ -28,9 +33,9 @@ type SelectStmt struct {
 	count   *int
 }
 
-// From sets the from table of select statement
-func (s SelectStmt) From(table TableElem) SelectStmt {
-	s.from = table
+// From sets the from selectable of select statement
+func (s SelectStmt) From(selectable Selectable) SelectStmt {
+	s.from = selectable
 	return s
 }
 
@@ -42,31 +47,23 @@ func (s SelectStmt) Where(clause Clause) SelectStmt {
 }
 
 // InnerJoin appends an inner join clause to the select statement
-func (s SelectStmt) InnerJoin(table TableElem, fromCol ColumnElem, col ColumnElem) SelectStmt {
-	join := join("INNER JOIN", s.from, table, fromCol, col)
-	s.joins = append(s.joins, join)
-	return s
+func (s SelectStmt) InnerJoin(right Selectable, onClauses ...Clause) SelectStmt {
+	return s.From(Join("INNER JOIN", s.from, right, onClauses...))
 }
 
 // CrossJoin appends an cross join clause to the select statement
-func (s SelectStmt) CrossJoin(table TableElem) SelectStmt {
-	join := join("CROSS JOIN", s.from, table, ColumnElem{}, ColumnElem{})
-	s.joins = append(s.joins, join)
-	return s
+func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
+	return s.From(Join("CROSS JOIN", s.from, right, nil))
 }
 
 // LeftJoin appends an left outer join clause to the select statement
-func (s SelectStmt) LeftJoin(table TableElem, fromCol ColumnElem, col ColumnElem) SelectStmt {
-	join := join("LEFT OUTER JOIN", s.from, table, fromCol, col)
-	s.joins = append(s.joins, join)
-	return s
+func (s SelectStmt) LeftJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
+	return s.From(Join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // RightJoin appends a right outer join clause to select statement
-func (s SelectStmt) RightJoin(table TableElem, fromCol ColumnElem, col ColumnElem) SelectStmt {
-	join := join("RIGHT OUTER JOIN", s.from, table, fromCol, col)
-	s.joins = append(s.joins, join)
-	return s
+func (s SelectStmt) RightJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
+	return s.From(Join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // OrderBy generates an OrderByClause and sets select statement's orderbyclause
@@ -110,140 +107,212 @@ func (s SelectStmt) Limit(offset int, count int) SelectStmt {
 	return s
 }
 
+// Accept calls the compiler VisitSelect method
+func (s SelectStmt) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitSelect(context, s)
+}
+
 // Build compiles the select statement and returns the Stmt
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
+	context := NewCompilerContext(dialect)
 	statement := Statement()
-
-	// select
-	columns := []string{}
-	for _, c := range s.sel {
-		sql, _ := c.Build(dialect)
-		if len(s.joins) > 0 {
-			columns = append(columns, fmt.Sprintf("%s.%s", dialect.Escape(s.from.Name), sql))
-		} else {
-			columns = append(columns, sql)
-		}
-
-	}
-	statement.AddClause(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
-
-	// from
-	statement.AddClause(fmt.Sprintf("FROM %s", dialect.Escape(s.from.Name)))
-
-	// joins
-	for _, j := range s.joins {
-		sql, _ := j.Build(dialect)
-		statement.AddClause(sql)
-	}
-
-	// where
-	if s.where != nil {
-		where, bindings := s.where.Build(dialect)
-		statement.AddClause(where)
-		statement.AddBinding(bindings...)
-	}
-
-	// group by
-	groupByCols := []string{}
-	for _, c := range s.groupBy {
-		groupByCols = append(groupByCols, dialect.Escape(c.Name))
-	}
-	if len(groupByCols) > 0 {
-		statement.AddClause(fmt.Sprintf("GROUP BY %s", strings.Join(groupByCols, ", ")))
-	}
-
-	// having
-	for _, h := range s.having {
-		sql, bindings := h.Build(dialect)
-		statement.AddClause(sql)
-		statement.AddBinding(bindings...)
-	}
-
-	// order by
-	if s.orderBy != nil {
-		sql, _ := s.orderBy.Build(dialect)
-		statement.AddClause(sql)
-	}
-
-	if (s.offset != nil) && (s.count != nil) {
-		statement.AddClause(fmt.Sprintf("LIMIT %d OFFSET %d", *s.count, *s.offset))
-	}
+	statement.AddSQLClause(s.Accept(context))
+	statement.AddBinding(context.Binds...)
 
 	return statement
 }
 
-func join(joinType string, fromTable TableElem, table TableElem, fromCol ColumnElem, col ColumnElem) JoinClause {
+type joinOnClauseCandidate struct {
+	source TableElem
+	ref    Reference
+	target TableElem
+}
+
+// GuessJoinOnClause finds a join 'ON' clause between two tables
+func GuessJoinOnClause(left Selectable, right Selectable) Clause {
+	leftTable, ok := left.(TableElem)
+	if !ok {
+		panic("left Selectable is not a Table: Cannot guess join onClause")
+	}
+	rightTable, ok := right.(TableElem)
+	if !ok {
+		panic("right Selectable is not a Table: Cannot guess join onClause")
+	}
+
+	var candidates []joinOnClauseCandidate
+
+	for _, ref := range leftTable.ForeignKeyConstraints.Refs {
+		if ref.RefTable != rightTable.Name {
+			continue
+		}
+		candidates = append(
+			candidates,
+			joinOnClauseCandidate{leftTable, ref, rightTable})
+	}
+
+	for _, ref := range rightTable.ForeignKeyConstraints.Refs {
+		if ref.RefTable != leftTable.Name {
+			continue
+		}
+		candidates = append(
+			candidates,
+			joinOnClauseCandidate{rightTable, ref, leftTable})
+	}
+	switch len(candidates) {
+	case 0:
+		panic(fmt.Sprintf(
+			"No foreign keys found between %s and %s",
+			leftTable.Name, rightTable.Name))
+	case 1:
+		candidate := candidates[0]
+		var clauses []Clause
+		for i, col := range candidate.ref.Cols {
+			refCol := candidate.ref.RefCols[i]
+			clauses = append(
+				clauses,
+				Eq(candidate.source.C(col), candidate.target.C(refCol)),
+			)
+		}
+		if len(clauses) == 1 {
+			return clauses[0]
+		}
+		return And(clauses...)
+	default:
+		panic(fmt.Sprintf(
+			"Found %d foreign keys between %s and %s",
+			len(candidates), leftTable.Name, rightTable.Name))
+	}
+}
+
+// MakeJoinOnClause assemble a 'ON' clause for a join from either:
+// 0 clause: attempt to guess the join clause (only if left & right are tables),
+//           otherwise panics
+// 1 clause: returns it
+// 2 clauses: returns a Eq() of both
+// otherwise if panics
+func MakeJoinOnClause(left Selectable, right Selectable, onClause ...Clause) Clause {
+	switch len(onClause) {
+	case 0:
+		return GuessJoinOnClause(left, right)
+	case 1:
+		return onClause[0]
+	case 2:
+		return Eq(onClause[0], onClause[1])
+	default:
+		panic("Cannot make a join condition with more than 2 clauses")
+	}
+}
+
+func Join(joinType string, left Selectable, right Selectable, onClause ...Clause) JoinClause {
 	return JoinClause{
-		joinType,
-		fromTable,
-		table,
-		fromCol,
-		col,
+		JoinType: joinType,
+		Left:     left,
+		Right:    right,
+		OnClause: MakeJoinOnClause(left, right, onClause...),
 	}
 }
 
 // JoinClause is the base struct for generating join clauses when using select
 // It satisfies Clause interface
 type JoinClause struct {
-	joinType  string
-	fromTable TableElem
-	table     TableElem
-	fromCol   ColumnElem
-	col       ColumnElem
+	JoinType string
+	Left     Selectable
+	Right    Selectable
+	OnClause Clause
 }
 
-// Build generates join sql & bindings out of JoinClause struct
-func (c JoinClause) Build(dialect Dialect) (string, []interface{}) {
+// Accept calls the compiler VisitJoin method
+func (c JoinClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitJoin(context, c)
+}
 
-	if (c.fromCol.Name == "") && (c.col.Name == "") {
-		return fmt.Sprintf(
-			"%s %s",
-			c.joinType,
-			dialect.Escape(c.table.Name),
-		), []interface{}{}
+func (c JoinClause) All() []Clause {
+	return append(c.Left.All(), c.Right.All()...)
+}
+
+func (c JoinClause) ColumnList() []ColumnElem {
+	return append(c.Left.ColumnList(), c.Right.ColumnList()...)
+}
+
+func (c JoinClause) C(name string) ColumnElem {
+	for _, c := range c.ColumnList() {
+		if c.Name == name {
+			return c
+		}
 	}
+	panic(fmt.Sprintf("No such column '%s' in join %v", name, c))
+}
 
-	return fmt.Sprintf(
-		"%s %s ON %s.%s = %s.%s",
-		c.joinType,
-		dialect.Escape(c.table.Name),
-		dialect.Escape(c.fromTable.Name),
-		dialect.Escape(c.fromCol.Name),
-		dialect.Escape(c.table.Name),
-		dialect.Escape(c.col.Name),
-	), []interface{}{}
+func (c JoinClause) DefaultName() string {
+	return ""
 }
 
 // OrderByClause is the base struct for generating order by clauses when using select
-// It satisfies Clause interface
+// It satisfies SQLClause interface
 type OrderByClause struct {
 	columns []ColumnElem
 	t       string
 }
 
-// Build generates an order by clause
-func (c OrderByClause) Build(dialect Dialect) (string, []interface{}) {
-	cols := []string{}
-	for _, c := range c.columns {
-		cols = append(cols, dialect.Escape(c.Name))
-	}
-
-	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), c.t), []interface{}{}
+// Accept generates an order by clause
+func (c OrderByClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitOrderBy(context, c)
 }
 
 // HavingClause is the base struct for generating having clauses when using select
-// It satisfies Clause interface
+// It satisfies SQLClause interface
 type HavingClause struct {
 	aggregate AggregateClause
 	op        string
 	value     interface{}
 }
 
-// Build generates having sql & bindings out of HavingClause struct
-func (c HavingClause) Build(dialect Dialect) (string, []interface{}) {
-	aggSQL, bindings := c.aggregate.Build(dialect)
-	bindings = append(bindings, c.value)
-	return fmt.Sprintf("HAVING %s %s %s", aggSQL, c.op, dialect.Placeholder()), bindings
+// Accept generates having sql & bindings out of HavingClause struct
+func (c HavingClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitHaving(context, c)
+}
+
+func Alias(name string, selectable Selectable) AliasClause {
+	return AliasClause{
+		Name:       name,
+		Selectable: selectable,
+	}
+}
+
+type AliasClause struct {
+	Name       string
+	Selectable Selectable
+}
+
+func (c AliasClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitAlias(context, c)
+}
+
+func (c AliasClause) C(name string) ColumnElem {
+	col := c.Selectable.C(name)
+	col.Table = c.Name
+	return col
+}
+
+func (c AliasClause) All() []Clause {
+	var clauses []Clause
+	for _, col := range c.ColumnList() {
+		clauses = append(clauses, col)
+	}
+	return clauses
+}
+
+func (c AliasClause) ColumnList() []ColumnElem {
+	var cols []ColumnElem
+	for _, col := range c.Selectable.ColumnList() {
+		col.Table = c.Name
+		cols = append(cols, col)
+	}
+	return cols
+}
+
+func (c AliasClause) DefaultName() string {
+	return c.Name
 }

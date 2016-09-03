@@ -122,8 +122,8 @@ func (m *MapperElem) ToType(colType string, tagType string) TypeElem {
 func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 	modelName := m.ModelName(model)
 
-	colClauses := []TableClause{}
-	constraintClauses := []TableClause{}
+	colSQLClauses := []TableSQLClause{}
+	constraintSQLClauses := []TableSQLClause{}
 
 	for _, f := range structs.Fields(model) {
 
@@ -163,12 +163,12 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			} else if strings.Contains(v, "primary_key") {
 				// TODO: Possible performance issue, fix this when possible, maybe table.AddPrimary option should be thought
 				pkDefined := false
-				for i, tc := range constraintClauses {
+				for i, tc := range constraintSQLClauses {
 					switch tc.(type) {
 					case PrimaryKeyConstraint:
 						pk := tc.(PrimaryKeyConstraint)
 						pk.Columns = append(pk.Columns, colName)
-						constraintClauses[i] = pk
+						constraintSQLClauses[i] = pk
 						pkDefined = true
 						break
 					}
@@ -176,17 +176,17 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 				if pkDefined {
 					continue
 				}
-				constraintClauses = append(constraintClauses, PrimaryKey(colName))
+				constraintSQLClauses = append(constraintSQLClauses, PrimaryKey(colName))
 			} else if strings.Contains(v, "ref") && strings.Contains(v, "(") && strings.Contains(v, ")") {
 				// TODO: Possible performance issue, fix this when possible, maybe table.AddRef option should be thought
 				fkp := strings.Split(m.extractValue(v), ".")
 				fkDefined := false
-				for i, tc := range constraintClauses {
+				for i, tc := range constraintSQLClauses {
 					switch tc.(type) {
 					case ForeignKeyConstraints:
 						fk := tc.(ForeignKeyConstraints)
 						fk = fk.Ref(colName, fkp[0], fkp[1])
-						constraintClauses[i] = fk
+						constraintSQLClauses[i] = fk
 						fkDefined = true
 						break
 					}
@@ -196,14 +196,14 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 					continue
 				}
 
-				constraintClauses = append(constraintClauses, ForeignKey().Ref(colName, fkp[0], fkp[1]))
+				constraintSQLClauses = append(constraintSQLClauses, ForeignKey().Ref(colName, fkp[0], fkp[1]))
 			} else if strings.Contains(v, "index") {
 				if strings.Contains(f.Name(), "CompositeIndex") {
 					is := strings.Split(v, ":")
 					cols := strings.Split(is[1], ",")
-					constraintClauses = append(constraintClauses, Index(modelName, cols...))
+					constraintSQLClauses = append(constraintSQLClauses, Index(modelName, cols...))
 				} else {
-					constraintClauses = append(constraintClauses, Index(modelName, colName))
+					constraintSQLClauses = append(constraintSQLClauses, Index(modelName, colName))
 				}
 			} else {
 				return TableElem{}, fmt.Errorf("Invalid constraint: %s", v)
@@ -214,8 +214,8 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 			continue
 		}
 
-		colClauses = append(colClauses, col)
+		colSQLClauses = append(colSQLClauses, col)
 	}
 
-	return Table(modelName, append(colClauses, constraintClauses...)...), nil
+	return Table(modelName, append(colSQLClauses, constraintSQLClauses...)...), nil
 }

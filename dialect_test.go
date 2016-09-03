@@ -22,6 +22,7 @@ func (suite *DialectTestSuite) SetupTest() {
 }
 
 func (suite *DialectTestSuite) TestDefaultDialect() {
+	assert.Implements(suite.T(), (*Compiler)(nil), suite.def.GetCompiler())
 	assert.Equal(suite.T(), false, suite.def.SupportsUnsigned())
 	assert.Equal(suite.T(), "test", suite.def.Escape("test"))
 	assert.Equal(suite.T(), false, suite.def.Escaping())

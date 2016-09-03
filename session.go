@@ -249,7 +249,7 @@ func (s *Session) isSelect() bool {
 }
 
 // Filter appends a filter to the current select statement
-// NOTE: It currently only builds AndClause within the filters
+// NOTE: It currently only builds AndSQLClause within the filters
 // TODO: Add OR able filters
 func (s *Session) Filter(conditional Clause) *Session {
 	if !s.isSelect() {

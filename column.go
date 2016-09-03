@@ -43,7 +43,7 @@ func (c ColumnElem) PrimaryKey() ColumnElem {
 }
 
 // String returns the column element as an sql clause
-// It satisfies the TableClause interface
+// It satisfies the TableSQLClause interface
 func (c ColumnElem) String(dialect Dialect) string {
 	colSpec := ""
 	if c.Options.AutoIncrement {
@@ -63,10 +63,8 @@ func (c ColumnElem) String(dialect Dialect) string {
 	return res
 }
 
-// Build compiles the column element and returns sql, bindings
-// It satisfies the Clause interface
-func (c ColumnElem) Build(dialect Dialect) (string, []interface{}) {
-	return dialect.Escape(c.Name), []interface{}{}
+func (c ColumnElem) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitColumn(context, c)
 }
 
 // constraints setters

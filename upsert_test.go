@@ -16,6 +16,8 @@ func TestUpsert(t *testing.T) {
 	postgres := NewDialect("postgres")
 	postgres.SetEscaping(true)
 
+	def := NewDialect("default")
+
 	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
@@ -32,6 +34,10 @@ func TestUpsert(t *testing.T) {
 		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email":      "al@pacino.com",
 		"created_at": now,
+	})
+
+	assert.Panics(t, func() {
+		ups.Build(def)
 	})
 
 	statement = ups.Build(sqlite)

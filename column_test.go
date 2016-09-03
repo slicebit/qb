@@ -39,12 +39,12 @@ func TestColumn(t *testing.T) {
 
 	var sql string
 
-	sql, _ = col.Build(sqlite)
+	sql = col.Accept(NewCompilerContext(sqlite))
 	assert.Equal(t, "id", sql)
 
-	sql, _ = col.Build(mysql)
+	sql = col.Accept(NewCompilerContext(mysql))
 	assert.Equal(t, "`id`", sql)
 
-	sql, _ = col.Build(postgres)
+	sql = col.Accept(NewCompilerContext(postgres))
 	assert.Equal(t, "\"id\"", sql)
 }
