@@ -118,6 +118,11 @@ func (e *Engine) Ping() error {
 	return e.db.Ping()
 }
 
+// Close closes the sqlx db connection
+func (e *Engine) Close() {
+	e.db.Close()
+}
+
 // Driver returns the driver as string
 func (e *Engine) Driver() string {
 	return e.dialect.Driver()

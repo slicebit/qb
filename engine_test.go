@@ -46,6 +46,7 @@ func TestEngineExec(t *testing.T) {
 
 func TestEngineFail(t *testing.T) {
 	engine, err := New("sqlite3", "./qb_test.db")
+	defer engine.Close()
 	engine.SetDialect(NewDialect("sqlite3"))
 	assert.Nil(t, err)
 
