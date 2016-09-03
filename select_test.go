@@ -37,7 +37,7 @@ func (suite *SelectTestSuite) SetupTest() {
 		Column("user_id", BigInt()),
 		Column("auth_token", Varchar().Size(36)).Unique().NotNull(),
 		PrimaryKey("id"),
-		ForeignKey().Ref("user_id", "users", "id"),
+		ForeignKey("user_id").References("users", "id"),
 	)
 }
 

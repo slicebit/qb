@@ -30,7 +30,14 @@ func Table(name string, clauses ...TableClause) TableElem {
 			table.PrimaryKeyConstraint = clause.(PrimaryKeyConstraint)
 			break
 		case ForeignKeyConstraints:
-			table.ForeignKeyConstraints = clause.(ForeignKeyConstraints)
+			table.ForeignKeyConstraints.FKeys = append(
+				table.ForeignKeyConstraints.FKeys,
+				clause.(ForeignKeyConstraints).FKeys...)
+		case ForeignKeyConstraint:
+			table.ForeignKeyConstraints.FKeys = append(
+				table.ForeignKeyConstraints.FKeys,
+				clause.(ForeignKeyConstraint),
+			)
 			break
 		case UniqueKeyConstraint:
 			table.UniqueKeyConstraint = clause.(UniqueKeyConstraint)
@@ -94,7 +101,7 @@ func (t TableElem) Create(dialect Dialect) string {
 		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.PrimaryKeyConstraint.String(dialect)))
 	}
 
-	if len(t.ForeignKeyConstraints.Refs) > 0 {
+	if len(t.ForeignKeyConstraints.FKeys) > 0 {
 		colClauses = append(colClauses, t.ForeignKeyConstraints.String(dialect))
 	}
 

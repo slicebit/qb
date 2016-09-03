@@ -196,7 +196,9 @@ func (m *MapperElem) ToTable(model interface{}) (TableElem, error) {
 					continue
 				}
 
-				constraintClauses = append(constraintClauses, ForeignKey().Ref(colName, fkp[0], fkp[1]))
+				fk := ForeignKeyConstraints{}
+				fk = fk.Ref(colName, fkp[0], fkp[1])
+				constraintClauses = append(constraintClauses, fk)
 			} else if strings.Contains(v, "index") {
 				if strings.Contains(f.Name(), "CompositeIndex") {
 					is := strings.Split(v, ":")
