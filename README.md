@@ -7,12 +7,12 @@
 
 **This project is currently pre 1.**
 
-Currently, it's not feature complete. It can have potential bugs. There are no tests covering concurrency race conditions. It can crash especially in concurrency. 
+Currently, it's not feature complete. It can have potential bugs. There are no tests covering concurrency race conditions. It can crash especially in concurrency.
 Before 1.x releases, each major release could break backwards compatibility.
 
 About qb
 --------
-qb is a database toolkit for easier db usage in go. It is inspired from python's most favorite orm sqlalchemy. qb is an orm as well as a query builder. It is quite modular in case of using just expression api and query building stuff.
+qb is a database toolkit for easier db queries in go. It is inspired from python's best orm, namely sqlalchemy. qb is an orm(sqlx) as well as a query builder. It is quite modular in case of using just expression api and query building stuff.
 
 [Documentation](https://qb.readme.io)
 -------------
@@ -35,9 +35,9 @@ Installation with glide;
 glide get github.com/aacanakin/qb
 ```
 
-0.1 installation with glide;
+0.2 installation with glide;
 ```sh
-glide get github.com/aacanakin/qb#0.1
+glide get github.com/aacanakin/qb#0.2
 ```
 
 Installation using go get;
@@ -49,121 +49,77 @@ If you want to install test dependencies then;
 go get -u -t github.com/aacanakin/qb
 ```
 
-Quick Start - ORM
------------------
+Quick Start
+-----------
 ```go
 package main
 
 import (
 	"fmt"
 	"github.com/aacanakin/qb"
-	"github.com/nu7hatch/gouuid"
 )
 
 type User struct {
-	ID       string `db:"_id" qb:"type:uuid; constraints:primary_key"`
-	Email    string `qb:"constraints:unique, notnull"`
-	FullName string `qb:"constraints:notnull"`
-	Bio      string `qb:"type:text; constraints:null"`
+	ID       string `db:"id"`
+	Email    string `db:"email"`
+	FullName string `db:"full_name"`
+	Oscars   int    `db:"oscars"`
 }
 
 func main() {
 
-	db, err := qb.New("postgres", "user=postgres dbname=qb_test sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-
-	defer db.Close()
-
-	// add table to metadata
-	db.AddTable(User{})
-
-	// create all tables registered to metadata
-	db.CreateAll()
-
-	userID, _ := uuid.NewV4()
-	db.Add(&User{
-		ID:       userID.String(),
-		Email:    "robert@de-niro.com",
-		FullName: "Robert De Niro",
-	})
-
-	err = db.Commit() // insert user
-	if err != nil {
-	    fmt.Println(err)
-	    return
-	}
-
-	var user User
-	db.Find(&User{ID: userID.String()}).One(&user)
-
-	fmt.Println("id", user.ID)
-	fmt.Println("email", user.Email)
-	fmt.Println("full_name", user.FullName)
-
-	db.DropAll() // drops all tables
-
-}
-```
-
-QuickStart - Expression API
----------------------------
-```go
-package main
-
-import (
-	"fmt"
-	"github.com/aacanakin/qb"
-)
-
-func main() {
-	db, _ := qb.New("sqlite3", ":memory:")
-	defer db.Close()
-
-	db.Dialect().SetEscaping(true)
-
-	actors := qb.Table(
-		"actor",
-		qb.Column("id", qb.Varchar().Size(36)),
-		qb.Column("name", qb.Varchar().NotNull()),
+	users := qb.Table(
+		"users",
+		qb.Column("id", qb.Varchar().Size(40)),
+		qb.Column("email", qb.Varchar()).NotNull().Unique(),
+		qb.Column("full_name", qb.Varchar()).NotNull(),
+		qb.Column("oscars", qb.Int()).NotNull().Default(0),
 		qb.PrimaryKey("id"),
 	)
 
-	db.Metadata().AddTable(actors)
-	err := db.CreateAll()
+	db, err := qb.New("sqlite3", "./qb_test.db")
 	if err != nil {
 		panic(err)
 	}
 
-	ins := actors.Insert().Values(map[string]interface{}{
-		"id":   "3af82cdc-4d21-473b-a175-cbc3f9119eda",
-		"name": "Robert De Niro",
+	defer db.Close()
+
+	metadata := qb.MetaData()
+
+	// add table to metadata
+	metadata.AddTable(users)
+
+	// create all tables registered to metadata
+	metadata.CreateAll(db)
+	defer metadata.DropAll(db) // drops all tables
+
+	ins := qb.Insert(users).Values(map[string]interface{}{
+		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
+		"email":     "jack@nicholson.com",
+		"full_name": "Jack Nicholson",
 	})
 
-	_, err = db.Engine().Exec(ins)
+	_, err = db.Exec(ins)
 	if err != nil {
 		panic(err)
 	}
 
-	sel := actors.
-		Select(actors.C("name"), actors.C("id")).
-		Where(actors.C("name").Eq("Robert De Niro"))
+	// find user
+	var user User
 
-	var name string
-	var id string
+	sel := qb.Select(users.C("id"), users.C("email"), users.C("full_name")).
+		From(users).
+		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
-	db.Engine().QueryRow(sel).Scan(&name, &id)
-	fmt.Printf("<User name=%s id=%s/>\n", name, id)
-
-	// outputs
-	// <User name=Robert De Niro id=3af82cdc-4d21-473b-a175-cbc3f9119eda/>
+	err = db.Get(sel, &user)
+	fmt.Printf("%+v\n", user)
 }
 ```
 
 Credits
 -------
 - [Aras Can Akın](https://github.com/aacanakin)
+- [Christophe de Vienne](https://github.com/cdevienne)
 - [Onur Şentüre](https://github.com/onursenture)
 - [Aaron O. Ellis](https://github.com/aodin)
 - [Shawn Smith](https://github.com/shawnps)
