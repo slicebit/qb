@@ -32,10 +32,9 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 		Column("auth_token", Varchar().Size(40)),
 		Column("role_id", Varchar().Size(40)),
 		PrimaryKey("id"),
-		ForeignKey().
-			Ref("session_id", "sessions", "id").
-			Ref("auth_token", "sessions", "auth_token").
-			Ref("role_id", "roles", "id"),
+		ForeignKey("session_id", "auth_token").
+			References("sessions", "id", "auth_token"),
+		ForeignKey("role_id").References("roles", "id"),
 	)
 
 	ddl := usersTable.Create(NewDialect("mysql"))

@@ -74,7 +74,7 @@ func TestSessionWrappings(t *testing.T) {
 		Column("user_id", Varchar().Size(36)),
 		Column("created_at", Timestamp()).NotNull(),
 		PrimaryKey("id"),
-		ForeignKey().Ref("user_id", "users", "id"),
+		ForeignKey("user_id").References("users", "id"),
 	)
 
 	qb.Metadata().AddTable(users)

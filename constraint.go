@@ -62,51 +62,62 @@ func (c PrimaryKeyConstraint) String(dialect Dialect) string {
 }
 
 // ForeignKey generates a foreign key for table constraint definitions
-func ForeignKey() ForeignKeyConstraints {
-	return ForeignKeyConstraints{[]Reference{}}
+func ForeignKey(cols ...string) ForeignKeyConstraint {
+	return ForeignKeyConstraint{Cols: cols}
 }
 
 // ForeignKeyConstraints is the definition of foreign keys in any table
 type ForeignKeyConstraints struct {
-	Refs []Reference
+	FKeys []ForeignKeyConstraint
+}
+
+// Ref generates a reference after the definition of foreign key by chaining
+func (c ForeignKeyConstraints) Ref(col string, refTable string, refCol string) ForeignKeyConstraints {
+	for k, v := range c.FKeys {
+		if refTable == v.RefTable {
+			c.FKeys[k].Cols = append(c.FKeys[k].Cols, col)
+			c.FKeys[k].RefCols = append(c.FKeys[k].RefCols, refCol)
+			return c
+		}
+	}
+
+	ref := ForeignKeyConstraint{[]string{}, refTable, []string{}}
+	ref.Cols = append(ref.Cols, col)
+	ref.RefCols = append(ref.RefCols, refCol)
+	c.FKeys = append(c.FKeys, ref)
+	return c
 }
 
 func (c ForeignKeyConstraints) String(dialect Dialect) string {
 	clauses := []string{}
-	for _, ref := range c.Refs {
-		clauses = append(clauses, fmt.Sprintf(
-			"\tFOREIGN KEY(%s) REFERENCES %s(%s)",
-			strings.Join(dialect.EscapeAll(ref.Cols), ", "),
-			dialect.Escape(ref.RefTable),
-			strings.Join(dialect.EscapeAll(ref.RefCols), ", "),
-		))
+	for _, fkey := range c.FKeys {
+		clauses = append(clauses, fkey.String(dialect))
 	}
 
 	return strings.Join(clauses, ",\n")
 }
 
-// Ref generates a reference after the definition of foreign key by chaining
-func (c ForeignKeyConstraints) Ref(col string, refTable string, refCol string) ForeignKeyConstraints {
-	for k, v := range c.Refs {
-		if refTable == v.RefTable {
-			c.Refs[k].Cols = append(c.Refs[k].Cols, col)
-			c.Refs[k].RefCols = append(c.Refs[k].RefCols, refCol)
-			return c
-		}
-	}
-
-	ref := Reference{[]string{}, refTable, []string{}}
-	ref.Cols = append(ref.Cols, col)
-	ref.RefCols = append(ref.RefCols, refCol)
-	c.Refs = append(c.Refs, ref)
-	return c
-}
-
-// Reference is the main struct for defining foreign key references
-type Reference struct {
+// ForeignKeyConstraint is the main struct for defining foreign key references
+type ForeignKeyConstraint struct {
 	Cols     []string
 	RefTable string
 	RefCols  []string
+}
+
+func (fkey ForeignKeyConstraint) String(dialect Dialect) string {
+	return fmt.Sprintf(
+		"\tFOREIGN KEY(%s) REFERENCES %s(%s)",
+		strings.Join(dialect.EscapeAll(fkey.Cols), ", "),
+		dialect.Escape(fkey.RefTable),
+		strings.Join(dialect.EscapeAll(fkey.RefCols), ", "),
+	)
+}
+
+// References set the reference part of the foreign key
+func (fkey ForeignKeyConstraint) References(refTable string, refCols ...string) ForeignKeyConstraint {
+	fkey.RefTable = refTable
+	fkey.RefCols = refCols
+	return fkey
 }
 
 // UniqueKey generates UniqueKeyConstraint given columns as strings
