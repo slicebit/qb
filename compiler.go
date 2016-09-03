@@ -171,15 +171,16 @@ func (c SQLCompiler) VisitInsert(context *CompilerContext, insert InsertStmt) st
 	return sql
 }
 
+// VisitJoin compiles a JOIN (ON) clause
 func (c SQLCompiler) VisitJoin(context *CompilerContext, join JoinClause) string {
 	sql := fmt.Sprintf(
 		"%s\n%s %s",
-		join.left.Accept(context),
-		join.joinType,
-		join.right.Accept(context),
+		join.Left.Accept(context),
+		join.JoinType,
+		join.Right.Accept(context),
 	)
-	if (join.leftCol.Name != "") || (join.rightCol.Name != "") {
-		sql += " ON " + join.leftCol.Accept(context) + " = " + join.rightCol.Accept(context)
+	if join.OnClause != nil {
+		sql += " ON " + join.OnClause.Accept(context)
 	}
 
 	return sql

@@ -30,6 +30,21 @@ var compileTests = []struct {
 }{
 	{SQLText("1"), "1", emptyBinds},
 	{
+		Join("LEFT JOIN", TTGroup, TTUser),
+		"group\nLEFT JOIN user ON user.main_group_id = group.id",
+		emptyBinds,
+	},
+	{
+		Join("LEFT JOIN", TTGroup, TTUser, TTGroup.C("id").Eq(TTUser.C("id"))),
+		"group\nLEFT JOIN user ON group.id = user.id",
+		emptyBinds,
+	},
+	{
+		Join("LEFT JOIN", TTGroup, TTUser, TTGroup.C("id"), TTUser.C("id")),
+		"group\nLEFT JOIN user ON group.id = user.id",
+		emptyBinds,
+	},
+	{
 		Exists(Select(TTGroup.C("name")).From(TTGroup).Where(TTGroup.C("id").Eq(TTUser.C("main_group_id")))),
 		"EXISTS(SELECT group.name\nFROM group\nWHERE group.id = user.main_group_id)",
 		emptyBinds,

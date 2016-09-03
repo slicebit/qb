@@ -47,23 +47,23 @@ func (s SelectStmt) Where(clause Clause) SelectStmt {
 }
 
 // InnerJoin appends an inner join clause to the select statement
-func (s SelectStmt) InnerJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	return s.From(join("INNER JOIN", s.from, right, leftCol, rightCol))
+func (s SelectStmt) InnerJoin(right Selectable, onClauses ...Clause) SelectStmt {
+	return s.From(Join("INNER JOIN", s.from, right, onClauses...))
 }
 
 // CrossJoin appends an cross join clause to the select statement
 func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
-	return s.From(join("CROSS JOIN", s.from, right, ColumnElem{}, ColumnElem{}))
+	return s.From(Join("CROSS JOIN", s.from, right, nil))
 }
 
 // LeftJoin appends an left outer join clause to the select statement
 func (s SelectStmt) LeftJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	return s.From(join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol))
+	return s.From(Join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // RightJoin appends a right outer join clause to select statement
 func (s SelectStmt) RightJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	return s.From(join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol))
+	return s.From(Join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol))
 }
 
 // OrderBy generates an OrderByClause and sets select statement's orderbyclause
@@ -124,36 +124,116 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	return statement
 }
 
-func join(joinType string, left Selectable, right Selectable, leftCol ColumnElem, rightCol ColumnElem) JoinClause {
+type joinOnClauseCandidate struct {
+	source TableElem
+	fkey   ForeignKeyConstraint
+	target TableElem
+}
+
+// GuessJoinOnClause finds a join 'ON' clause between two tables
+func GuessJoinOnClause(left Selectable, right Selectable) Clause {
+	leftTable, ok := left.(TableElem)
+	if !ok {
+		panic("left Selectable is not a Table: Cannot guess join onClause")
+	}
+	rightTable, ok := right.(TableElem)
+	if !ok {
+		panic("right Selectable is not a Table: Cannot guess join onClause")
+	}
+
+	var candidates []joinOnClauseCandidate
+
+	for _, fkey := range leftTable.ForeignKeyConstraints.FKeys {
+		if fkey.RefTable != rightTable.Name {
+			continue
+		}
+		candidates = append(
+			candidates,
+			joinOnClauseCandidate{leftTable, fkey, rightTable})
+	}
+
+	for _, fkey := range rightTable.ForeignKeyConstraints.FKeys {
+		if fkey.RefTable != leftTable.Name {
+			continue
+		}
+		candidates = append(
+			candidates,
+			joinOnClauseCandidate{rightTable, fkey, leftTable})
+	}
+	switch len(candidates) {
+	case 0:
+		panic(fmt.Sprintf(
+			"No foreign keys found between %s and %s",
+			leftTable.Name, rightTable.Name))
+	case 1:
+		candidate := candidates[0]
+		var clauses []Clause
+		for i, col := range candidate.fkey.Cols {
+			refCol := candidate.fkey.RefCols[i]
+			clauses = append(
+				clauses,
+				Eq(candidate.source.C(col), candidate.target.C(refCol)),
+			)
+		}
+		if len(clauses) == 1 {
+			return clauses[0]
+		}
+		return And(clauses...)
+	default:
+		panic(fmt.Sprintf(
+			"Found %d foreign keys between %s and %s",
+			len(candidates), leftTable.Name, rightTable.Name))
+	}
+}
+
+// MakeJoinOnClause assemble a 'ON' clause for a join from either:
+// 0 clause: attempt to guess the join clause (only if left & right are tables),
+//           otherwise panics
+// 1 clause: returns it
+// 2 clauses: returns a Eq() of both
+// otherwise if panics
+func MakeJoinOnClause(left Selectable, right Selectable, onClause ...Clause) Clause {
+	switch len(onClause) {
+	case 0:
+		return GuessJoinOnClause(left, right)
+	case 1:
+		return onClause[0]
+	case 2:
+		return Eq(onClause[0], onClause[1])
+	default:
+		panic("Cannot make a join condition with more than 2 clauses")
+	}
+}
+
+func Join(joinType string, left Selectable, right Selectable, onClause ...Clause) JoinClause {
 	return JoinClause{
-		joinType,
-		left,
-		right,
-		leftCol,
-		rightCol,
+		JoinType: joinType,
+		Left:     left,
+		Right:    right,
+		OnClause: MakeJoinOnClause(left, right, onClause...),
 	}
 }
 
 // JoinClause is the base struct for generating join clauses when using select
 // It satisfies Clause interface
 type JoinClause struct {
-	joinType string
-	left     Selectable
-	right    Selectable
-	leftCol  ColumnElem
-	rightCol ColumnElem
+	JoinType string
+	Left     Selectable
+	Right    Selectable
+	OnClause Clause
 }
 
+// Accept calls the compiler VisitJoin method
 func (c JoinClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitJoin(context, c)
 }
 
 func (c JoinClause) All() []Clause {
-	return append(c.left.All(), c.right.All()...)
+	return append(c.Left.All(), c.Right.All()...)
 }
 
 func (c JoinClause) ColumnList() []ColumnElem {
-	return append(c.left.ColumnList(), c.right.ColumnList()...)
+	return append(c.Left.ColumnList(), c.Right.ColumnList()...)
 }
 
 func (c JoinClause) C(name string) ColumnElem {
