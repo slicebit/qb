@@ -8,6 +8,15 @@ type PostgresDialect struct {
 	escaping     bool
 }
 
+// NewPostgresDialect returns a new PostgresDialect
+func NewPostgresDialect() Dialect {
+	return &PostgresDialect{escaping: false, bindingIndex: 0}
+}
+
+func init() {
+	RegisterDialect("postgres", NewPostgresDialect)
+}
+
 // CompileType compiles a type into its DDL
 func (d *PostgresDialect) CompileType(t TypeElem) string {
 	return DefaultCompileType(t, d.SupportsUnsigned())
