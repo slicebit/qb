@@ -82,24 +82,57 @@ func (c ForeignKeyConstraints) String(dialect Dialect) string {
 
 // ForeignKeyConstraint is the main struct for defining foreign key references
 type ForeignKeyConstraint struct {
-	Cols     []string
-	RefTable string
-	RefCols  []string
+	Cols           []string
+	RefTable       string
+	RefCols        []string
+	ActionOnUpdate string
+	ActionOnDelete string
 }
 
 func (fkey ForeignKeyConstraint) String(dialect Dialect) string {
-	return fmt.Sprintf(
+	ddl := fmt.Sprintf(
 		"\tFOREIGN KEY(%s) REFERENCES %s(%s)",
 		strings.Join(dialect.EscapeAll(fkey.Cols), ", "),
 		dialect.Escape(fkey.RefTable),
 		strings.Join(dialect.EscapeAll(fkey.RefCols), ", "),
 	)
+	if fkey.ActionOnUpdate != "" {
+		ddl += " ON UPDATE " + fkey.ActionOnUpdate
+	}
+	if fkey.ActionOnDelete != "" {
+		ddl += " ON DELETE " + fkey.ActionOnDelete
+	}
+	return ddl
+}
+
+func checkFKeyCascadeAction(action string) string {
+	actionUp := strings.ToUpper(action)
+	if actionUp != "" &&
+		actionUp != "CASCADE" &&
+		actionUp != "NO ACTION" &&
+		actionUp != "RESTRICT" &&
+		actionUp != "SET NULL" {
+		panic("Invalid cascading action: " + actionUp)
+	}
+	return actionUp
 }
 
 // References set the reference part of the foreign key
 func (fkey ForeignKeyConstraint) References(refTable string, refCols ...string) ForeignKeyConstraint {
 	fkey.RefTable = refTable
 	fkey.RefCols = refCols
+	return fkey
+}
+
+// OnUpdate set the ON UPDATE action
+func (fkey ForeignKeyConstraint) OnUpdate(action string) ForeignKeyConstraint {
+	fkey.ActionOnUpdate = checkFKeyCascadeAction(action)
+	return fkey
+}
+
+// OnDelete set the ON DELETE action
+func (fkey ForeignKeyConstraint) OnDelete(action string) ForeignKeyConstraint {
+	fkey.ActionOnDelete = checkFKeyCascadeAction(action)
 	return fkey
 }
 
