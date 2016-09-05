@@ -32,6 +32,21 @@ func TestConstraints(t *testing.T) {
 	assert.Contains(t, ForeignKey("user_id").References("users", "id").String(postgres), "FOREIGN KEY(\"user_id\") REFERENCES \"users\"(\"id\")")
 	assert.Contains(t, ForeignKey("user_id", "user_email").References("users", "id", "email").String(sqlite), "FOREIGN KEY(user_id, user_email) REFERENCES users(id, email)")
 
+	assert.Panics(t, func() {
+		ForeignKey().OnUpdate("invalid")
+	})
+	assert.Panics(t, func() {
+		ForeignKey().OnDelete("invalid")
+	})
+	assert.Equal(t,
+		"\tFOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL",
+		ForeignKey("user_id").References("users", "id").OnDelete("SET NULL").String(sqlite),
+	)
+	assert.Equal(t,
+		"\tFOREIGN KEY(user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE",
+		ForeignKey("user_id").References("users", "id").OnUpdate("CASCADE").OnDelete("CASCADE").String(sqlite),
+	)
+
 	assert.Equal(t, "CONSTRAINT u_id_email UNIQUE(id, email)", UniqueKey("id", "email").String(sqlite))
 	assert.Equal(t, "CONSTRAINT u_id_email UNIQUE(`id`, `email`)", UniqueKey("id", "email").String(mysql))
 	assert.Equal(t, "CONSTRAINT u_id_email UNIQUE(\"id\", \"email\")", UniqueKey("id", "email").String(postgres))
