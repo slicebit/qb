@@ -183,7 +183,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), "SELECT id, email\nFROM users\nWHERE users.id = ?;", sel.SQL())
+	assert.Equal(suite.T(), "SELECT id, email\nFROM users\nWHERE id = ?;", sel.SQL())
 	assert.Equal(suite.T(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, sel.Bindings())
 }
 

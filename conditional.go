@@ -1,10 +1,5 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
-
 // conditional generators, comparator functions
 
 // Like generates a like conditional sql clause
@@ -64,26 +59,7 @@ type Conditional struct {
 	Op     string
 }
 
-// Build compiles the conditional element
-func (c Conditional) Build(dialect Dialect) (string, []interface{}) {
-	var sql string
-	key := dialect.Escape(c.Col.Name)
-	if c.Col.Table != "" {
-		key = fmt.Sprintf("%s.%s", dialect.Escape(c.Col.Table), key)
-	}
-
-	switch c.Op {
-	case "IN":
-		sql = fmt.Sprintf("%s %s (%s)", key, c.Op, strings.Join(dialect.Placeholders(c.Values...), ", "))
-		return sql, c.Values
-	case "NOT IN":
-		sql = fmt.Sprintf("%s %s (%s)", key, c.Op, strings.Join(dialect.Placeholders(c.Values...), ", "))
-		return sql, c.Values
-	case "LIKE":
-		sql = fmt.Sprintf("%s %s '%s'", key, c.Op, c.Values[0])
-		return sql, []interface{}{}
-	default:
-		sql = fmt.Sprintf("%s %s %s", key, c.Op, dialect.Placeholder())
-		return sql, c.Values
-	}
+// Accept compiles the conditional element
+func (c Conditional) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitCondition(context, c)
 }

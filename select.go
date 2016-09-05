@@ -1,10 +1,5 @@
 package qb
 
-import (
-	"fmt"
-	"strings"
-)
-
 // Select generates a select statement and returns it
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
@@ -114,62 +109,10 @@ func (s SelectStmt) Limit(offset int, count int) SelectStmt {
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
+	context := NewCompilerContext(dialect)
 	statement := Statement()
-
-	// select
-	columns := []string{}
-	for _, c := range s.sel {
-		sql, _ := c.Build(dialect)
-		if len(s.joins) > 0 {
-			columns = append(columns, fmt.Sprintf("%s.%s", dialect.Escape(s.from.Name), sql))
-		} else {
-			columns = append(columns, sql)
-		}
-
-	}
-	statement.AddClause(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
-
-	// from
-	statement.AddClause(fmt.Sprintf("FROM %s", dialect.Escape(s.from.Name)))
-
-	// joins
-	for _, j := range s.joins {
-		sql, _ := j.Build(dialect)
-		statement.AddClause(sql)
-	}
-
-	// where
-	if s.where != nil {
-		where, bindings := s.where.Build(dialect)
-		statement.AddClause(where)
-		statement.AddBinding(bindings...)
-	}
-
-	// group by
-	groupByCols := []string{}
-	for _, c := range s.groupBy {
-		groupByCols = append(groupByCols, dialect.Escape(c.Name))
-	}
-	if len(groupByCols) > 0 {
-		statement.AddClause(fmt.Sprintf("GROUP BY %s", strings.Join(groupByCols, ", ")))
-	}
-
-	// having
-	for _, h := range s.having {
-		sql, bindings := h.Build(dialect)
-		statement.AddClause(sql)
-		statement.AddBinding(bindings...)
-	}
-
-	// order by
-	if s.orderBy != nil {
-		sql, _ := s.orderBy.Build(dialect)
-		statement.AddClause(sql)
-	}
-
-	if (s.offset != nil) && (s.count != nil) {
-		statement.AddClause(fmt.Sprintf("LIMIT %d OFFSET %d", *s.count, *s.offset))
-	}
+	statement.AddSQLClause(context.Compiler.VisitSelect(context, s))
+	statement.AddBinding(context.Binds...)
 
 	return statement
 }
@@ -194,56 +137,31 @@ type JoinClause struct {
 	col       ColumnElem
 }
 
-// Build generates join sql & bindings out of JoinClause struct
-func (c JoinClause) Build(dialect Dialect) (string, []interface{}) {
-
-	if (c.fromCol.Name == "") && (c.col.Name == "") {
-		return fmt.Sprintf(
-			"%s %s",
-			c.joinType,
-			dialect.Escape(c.table.Name),
-		), []interface{}{}
-	}
-
-	return fmt.Sprintf(
-		"%s %s ON %s.%s = %s.%s",
-		c.joinType,
-		dialect.Escape(c.table.Name),
-		dialect.Escape(c.fromTable.Name),
-		dialect.Escape(c.fromCol.Name),
-		dialect.Escape(c.table.Name),
-		dialect.Escape(c.col.Name),
-	), []interface{}{}
+func (c JoinClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitJoin(context, c)
 }
 
 // OrderByClause is the base struct for generating order by clauses when using select
-// It satisfies Clause interface
+// It satisfies SQLClause interface
 type OrderByClause struct {
 	columns []ColumnElem
 	t       string
 }
 
-// Build generates an order by clause
-func (c OrderByClause) Build(dialect Dialect) (string, []interface{}) {
-	cols := []string{}
-	for _, c := range c.columns {
-		cols = append(cols, dialect.Escape(c.Name))
-	}
-
-	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), c.t), []interface{}{}
+// Accept generates an order by clause
+func (c OrderByClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitOrderBy(context, c)
 }
 
 // HavingClause is the base struct for generating having clauses when using select
-// It satisfies Clause interface
+// It satisfies SQLClause interface
 type HavingClause struct {
 	aggregate AggregateClause
 	op        string
 	value     interface{}
 }
 
-// Build generates having sql & bindings out of HavingClause struct
-func (c HavingClause) Build(dialect Dialect) (string, []interface{}) {
-	aggSQL, bindings := c.aggregate.Build(dialect)
-	bindings = append(bindings, c.value)
-	return fmt.Sprintf("HAVING %s %s %s", aggSQL, c.op, dialect.Placeholder()), bindings
+// Accept generates having sql & bindings out of HavingClause struct
+func (c HavingClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitHaving(context, c)
 }

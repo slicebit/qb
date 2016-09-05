@@ -68,15 +68,15 @@ func (suite *SelectTestSuite) TestSelectWhere() {
 	var statement *Stmt
 
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM users\nWHERE (users.email = ? AND users.id != ?);", statement.SQL())
+	assert.Equal(suite.T(), "SELECT id\nFROM users\nWHERE (email = ? AND id != ?);", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 
 	statement = sel.Build(suite.mysql)
-	assert.Equal(suite.T(), "SELECT `id`\nFROM `users`\nWHERE (`users`.`email` = ? AND `users`.`id` != ?);", statement.SQL())
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `users`\nWHERE (`email` = ? AND `id` != ?);", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 
 	statement = sel.Build(suite.postgres)
-	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\"\nWHERE (\"users\".\"email\" = $1 AND \"users\".\"id\" != $2);", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\"\nWHERE (\"email\" = $1 AND \"id\" != $2);", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 }
 
@@ -89,15 +89,15 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 
 	var statement *Stmt
 	statement = selOrderByDesc.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByDesc.Build(suite.mysql)
-	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `user_id` = ?\nORDER BY `id` DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByDesc.Build(suite.postgres)
-	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"user_id\" = $1\nORDER BY \"id\" DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	selWithoutOrder := Select(suite.sessions.C("id")).
@@ -106,15 +106,15 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		OrderBy(suite.sessions.C("id"))
 
 	statement = selWithoutOrder.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selWithoutOrder.Build(suite.mysql)
-	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `user_id` = ?\nORDER BY `id` ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selWithoutOrder.Build(suite.postgres)
-	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"user_id\" = $1\nORDER BY \"id\" ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	selOrderByAsc := Select(suite.sessions.C("id")).
@@ -123,15 +123,15 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		OrderBy(suite.sessions.C("id")).Asc()
 
 	statement = selOrderByAsc.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE sessions.user_id = ?\nORDER BY id ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByAsc.Build(suite.mysql)
-	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `sessions`.`user_id` = ?\nORDER BY `id` ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT `id`\nFROM `sessions`\nWHERE `user_id` = ?\nORDER BY `id` ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByAsc.Build(suite.postgres)
-	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"sessions\".\"user_id\" = $1\nORDER BY \"id\" ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"user_id\" = $1\nORDER BY \"id\" ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 }
 
