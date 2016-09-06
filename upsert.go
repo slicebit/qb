@@ -33,6 +33,7 @@ func (s UpsertStmt) Returning(cols ...ColumnElem) UpsertStmt {
 	return s
 }
 
+// Accept calls the compiler VisitUpsert function
 func (s UpsertStmt) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitUpsert(context, s)
 }

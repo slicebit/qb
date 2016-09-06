@@ -74,15 +74,17 @@ func (d *SqliteDialect) Driver() string {
 	return "sqlite3"
 }
 
+// GetCompiler returns a SqliteCompiler
 func (d *SqliteDialect) GetCompiler() Compiler {
 	return SqliteCompiler{SQLCompiler{d}}
 }
 
+// SqliteCompiler is a SQLCompiler specialised for Sqlite
 type SqliteCompiler struct {
 	SQLCompiler
 }
 
-// VisitUpsert generates the folowing sql: REPLACE INTO ... VALUES ...
+// VisitUpsert generates the following sql: REPLACE INTO ... VALUES ...
 func (SqliteCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
 	var (
 		colNames []string

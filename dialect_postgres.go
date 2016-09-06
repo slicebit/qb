@@ -89,10 +89,12 @@ func (d *PostgresDialect) Driver() string {
 	return "postgres"
 }
 
+// GetCompiler returns a PostgresCompiler
 func (d *PostgresDialect) GetCompiler() Compiler {
 	return PostgresCompiler{SQLCompiler{d}}
 }
 
+// PostgresCompiler is a SQLCompiler specialised for PostgreSQL
 type PostgresCompiler struct {
 	SQLCompiler
 }

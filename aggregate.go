@@ -36,6 +36,7 @@ type AggregateClause struct {
 	clause Clause
 }
 
+// Accept calls the compiler VisitAggregate function
 func (c AggregateClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitAggregate(context, c)
 }

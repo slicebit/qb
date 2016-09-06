@@ -86,6 +86,7 @@ func (t TableElem) All() []Clause {
 	return cols
 }
 
+// ColumnList columns of the table
 func (t TableElem) ColumnList() []ColumnElem {
 	cols := []ColumnElem{}
 	for _, v := range t.Columns {

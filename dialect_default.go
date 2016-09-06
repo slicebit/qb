@@ -66,6 +66,7 @@ func (d *DefaultDialect) Driver() string {
 	return ""
 }
 
+// GetCompiler returns the default SQLCompiler
 func (d *DefaultDialect) GetCompiler() Compiler {
 	return SQLCompiler{d}
 }

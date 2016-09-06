@@ -6,9 +6,9 @@ import "log"
 // The default log flag is not at all logging
 const (
 	LDefault = iota
-	// log query flag
+	// LQuery Flag to log queries
 	LQuery
-	// log bindings flag
+	// LBindings Flag to log bindings
 	LBindings
 )
 

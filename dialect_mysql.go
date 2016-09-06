@@ -81,10 +81,12 @@ func (d *MysqlDialect) Driver() string {
 	return "mysql"
 }
 
+// GetCompiler returns a MysqlCompiler
 func (d *MysqlDialect) GetCompiler() Compiler {
 	return MysqlCompiler{SQLCompiler{d}}
 }
 
+// MysqlCompiler is a SQLCompiler specialised for Mysql
 type MysqlCompiler struct {
 	SQLCompiler
 }

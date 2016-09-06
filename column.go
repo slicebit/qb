@@ -63,6 +63,7 @@ func (c ColumnElem) String(dialect Dialect) string {
 	return res
 }
 
+// Accept calls the compiler VisitColumn function
 func (c ColumnElem) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitColumn(context, c)
 }
