@@ -16,7 +16,9 @@ func TestLogger(t *testing.T) {
 	metadata.AddTable(actors)
 	metadata.CreateAll(engine)
 	defer metadata.DropAll(engine)
-	engine.SetLogger(&DefaultLogger{LQuery | LBindings, log.New(TestingLogWriter{t}, "", log.LstdFlags)})
+	logCapture := &TestingLogWriter{t, nil}
+	defer logCapture.Flush()
+	engine.SetLogger(&DefaultLogger{LQuery | LBindings, log.New(logCapture, "", log.LstdFlags)})
 	engine.Logger().SetLogFlags(LQuery)
 
 	_, err = engine.Exec(actors.Insert().Values(map[string]interface{}{"id": 5}))
