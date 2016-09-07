@@ -18,6 +18,10 @@ type PostgresTestSuite struct {
 	metadata *MetaDataElem
 }
 
+func TestPostgresBlob(t *testing.T) {
+	assert.Equal(t, "bytea", NewDialect("postgres").CompileType(Blob()))
+}
+
 func (suite *PostgresTestSuite) SetupTest() {
 	var err error
 
