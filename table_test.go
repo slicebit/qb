@@ -88,7 +88,7 @@ func (suite *TableTestSuite) TestTableUniqueCompositeUnique() {
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "email VARCHAR(40) UNIQUE")
 	assert.Contains(suite.T(), ddl, "device_id VARCHAR(255) UNIQUE")
-	assert.Contains(suite.T(), ddl, "CONSTRAINT u_email_device_id UNIQUE(email, device_id)")
+	assert.Contains(suite.T(), ddl, "CONSTRAINT u_users_email_device_id UNIQUE(email, device_id)")
 	assert.Contains(suite.T(), ddl, ");")
 }
 

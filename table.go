@@ -40,7 +40,7 @@ func Table(name string, clauses ...TableSQLClause) TableElem {
 			)
 			break
 		case UniqueKeyConstraint:
-			table.UniqueKeyConstraint = clause.(UniqueKeyConstraint)
+			table.UniqueKeyConstraint = clause.(UniqueKeyConstraint).Table(table.Name)
 			break
 		case IndexElem:
 			table.Indices = append(table.Indices, clause.(IndexElem))

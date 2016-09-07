@@ -139,7 +139,7 @@ func (fkey ForeignKeyConstraint) OnDelete(action string) ForeignKeyConstraint {
 // UniqueKey generates UniqueKeyConstraint given columns as strings
 func UniqueKey(cols ...string) UniqueKeyConstraint {
 	return UniqueKeyConstraint{
-		fmt.Sprintf("u_%s", strings.Join(cols, "_")),
+		"",
 		cols,
 	}
 }
@@ -153,4 +153,18 @@ type UniqueKeyConstraint struct {
 // String generates composite unique indices as sql clause
 func (c UniqueKeyConstraint) String(dialect Dialect) string {
 	return fmt.Sprintf("CONSTRAINT %s UNIQUE(%s)", c.name, strings.Join(dialect.EscapeAll(c.cols), ", "))
+}
+
+// Table optionally set the constraint name based on the table name
+// if a name is already defined, it remains untouched
+func (c UniqueKeyConstraint) Table(name string) UniqueKeyConstraint {
+	return c.Name(
+		fmt.Sprintf("u_%s_%s", name, strings.Join(c.cols, "_")),
+	)
+}
+
+// Name set the constraint name
+func (c UniqueKeyConstraint) Name(name string) UniqueKeyConstraint {
+	c.name = name
+	return c
 }

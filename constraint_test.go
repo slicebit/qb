@@ -47,7 +47,13 @@ func TestConstraints(t *testing.T) {
 		ForeignKey("user_id").References("users", "id").OnUpdate("CASCADE").OnDelete("CASCADE").String(sqlite),
 	)
 
-	assert.Equal(t, "CONSTRAINT u_id_email UNIQUE(id, email)", UniqueKey("id", "email").String(sqlite))
-	assert.Equal(t, "CONSTRAINT u_id_email UNIQUE(`id`, `email`)", UniqueKey("id", "email").String(mysql))
-	assert.Equal(t, "CONSTRAINT u_id_email UNIQUE(\"id\", \"email\")", UniqueKey("id", "email").String(postgres))
+	assert.Equal(t,
+		"CONSTRAINT u_users_id_email UNIQUE(id, email)",
+		UniqueKey("id", "email").Table("users").String(sqlite))
+	assert.Equal(t,
+		"CONSTRAINT u_users_id_email UNIQUE(`id`, `email`)",
+		UniqueKey("id", "email").Table("users").String(mysql))
+	assert.Equal(t,
+		"CONSTRAINT u_users_id_email UNIQUE(\"id\", \"email\")",
+		UniqueKey("id", "email").Table("users").String(postgres))
 }
