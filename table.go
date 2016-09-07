@@ -51,12 +51,22 @@ func Table(name string, clauses ...TableSQLClause) TableElem {
 	if len(pkeyCols) > 0 && table.PrimaryKeyConstraint.Columns != nil {
 		panic(fmt.Sprintf("Table %s has both 'PrimaryKey()' columns (%#v) and a PrimaryKeyConstraint. Only only should be set", name, pkeyCols))
 	}
-	if len(pkeyCols) > 1 {
+	if len(pkeyCols) > 0 {
 		var pkeyNames []string
 		for _, col := range pkeyCols {
 			pkeyNames = append(pkeyNames, col.Name)
 		}
 		table.PrimaryKeyConstraint = PrimaryKey(pkeyNames...)
+	}
+
+	// Make sure the columns are flagged as primary key
+	for _, name := range table.PrimaryKeyConstraint.Columns {
+		table.Columns[name] = table.Columns[name].PrimaryKey()
+	}
+	if len(table.PrimaryKeyConstraint.Columns) == 1 {
+		// Make sure the column will inline the primary key
+		name := table.PrimaryKeyConstraint.Columns[0]
+		table.Columns[name] = table.Columns[name].inlinePrimaryKey()
 	}
 
 	return table
@@ -111,7 +121,7 @@ func (t TableElem) Create(dialect Dialect) string {
 		colClauses = append(colClauses, fmt.Sprintf("\t%s", col.String(dialect)))
 	}
 
-	if len(t.PrimaryKeyConstraint.Columns) > 0 {
+	if len(t.PrimaryKeyConstraint.Columns) > 1 {
 		colClauses = append(colClauses, fmt.Sprintf("\t%s", t.PrimaryKeyConstraint.String(dialect)))
 	}
 

@@ -63,7 +63,7 @@ func (d *MysqlDialect) Placeholders(values ...interface{}) []string {
 // AutoIncrement generates auto increment sql of current dialect
 func (d *MysqlDialect) AutoIncrement(column *ColumnElem) string {
 	colSpec := d.CompileType(column.Type)
-	if column.Options.PrimaryKey {
+	if column.Options.InlinePrimaryKey {
 		colSpec += " PRIMARY KEY"
 	}
 	colSpec += " AUTO_INCREMENT"

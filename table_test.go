@@ -42,9 +42,8 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "auth_token VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "role_id VARCHAR(40)")
-	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
+	assert.Contains(suite.T(), ddl, "id VARCHAR(40) PRIMARY KEY")
 	assert.Contains(suite.T(), ddl, "session_id VARCHAR(40)")
-	assert.Contains(suite.T(), ddl, "PRIMARY KEY(id)")
 	assert.Contains(suite.T(), ddl, "FOREIGN KEY(session_id, auth_token) REFERENCES sessions(id, auth_token)")
 	assert.Contains(suite.T(), ddl, "FOREIGN KEY(role_id) REFERENCES roles(id)")
 	assert.Contains(suite.T(), ddl, ");")
@@ -55,7 +54,7 @@ func (suite *TableTestSuite) TestTablePrimaryKey() {
 		"users",
 		Column("id", Varchar().Size(40)).PrimaryKey(),
 	)
-	assert.Empty(suite.T(), t.PrimaryKeyConstraint.Columns)
+	assert.Equal(suite.T(), []string{"id"}, t.PrimaryKeyConstraint.Columns)
 
 	t = Table(
 		"users",
@@ -64,6 +63,9 @@ func (suite *TableTestSuite) TestTablePrimaryKey() {
 	)
 
 	assert.Equal(suite.T(), []string{"fname", "lname"}, t.PrimaryKeyConstraint.Columns)
+
+	ddl := t.Create(NewDialect("mysql"))
+	assert.Contains(suite.T(), ddl, "PRIMARY KEY(fname, lname)")
 
 	assert.Panics(suite.T(), func() {
 		Table(

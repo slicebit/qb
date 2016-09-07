@@ -72,7 +72,7 @@ func (d *PostgresDialect) AutoIncrement(column *ColumnElem) string {
 	} else {
 		colSpec = "SERIAL"
 	}
-	if column.Options.PrimaryKey {
+	if column.Options.InlinePrimaryKey {
 		colSpec += " PRIMARY KEY"
 	}
 	return colSpec

@@ -59,7 +59,10 @@ func (d *SqliteDialect) Placeholders(values ...interface{}) []string {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *SqliteDialect) AutoIncrement(colum *ColumnElem) string {
+func (d *SqliteDialect) AutoIncrement(column *ColumnElem) string {
+	if !column.Options.InlinePrimaryKey {
+		panic("Sqlite does not support non-primarykey autoincrement columns")
+	}
 	return "INTEGER PRIMARY KEY"
 }
 

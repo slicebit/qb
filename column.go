@@ -15,9 +15,10 @@ func Column(name string, t TypeElem) ColumnElem {
 
 // ColumnOptions holds options for a column
 type ColumnOptions struct {
-	AutoIncrement bool
-	PrimaryKey    bool
-	Unique        bool
+	AutoIncrement    bool
+	PrimaryKey       bool
+	InlinePrimaryKey bool
+	Unique           bool
 }
 
 // ColumnElem is the definition of any columns defined in a table
@@ -42,6 +43,12 @@ func (c ColumnElem) PrimaryKey() ColumnElem {
 	return c
 }
 
+// inlinePrimaryKey flags the column so it will inline the primary key constraint
+func (c ColumnElem) inlinePrimaryKey() ColumnElem {
+	c.Options.InlinePrimaryKey = true
+	return c
+}
+
 // String returns the column element as an sql clause
 // It satisfies the TableSQLClause interface
 func (c ColumnElem) String(dialect Dialect) string {
@@ -57,6 +64,9 @@ func (c ColumnElem) String(dialect Dialect) string {
 		}
 		if len(constraintNames) != 0 {
 			colSpec = fmt.Sprintf("%s %s", colSpec, strings.Join(constraintNames, " "))
+		}
+		if c.Options.InlinePrimaryKey {
+			colSpec += " PRIMARY KEY"
 		}
 	}
 	res := fmt.Sprintf("%s %s", dialect.Escape(c.Name), colSpec)
