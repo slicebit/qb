@@ -51,7 +51,9 @@ func Table(name string, clauses ...TableSQLClause) TableElem {
 	if len(pkeyCols) > 0 && table.PrimaryKeyConstraint.Columns != nil {
 		panic(fmt.Sprintf("Table %s has both 'PrimaryKey()' columns (%#v) and a PrimaryKeyConstraint. Only only should be set", name, pkeyCols))
 	}
-	if len(pkeyCols) > 1 {
+	if len(pkeyCols) > 0 {
+		// TODO if a single column is the primary key, it is the column itself that
+		// should define the constraint inline
 		var pkeyNames []string
 		for _, col := range pkeyCols {
 			pkeyNames = append(pkeyNames, col.Name)
