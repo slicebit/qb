@@ -33,6 +33,12 @@ type SelectStmt struct {
 	count   *int
 }
 
+// Select sets the selected columns
+func (s SelectStmt) Select(clauses ...Clause) SelectStmt {
+	s.sel = clauses
+	return s
+}
+
 // From sets the from selectable of select statement
 func (s SelectStmt) From(selectable Selectable) SelectStmt {
 	s.from = selectable

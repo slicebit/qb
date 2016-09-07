@@ -53,6 +53,10 @@ func (suite *SelectTestSuite) TestSimpleSelect() {
 
 	statement = sel.Build(suite.postgres)
 	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\";", statement.SQL())
+
+	sel = sel.Select(Count(suite.users.C("id")))
+	statement = sel.Build(suite.sqlite)
+	assert.Equal(suite.T(), "SELECT COUNT(id)\nFROM users;", statement.SQL())
 }
 
 func (suite *SelectTestSuite) TestSelectWhere() {
