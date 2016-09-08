@@ -47,8 +47,8 @@ func (s SelectStmt) Where(clause Clause) SelectStmt {
 }
 
 // InnerJoin appends an inner join clause to the select statement
-func (s SelectStmt) InnerJoin(right Selectable, onClauses ...Clause) SelectStmt {
-	return s.From(Join("INNER JOIN", s.from, right, onClauses...))
+func (s SelectStmt) InnerJoin(right Selectable, onClause ...Clause) SelectStmt {
+	return s.From(Join("INNER JOIN", s.from, right, onClause...))
 }
 
 // CrossJoin appends an cross join clause to the select statement
@@ -57,13 +57,13 @@ func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
 }
 
 // LeftJoin appends an left outer join clause to the select statement
-func (s SelectStmt) LeftJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	return s.From(Join("LEFT OUTER JOIN", s.from, right, leftCol, rightCol))
+func (s SelectStmt) LeftJoin(right Selectable, onClause ...Clause) SelectStmt {
+	return s.From(Join("LEFT OUTER JOIN", s.from, right, onClause...))
 }
 
 // RightJoin appends a right outer join clause to select statement
-func (s SelectStmt) RightJoin(right Selectable, leftCol ColumnElem, rightCol ColumnElem) SelectStmt {
-	return s.From(Join("RIGHT OUTER JOIN", s.from, right, leftCol, rightCol))
+func (s SelectStmt) RightJoin(right Selectable, onClause ...Clause) SelectStmt {
+	return s.From(Join("RIGHT OUTER JOIN", s.from, right, onClause...))
 }
 
 // OrderBy generates an OrderByClause and sets select statement's orderbyclause
