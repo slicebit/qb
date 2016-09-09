@@ -46,8 +46,8 @@ func (s SelectStmt) From(selectable Selectable) SelectStmt {
 }
 
 // Where sets the where clause of select statement
-func (s SelectStmt) Where(clause Clause) SelectStmt {
-	where := Where(clause)
+func (s SelectStmt) Where(clauses ...Clause) SelectStmt {
+	where := Where(clauses...)
 	s.where = &where
 	return s
 }

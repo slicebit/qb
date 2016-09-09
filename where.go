@@ -1,7 +1,13 @@
 package qb
 
 // Where generates a compilable where clause
-func Where(clause Clause) WhereClause {
+func Where(clauses ...Clause) WhereClause {
+	var clause Clause
+	if len(clauses) == 1 {
+		clause = clauses[0]
+	} else {
+		clause = And(clauses...)
+	}
 	return WhereClause{clause}
 }
 
