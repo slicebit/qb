@@ -255,8 +255,8 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 	}
 
 	// where
-	if selectStmt.where != nil {
-		addLine(selectStmt.where.Accept(context))
+	if selectStmt.WhereClause != nil {
+		addLine(selectStmt.WhereClause.Accept(context))
 	}
 
 	// group by
