@@ -40,8 +40,6 @@ func (s UpsertStmt) Accept(context *CompilerContext) string {
 
 // Build generates a statement out of UpdateStmt object
 func (s UpsertStmt) Build(dialect Dialect) *Stmt {
-	defer dialect.Reset()
-
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))

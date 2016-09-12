@@ -6,9 +6,6 @@ import (
 )
 
 // NewCompilerContext initialize a new compiler context
-// During its lifetime, the dialect is expected to be dedicated
-// to it, and Reset() afterward.
-// The Reset() is the responsability of the caller
 func NewCompilerContext(dialect Dialect) *CompilerContext {
 	return &CompilerContext{
 		Dialect:  dialect,
@@ -89,7 +86,7 @@ func (c SQLCompiler) VisitBinary(context *CompilerContext, binary BinaryExpressi
 // VisitBind renders a bounded value
 func (SQLCompiler) VisitBind(context *CompilerContext, bind BindClause) string {
 	context.Binds = append(context.Binds, bind.Value)
-	return context.Dialect.Placeholder()
+	return "?"
 }
 
 // VisitColumn returns a column name, optionnaly escaped depending on the dialect
@@ -149,8 +146,7 @@ func (SQLCompiler) VisitExists(context *CompilerContext, exists ExistsClause) st
 // VisitHaving compiles a HAVING clause
 func (c SQLCompiler) VisitHaving(context *CompilerContext, having HavingClause) string {
 	aggSQL := having.aggregate.Accept(context)
-	context.Binds = append(context.Binds, having.value)
-	return fmt.Sprintf("HAVING %s %s %s", aggSQL, having.op, context.Dialect.Placeholder())
+	return fmt.Sprintf("HAVING %s %s %s", aggSQL, having.op, Bind(having.value).Accept(context))
 }
 
 // VisitIn compiles a <left> (NOT) IN (<right>)
@@ -165,25 +161,21 @@ func (c SQLCompiler) VisitIn(context *CompilerContext, in InClause) string {
 
 // VisitInsert compiles a INSERT statement
 func (c SQLCompiler) VisitInsert(context *CompilerContext, insert InsertStmt) string {
-	var (
-		colNames     []string
-		placeholders []string
-	)
-
 	context.DefaultTableName = insert.table.Name
 	defer func() { context.DefaultTableName = "" }()
 
+	cols := List()
+	values := List()
 	for k, v := range insert.values {
-		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
-		placeholders = append(placeholders, context.Dialect.Placeholder())
-		context.Binds = append(context.Binds, v)
+		cols.Clauses = append(cols.Clauses, insert.table.C(k))
+		values.Clauses = append(values.Clauses, Bind(v))
 	}
 
 	sql := fmt.Sprintf(
 		"INSERT INTO %s(%s)\nVALUES(%s)",
 		insert.table.Accept(context),
-		strings.Join(colNames, ", "),
-		strings.Join(placeholders, ", "),
+		cols.Accept(context),
+		values.Accept(context),
 	)
 
 	returning := []string{}
@@ -307,20 +299,20 @@ func (SQLCompiler) VisitText(context *CompilerContext, text TextClause) string {
 
 // VisitUpdate compiles a UPDATE statement
 func (c SQLCompiler) VisitUpdate(context *CompilerContext, update UpdateStmt) string {
+	context.DefaultTableName = update.table.Name
+	defer func() { context.DefaultTableName = "" }()
+
 	sql := "UPDATE " + update.table.Accept(context)
 
-	var sets []string
+	sets := List()
+
 	for k, v := range update.values {
-		sets = append(sets, fmt.Sprintf(
-			"%s = %s",
-			context.Compiler.VisitLabel(context, k),
-			context.Dialect.Placeholder(),
-		))
-		context.Binds = append(context.Binds, v)
+		sets.Clauses = append(sets.Clauses,
+			Eq(update.table.C(k), Bind(v)))
 	}
 
-	if len(sets) > 0 {
-		sql += "\nSET " + strings.Join(sets, ", ")
+	if len(sets.Clauses) > 0 {
+		sql += "\nSET " + sets.Accept(context)
 	}
 
 	if update.where != nil {

@@ -41,8 +41,6 @@ func (s InsertStmt) Accept(context *CompilerContext) string {
 
 // Build generates a statement out of InsertStmt object
 func (s InsertStmt) Build(dialect Dialect) *Stmt {
-	defer dialect.Reset()
-
 	statement := Statement()
 	context := NewCompilerContext(dialect)
 	statement.AddSQLClause(s.Accept(context))

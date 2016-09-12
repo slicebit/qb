@@ -51,17 +51,6 @@ func (d *PostgresDialect) Escaping() bool {
 	return d.escaping
 }
 
-// Placeholder returns the placeholder for bindings in the sql
-func (d *PostgresDialect) Placeholder() string {
-	d.bindingIndex++
-	return fmt.Sprintf("$%d", d.bindingIndex)
-}
-
-// Placeholders returns the placeholders for bindings in the sql
-func (d *PostgresDialect) Placeholders(values ...interface{}) []string {
-	return placeholders(d, values...)
-}
-
 // AutoIncrement generates auto increment sql of current dialect
 func (d *PostgresDialect) AutoIncrement(column *ColumnElem) string {
 	var colSpec string
@@ -77,9 +66,6 @@ func (d *PostgresDialect) AutoIncrement(column *ColumnElem) string {
 	}
 	return colSpec
 }
-
-// Reset clears the binding index for postgres driver
-func (d *PostgresDialect) Reset() { d.bindingIndex = 0 }
 
 // SupportsUnsigned returns whether driver supports unsigned type mappings or not
 func (d *PostgresDialect) SupportsUnsigned() bool { return false }
@@ -99,6 +85,12 @@ type PostgresCompiler struct {
 	SQLCompiler
 }
 
+// VisitBind renders a bounded value
+func (PostgresCompiler) VisitBind(context *CompilerContext, bind BindClause) string {
+	context.Binds = append(context.Binds, bind.Value)
+	return fmt.Sprintf("$%d", len(context.Binds))
+}
+
 // VisitUpsert generates INSERT INTO ... VALUES ... ON CONFLICT(...) DO UPDATE SET ...
 func (PostgresCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
 	var (
@@ -108,16 +100,17 @@ func (PostgresCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt)
 	for k, v := range upsert.values {
 		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
 		context.Binds = append(context.Binds, v)
-		values = append(values, context.Dialect.Placeholder())
+		values = append(values, fmt.Sprintf("$%d", len(context.Binds)))
 	}
 
 	var updates []string
 	for k, v := range upsert.values {
+		context.Binds = append(context.Binds, v)
 		updates = append(updates, fmt.Sprintf(
 			"%s = %s",
 			context.Dialect.Escape(k),
-			context.Dialect.Placeholder()))
-		context.Binds = append(context.Binds, v)
+			fmt.Sprintf("$%d", len(context.Binds)),
+		))
 	}
 
 	var uniqueCols []string

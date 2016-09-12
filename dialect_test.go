@@ -30,8 +30,6 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 	assert.Equal(suite.T(), true, suite.def.Escaping())
 	assert.Equal(suite.T(), "`test`", suite.def.Escape("test"))
 	assert.Equal(suite.T(), []string{"`test`"}, suite.def.EscapeAll([]string{"test"}))
-	assert.Equal(suite.T(), "?", suite.def.Placeholder())
-	assert.Equal(suite.T(), []string{"?", "?"}, suite.def.Placeholders(5, 10))
 	assert.Equal(suite.T(), "", suite.def.Driver())
 
 	autoincCol := Column("id", Int()).PrimaryKey().AutoIncrement()
@@ -39,7 +37,6 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 		"INT PRIMARY KEY AUTO INCREMENT",
 		suite.def.AutoIncrement(&autoincCol))
 
-	suite.def.Reset() // does nothing
 }
 
 func (suite *DialectTestSuite) TestMysqlDialect() {
@@ -50,10 +47,7 @@ func (suite *DialectTestSuite) TestMysqlDialect() {
 	assert.Equal(suite.T(), true, suite.mysql.Escaping())
 	assert.Equal(suite.T(), "`test`", suite.mysql.Escape("test"))
 	assert.Equal(suite.T(), []string{"`test`"}, suite.mysql.EscapeAll([]string{"test"}))
-	assert.Equal(suite.T(), "?", suite.mysql.Placeholder())
-	assert.Equal(suite.T(), []string{"?", "?"}, suite.mysql.Placeholders(5, 10))
 	assert.Equal(suite.T(), "mysql", suite.mysql.Driver())
-	suite.mysql.Reset() // does nothing
 }
 
 func (suite *DialectTestSuite) TestPostgresDialect() {
@@ -64,11 +58,6 @@ func (suite *DialectTestSuite) TestPostgresDialect() {
 	assert.Equal(suite.T(), true, suite.postgres.Escaping())
 	assert.Equal(suite.T(), "\"test\"", suite.postgres.Escape("test"))
 	assert.Equal(suite.T(), []string{"\"test\""}, suite.postgres.EscapeAll([]string{"test"}))
-	assert.Equal(suite.T(), "$1", suite.postgres.Placeholder())
-	assert.Equal(suite.T(), "$2", suite.postgres.Placeholder())
-	suite.postgres.Reset()
-	assert.Equal(suite.T(), "$1", suite.postgres.Placeholder())
-	assert.Equal(suite.T(), []string{"$2", "$3"}, suite.postgres.Placeholders(5, 10))
 	assert.Equal(suite.T(), "postgres", suite.postgres.Driver())
 
 	col := Column("autoinc", Int()).AutoIncrement()
@@ -89,10 +78,7 @@ func (suite *DialectTestSuite) TestSqliteDialect() {
 	assert.Equal(suite.T(), true, suite.sqlite.Escaping())
 	assert.Equal(suite.T(), "test", suite.sqlite.Escape("test"))
 	assert.Equal(suite.T(), []string{"test"}, suite.sqlite.EscapeAll([]string{"test"}))
-	assert.Equal(suite.T(), "?", suite.sqlite.Placeholder())
-	assert.Equal(suite.T(), []string{"?", "?"}, suite.sqlite.Placeholders(5, 10))
 	assert.Equal(suite.T(), "sqlite3", suite.sqlite.Driver())
-	suite.sqlite.Reset() // does nothing
 }
 
 func TestDialectTestSuite(t *testing.T) {

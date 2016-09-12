@@ -29,10 +29,7 @@ type Dialect interface {
 	EscapeAll([]string) []string
 	SetEscaping(escaping bool)
 	Escaping() bool
-	Placeholder() string
-	Placeholders(values ...interface{}) []string
 	AutoIncrement(column *ColumnElem) string
-	Reset()
 	SupportsUnsigned() bool
 	Driver() string
 }
@@ -44,13 +41,4 @@ func escapeAll(dialect Dialect, strings []string) []string {
 	}
 
 	return strings
-}
-
-// common placeholders
-func placeholders(dialect Dialect, values ...interface{}) []string {
-	placeholders := []string{}
-	for range values {
-		placeholders = append(placeholders, dialect.Placeholder())
-	}
-	return placeholders
 }

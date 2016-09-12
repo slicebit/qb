@@ -167,7 +167,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
 		Build(sqlite)
 
-	assert.Equal(suite.T(), "UPDATE users\nSET email = ?\nWHERE users.id = ?;", upd.SQL())
+	assert.Equal(suite.T(), "UPDATE users\nSET email = ?\nWHERE id = ?;", upd.SQL())
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, upd.Bindings())
 
 	del := users.

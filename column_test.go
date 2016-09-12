@@ -63,8 +63,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, "\"id\" NOT IN ($1, $2)", notInPostgres)
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsPostgres)
 
-	postgres.Reset()
-
 	// in
 	in := col.In("id1", "id2")
 	inSqlite, likeBindingsSqlite := asSQLBinds(in, sqlite)
@@ -77,8 +75,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsMysql)
 	assert.Equal(t, "\"id\" IN ($1, $2)", inPostgres)
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsPostgres)
-
-	postgres.Reset()
 
 	// not eq
 	notEq := col.NotEq("id1")
@@ -93,8 +89,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, "\"id\" != $1", notEqPostgres)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsPostgres)
 
-	postgres.Reset()
-
 	// eq
 	eq := col.Eq("id1")
 	eqSqlite, likeBindingsSqlite := asSQLBinds(eq, sqlite)
@@ -107,8 +101,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
 	assert.Equal(t, "\"id\" = $1", eqPostgres)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsPostgres)
-
-	postgres.Reset()
 
 	// gt
 	gt := col.Gt("id1")
@@ -123,8 +115,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, "\"id\" > $1", gtPostgres)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsPostgres)
 
-	postgres.Reset()
-
 	// lt
 	lt := col.Lt("id1")
 	ltSqlite, likeBindingsSqlite := asSQLBinds(lt, sqlite)
@@ -137,8 +127,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
 	assert.Equal(t, "\"id\" < $1", ltPostgres)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsPostgres)
-
-	postgres.Reset()
 
 	// gte
 	gte := col.Gte("id1")
@@ -153,8 +141,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, "\"id\" >= $1", gtePostgres)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsPostgres)
 
-	postgres.Reset()
-
 	// lte
 	lte := col.Lte("id1")
 	lteSqlite, likeBindingsSqlite := asSQLBinds(lte, sqlite)
@@ -167,8 +153,6 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
 	assert.Equal(t, "\"id\" <= $1", ltePostgres)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsPostgres)
-
-	postgres.Reset()
 
 	var sql string
 

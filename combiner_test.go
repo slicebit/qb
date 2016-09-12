@@ -55,6 +55,6 @@ func TestCombiners(t *testing.T) {
 	ctx = NewCompilerContext(postgres)
 	sql = or.Accept(ctx)
 
-	assert.Equal(t, "(\"email\" = $3 OR \"id\" != $4)", sql)
+	assert.Equal(t, "(\"email\" = $1 OR \"id\" != $2)", sql)
 	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 }

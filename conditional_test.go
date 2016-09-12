@@ -8,7 +8,6 @@ import (
 func TestConditionals(t *testing.T) {
 
 	compile := func(c Clause, d Dialect) (string, []interface{}) {
-		defer d.Reset()
 		ctx := NewCompilerContext(d)
 		return c.Accept(ctx), ctx.Binds
 	}

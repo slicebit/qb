@@ -50,16 +50,6 @@ func (d *MysqlDialect) Escaping() bool {
 	return d.escaping
 }
 
-// Placeholder returns the placeholder for bindings in the sql
-func (d *MysqlDialect) Placeholder() string {
-	return "?"
-}
-
-// Placeholders returns the placeholders for bindings in the sql
-func (d *MysqlDialect) Placeholders(values ...interface{}) []string {
-	return placeholders(d, values...)
-}
-
 // AutoIncrement generates auto increment sql of current dialect
 func (d *MysqlDialect) AutoIncrement(column *ColumnElem) string {
 	colSpec := d.CompileType(column.Type)
@@ -69,9 +59,6 @@ func (d *MysqlDialect) AutoIncrement(column *ColumnElem) string {
 	colSpec += " AUTO_INCREMENT"
 	return colSpec
 }
-
-// Reset does nothing for the default driver
-func (d *MysqlDialect) Reset() {}
 
 // SupportsUnsigned returns whether driver supports unsigned type mappings or not
 func (d *MysqlDialect) SupportsUnsigned() bool { return true }
@@ -97,10 +84,11 @@ func (MysqlCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) st
 		colNames []string
 		values   []string
 	)
+
 	for k, v := range upsert.values {
 		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
 		context.Binds = append(context.Binds, v)
-		values = append(values, context.Dialect.Placeholder())
+		values = append(values, "?")
 	}
 
 	updates := []string{}
@@ -108,7 +96,7 @@ func (MysqlCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) st
 		updates = append(updates, fmt.Sprintf(
 			"%s = %s",
 			context.Dialect.Escape(k),
-			context.Dialect.Placeholder(),
+			"?",
 		))
 		context.Binds = append(context.Binds, v)
 	}

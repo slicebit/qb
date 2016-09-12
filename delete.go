@@ -36,8 +36,6 @@ func (s DeleteStmt) Accept(context *CompilerContext) string {
 
 // Build generates a statement out of DeleteStmt object
 func (s DeleteStmt) Build(dialect Dialect) *Stmt {
-	defer dialect.Reset()
-
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))

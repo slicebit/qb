@@ -114,8 +114,6 @@ func (s SelectStmt) Accept(context *CompilerContext) string {
 
 // Build compiles the select statement and returns the Stmt
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
-	defer dialect.Reset()
-
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))
