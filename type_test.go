@@ -10,7 +10,7 @@ type TypeTestSuite struct {
 	suite.Suite
 }
 
-func (suite *TypeTestSuite) TestConstraints() {
+func (suite *TypeTestSuite) TestTypes() {
 	dialect := NewDialect("")
 
 	precisionType := Type("FLOAT").Precision(2, 5)
@@ -28,6 +28,7 @@ func (suite *TypeTestSuite) TestConstraints() {
 	assert.Equal(suite.T(), "FLOAT", dialect.CompileType(Float()))
 	assert.Equal(suite.T(), "BOOLEAN", dialect.CompileType(Boolean()))
 	assert.Equal(suite.T(), "TIMESTAMP", dialect.CompileType(Timestamp()))
+	assert.Equal(suite.T(), "BLOB", dialect.CompileType(Blob()))
 }
 
 func TestTypeTestSuite(t *testing.T) {

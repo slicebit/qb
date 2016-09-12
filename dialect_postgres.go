@@ -22,6 +22,9 @@ func init() {
 
 // CompileType compiles a type into its DDL
 func (d *PostgresDialect) CompileType(t TypeElem) string {
+	if t.Name == "BLOB" {
+		return "bytea"
+	}
 	return DefaultCompileType(t, d.SupportsUnsigned())
 }
 

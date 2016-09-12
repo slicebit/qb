@@ -70,6 +70,11 @@ func UUID() TypeElem {
 	return Type("UUID")
 }
 
+// Blob creates a BLOB type
+func Blob() TypeElem {
+	return Type("BLOB")
+}
+
 const defaultTypeSize = -1
 
 // Type returns a new TypeElem while defining columns in table
