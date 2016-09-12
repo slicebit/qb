@@ -129,3 +129,69 @@ func (e *Engine) Driver() string {
 func (e *Engine) Dsn() string {
 	return e.dsn
 }
+
+// Begin begins a transaction and return a *yago.Tx
+func (e *Engine) Begin() (*Tx, error) {
+	tx, err := e.db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	return &Tx{e, tx}, nil
+}
+
+// Tx is an in-progress database transaction
+type Tx struct {
+	engine *Engine
+	tx     *sqlx.Tx
+}
+
+// Tx returns the underlying *sqlx.Tx
+func (tx *Tx) Tx() *sqlx.Tx {
+	return tx.tx
+}
+
+// Commit commits the transaction
+func (tx *Tx) Commit() error {
+	return tx.tx.Commit()
+}
+
+// Rollback aborts the transaction
+func (tx *Tx) Rollback() error {
+	return tx.tx.Rollback()
+}
+
+// Exec executes insert & update type queries and returns sql.Result and error
+func (tx *Tx) Exec(builder Builder) (sql.Result, error) {
+	statement := builder.Build(tx.engine.dialect)
+	tx.engine.log(statement)
+	res, err := tx.tx.Exec(statement.SQL(), statement.Bindings()...)
+	return res, err
+}
+
+// QueryRow wraps *sql.DB.QueryRow()
+func (tx *Tx) QueryRow(builder Builder) *sql.Row {
+	statement := builder.Build(tx.engine.dialect)
+	tx.engine.log(statement)
+	return tx.tx.QueryRow(statement.SQL(), statement.Bindings()...)
+}
+
+// Query wraps *sql.DB.Query()
+func (tx *Tx) Query(builder Builder) (*sql.Rows, error) {
+	statement := builder.Build(tx.engine.dialect)
+	tx.engine.log(statement)
+	return tx.tx.Query(statement.SQL(), statement.Bindings()...)
+}
+
+// Get maps the single row to a model
+func (tx *Tx) Get(builder Builder, model interface{}) error {
+	statement := builder.Build(tx.engine.dialect)
+	tx.engine.log(statement)
+	return tx.tx.Get(model, statement.SQL(), statement.Bindings()...)
+}
+
+// Select maps multiple rows to a model array
+func (tx *Tx) Select(builder Builder, model interface{}) error {
+	statement := builder.Build(tx.engine.dialect)
+	tx.engine.log(statement)
+	return tx.tx.Select(model, statement.SQL(), statement.Bindings()...)
+}
