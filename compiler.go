@@ -43,6 +43,7 @@ type Compiler interface {
 	VisitDelete(*CompilerContext, DeleteStmt) string
 	VisitExists(*CompilerContext, ExistsClause) string
 	VisitHaving(*CompilerContext, HavingClause) string
+	VisitIn(*CompilerContext, InClause) string
 	VisitInsert(*CompilerContext, InsertStmt) string
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
@@ -152,6 +153,16 @@ func (c SQLCompiler) VisitHaving(context *CompilerContext, having HavingClause) 
 	return fmt.Sprintf("HAVING %s %s %s", aggSQL, having.op, context.Dialect.Placeholder())
 }
 
+// VisitIn compiles a <left> (NOT) IN (<right>)
+func (c SQLCompiler) VisitIn(context *CompilerContext, in InClause) string {
+	return fmt.Sprintf(
+		"%s %s (%s)",
+		in.Left.Accept(context),
+		in.Op,
+		in.Right.Accept(context),
+	)
+}
+
 // VisitInsert compiles a INSERT statement
 func (c SQLCompiler) VisitInsert(context *CompilerContext, insert InsertStmt) string {
 	var (
@@ -215,7 +226,7 @@ func (c SQLCompiler) VisitList(context *CompilerContext, list ListClause) string
 	for _, clause := range list.Clauses {
 		clauses = append(clauses, clause.Accept(context))
 	}
-	return fmt.Sprintf("(%s)", strings.Join(clauses, ", "))
+	return strings.Join(clauses, ", ")
 }
 
 // VisitOrderBy compiles a ORDER BY sql clause

@@ -7,24 +7,22 @@ func Like(left Clause, right interface{}) BinaryExpressionClause {
 	return BinaryExpression(left, "LIKE", GetClauseFrom(right))
 }
 
-// NotIn generates a not in conditional sql clause
-func NotIn(left Clause, values ...interface{}) BinaryExpressionClause {
-	return NotInClause(left, GetListFrom(values...))
+// In generates an IN conditional sql clause
+func In(left Clause, values ...interface{}) InClause {
+	return InClause{BinaryExpressionClause{
+		Left:  left,
+		Op:    "IN",
+		Right: GetListFrom(values...),
+	}}
 }
 
-// NotInClause generates a NOT IN clause
-func NotInClause(left Clause, right Clause) BinaryExpressionClause {
-	return BinaryExpression(left, "NOT IN", right)
-}
-
-// In generates an in conditional sql clause
-func In(left Clause, values ...interface{}) BinaryExpressionClause {
-	return InClause(left, GetListFrom(values...))
-}
-
-// InClause generates an in conditional sql clause
-func InClause(left Clause, right Clause) BinaryExpressionClause {
-	return BinaryExpression(left, "IN", right)
+// NotIn generates an NOT IN conditional sql clause
+func NotIn(left Clause, values ...interface{}) InClause {
+	return InClause{BinaryExpressionClause{
+		Left:  left,
+		Op:    "NOT IN",
+		Right: GetListFrom(values...),
+	}}
 }
 
 // NotEq generates a not equal conditional sql clause
@@ -76,4 +74,14 @@ type BinaryExpressionClause struct {
 // Accept calls the compiler VisitBinary method
 func (c BinaryExpressionClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitBinary(context, c)
+}
+
+// InClause is a IN or NOT IN binary expression
+type InClause struct {
+	BinaryExpressionClause
+}
+
+// Accept calls the compiler VisitBinary method
+func (c InClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitIn(context, c)
 }
