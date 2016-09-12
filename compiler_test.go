@@ -54,6 +54,11 @@ var compileTests = []struct {
 		"NOT EXISTS(SELECT group.name\nFROM group\nWHERE group.id = user.main_group_id)",
 		emptyBinds,
 	},
+	{
+		Select(Exists(Select(SQLText("1")).From(TTGroup).Where(TTGroup.C("id").Eq(TTUser.C("main_group_id"))))),
+		"SELECT EXISTS(SELECT 1\nFROM group\nWHERE group.id = user.main_group_id)",
+		emptyBinds,
+	},
 }
 
 func TestCompile(t *testing.T) {
