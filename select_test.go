@@ -143,6 +143,11 @@ func (suite *SelectTestSuite) TestJoin() {
 		InnerJoin(suite.users, suite.sessions.C("user_id"), suite.users.C("id")).
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
+	assert.Equal(suite.T(), suite.sessions.C("user_id"), selInnerJoin.from.C("user_id"))
+	assert.Panics(suite.T(), func() { selInnerJoin.from.C("invalid") })
+
+	assert.Equal(suite.T(), len(suite.sessions.All())+len(suite.users.All()), len(selInnerJoin.from.All()))
+
 	var statement *Stmt
 
 	statement = selInnerJoin.Build(suite.sqlite)
@@ -230,6 +235,30 @@ func (suite *SelectTestSuite) TestGroupByHaving() {
 	statement = sel.Build(suite.postgres)
 	assert.Equal(suite.T(), "SELECT COUNT(\"id\")\nFROM \"sessions\"\nGROUP BY \"user_id\"\nHAVING SUM(\"id\") > $1;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{4}, statement.Bindings())
+}
+
+func (suite *SelectTestSuite) TestAlias() {
+	sessionA := Alias("newname", suite.sessions)
+	sel := Select(sessionA.C("id")).From(sessionA)
+	st := sel.Build(suite.sqlite)
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions AS newname;", st.SQL())
+
+	sel = Select(sessionA.All()...).From(sessionA)
+	sql := sel.Build(suite.mysql).SQL()
+	assert.Contains(suite.T(), sql, "`id`", st.SQL())
+	assert.Contains(suite.T(), sql, "`user_id`", st.SQL())
+	assert.Contains(suite.T(), sql, "`auth_token`", st.SQL())
+
+	usersA := Alias("u", suite.users)
+	sel = Select(usersA.C("email")).
+		From(usersA).
+		LeftJoin(sessionA, usersA.C("id"), sessionA.C("user_id")).
+		Where(sessionA.C("auth_token").Eq("42"))
+	st = sel.Build(suite.postgres)
+	assert.Equal(suite.T(), `SELECT "u"."email"
+FROM "users" AS "u"
+LEFT OUTER JOIN "sessions" AS "newname" ON "u"."id" = "newname"."user_id"
+WHERE "newname"."auth_token" = $1;`, st.SQL())
 }
 
 func TestSelectTestSuite(t *testing.T) {
