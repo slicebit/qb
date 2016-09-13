@@ -43,12 +43,12 @@ func TestColumn(t *testing.T) {
 	likeMysql, likeBindingsMysql := asSQL(like, mysql)
 	likePostgres, likeBindingsPostgres := asSQL(like, postgres)
 
-	assert.Equal(t, "id LIKE 's%'", likeSqlite)
-	assert.Equal(t, []interface{}{}, likeBindingsSqlite)
-	assert.Equal(t, "`id` LIKE 's%'", likeMysql)
-	assert.Equal(t, []interface{}{}, likeBindingsMysql)
-	assert.Equal(t, "\"id\" LIKE 's%'", likePostgres)
-	assert.Equal(t, []interface{}{}, likeBindingsPostgres)
+	assert.Equal(t, "id LIKE ?", likeSqlite)
+	assert.Equal(t, []interface{}{"s%"}, likeBindingsSqlite)
+	assert.Equal(t, "`id` LIKE ?", likeMysql)
+	assert.Equal(t, []interface{}{"s%"}, likeBindingsMysql)
+	assert.Equal(t, "\"id\" LIKE $1", likePostgres)
+	assert.Equal(t, []interface{}{"s%"}, likeBindingsPostgres)
 
 	// not in
 	notIn := col.NotIn("id1", "id2")

@@ -8,6 +8,7 @@ import (
 func TestConditionals(t *testing.T) {
 
 	compile := func(c Clause, d Dialect) (string, []interface{}) {
+		defer d.Reset()
 		ctx := NewCompilerContext(d)
 		return c.Accept(ctx), ctx.Binds
 	}
@@ -28,14 +29,17 @@ func TestConditionals(t *testing.T) {
 
 	like := Like(country, "%land%")
 
-	sql, _ = compile(like, sqlite)
-	assert.Equal(t, "country LIKE '%land%'", sql)
+	sql, bindings = compile(like, sqlite)
+	assert.Equal(t, "country LIKE ?", sql)
+	assert.Equal(t, []interface{}{"%land%"}, bindings)
 
 	sql, _ = compile(like, mysql)
-	assert.Equal(t, "`country` LIKE '%land%'", sql)
+	assert.Equal(t, "`country` LIKE ?", sql)
+	assert.Equal(t, []interface{}{"%land%"}, bindings)
 
 	sql, _ = compile(like, postgres)
-	assert.Equal(t, "\"country\" LIKE '%land%'", sql)
+	assert.Equal(t, "\"country\" LIKE $1", sql)
+	assert.Equal(t, []interface{}{"%land%"}, bindings)
 
 	notIn := NotIn(country, "USA", "England", "Sweden")
 
@@ -62,7 +66,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = compile(in, postgres)
-	assert.Equal(t, "\"country\" IN ($4, $5, $6)", sql)
+	assert.Equal(t, "\"country\" IN ($1, $2, $3)", sql)
 	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	notEq := NotEq(country, "USA")
@@ -76,7 +80,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, []interface{}{"USA"}, bindings)
 
 	sql, bindings = compile(notEq, postgres)
-	assert.Equal(t, "\"country\" != $7", sql)
+	assert.Equal(t, "\"country\" != $1", sql)
 	assert.Equal(t, []interface{}{"USA"}, bindings)
 
 	eq := Eq(country, "Turkey")
@@ -90,7 +94,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
 	sql, bindings = compile(eq, postgres)
-	assert.Equal(t, "\"country\" = $8", sql)
+	assert.Equal(t, "\"country\" = $1", sql)
 	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
 	score := Column("score", BigInt()).NotNull()
@@ -106,7 +110,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = compile(gt, postgres)
-	assert.Equal(t, "\"score\" > $9", sql)
+	assert.Equal(t, "\"score\" > $1", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	lt := Lt(score, 1500)
@@ -121,7 +125,7 @@ func TestConditionals(t *testing.T) {
 
 	sql, bindings = compile(lt, postgres)
 
-	assert.Equal(t, "\"score\" < $10", sql)
+	assert.Equal(t, "\"score\" < $1", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	gte := Gte(score, 1500)
@@ -135,7 +139,7 @@ func TestConditionals(t *testing.T) {
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = compile(gte, postgres)
-	assert.Equal(t, "\"score\" >= $11", sql)
+	assert.Equal(t, "\"score\" >= $1", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	lte := Lte(score, 1500)
@@ -150,7 +154,7 @@ func TestConditionals(t *testing.T) {
 
 	sql, bindings = compile(lte, postgres)
 
-	assert.Equal(t, "\"score\" <= $12", sql)
+	assert.Equal(t, "\"score\" <= $1", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 }

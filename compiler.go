@@ -17,6 +17,7 @@ func NewCompilerContext(dialect Dialect) *CompilerContext {
 type CompilerContext struct {
 	Binds            []interface{}
 	DefaultTableName string
+	InSubQuery       bool
 	Vars             map[string]interface{}
 
 	Dialect  Dialect
@@ -26,14 +27,16 @@ type CompilerContext struct {
 type Compiler interface {
 	VisitAggregate(*CompilerContext, AggregateClause) string
 	VisitAlias(*CompilerContext, AliasClause) string
+	VisitBinary(*CompilerContext, BinaryExpressionClause) string
+	VisitBind(*CompilerContext, BindClause) string
 	VisitColumn(*CompilerContext, ColumnElem) string
 	VisitCombiner(*CompilerContext, CombinerClause) string
-	VisitCondition(*CompilerContext, Conditional) string
 	VisitDelete(*CompilerContext, DeleteStmt) string
 	VisitHaving(*CompilerContext, HavingClause) string
 	VisitInsert(*CompilerContext, InsertStmt) string
 	VisitJoin(*CompilerContext, JoinClause) string
 	VisitLabel(*CompilerContext, string) string
+	VisitList(*CompilerContext, ListClause) string
 	VisitOrderBy(*CompilerContext, OrderByClause) string
 	VisitSelect(*CompilerContext, SelectStmt) string
 	VisitTable(*CompilerContext, TableElem) string
@@ -59,9 +62,25 @@ func (SQLCompiler) VisitAlias(context *CompilerContext, alias AliasClause) strin
 	)
 }
 
+// VisitBinary compiles LEFT <op> RIGHT expressions
+func (c SQLCompiler) VisitBinary(context *CompilerContext, binary BinaryExpressionClause) string {
+	return fmt.Sprintf(
+		"%s %s %s",
+		binary.Left.Accept(context),
+		binary.Op,
+		binary.Right.Accept(context),
+	)
+}
+
+// VisitBind renders a bounded value
+func (SQLCompiler) VisitBind(context *CompilerContext, bind BindClause) string {
+	context.Binds = append(context.Binds, bind.Value)
+	return context.Dialect.Placeholder()
+}
+
 func (c SQLCompiler) VisitColumn(context *CompilerContext, column ColumnElem) string {
 	sql := ""
-	if context.DefaultTableName != column.Table {
+	if context.InSubQuery || context.DefaultTableName != column.Table {
 		sql += c.Dialect.Escape(column.Table) + "."
 	}
 	sql += c.Dialect.Escape(column.Name)
@@ -76,26 +95,6 @@ func (c SQLCompiler) VisitCombiner(context *CompilerContext, combiner CombinerCl
 	}
 
 	return fmt.Sprintf("(%s)", strings.Join(sqls, fmt.Sprintf(" %s ", combiner.operator)))
-}
-
-func (c SQLCompiler) VisitCondition(context *CompilerContext, condition Conditional) string {
-	var sql string
-	key := condition.Col.Accept(context)
-
-	switch condition.Op {
-	case "IN":
-		sql = fmt.Sprintf("%s %s (%s)", key, condition.Op, strings.Join(context.Dialect.Placeholders(condition.Values...), ", "))
-		context.Binds = append(context.Binds, condition.Values...)
-	case "NOT IN":
-		sql = fmt.Sprintf("%s %s (%s)", key, condition.Op, strings.Join(context.Dialect.Placeholders(condition.Values...), ", "))
-		context.Binds = append(context.Binds, condition.Values...)
-	case "LIKE":
-		sql = fmt.Sprintf("%s %s '%s'", key, condition.Op, condition.Values[0])
-	default:
-		sql = fmt.Sprintf("%s %s %s", key, condition.Op, context.Dialect.Placeholder())
-		context.Binds = append(context.Binds, condition.Values...)
-	}
-	return sql
 }
 
 func (c SQLCompiler) VisitDelete(context *CompilerContext, delete DeleteStmt) string {
@@ -177,6 +176,14 @@ func (c SQLCompiler) VisitLabel(context *CompilerContext, label string) string {
 	return c.Dialect.Escape(label)
 }
 
+func (c SQLCompiler) VisitList(context *CompilerContext, list ListClause) string {
+	var clauses []string
+	for _, clause := range list.Clauses {
+		clauses = append(clauses, clause.Accept(context))
+	}
+	return fmt.Sprintf("(%s)", strings.Join(clauses, ", "))
+}
+
 func (c SQLCompiler) VisitOrderBy(context *CompilerContext, orderBy OrderByClause) string {
 	cols := []string{}
 	for _, c := range orderBy.columns {
@@ -191,7 +198,9 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, select_ SelectStmt) s
 	addLine := func(s string) {
 		lines = append(lines, s)
 	}
-	context.DefaultTableName = select_.from.DefaultName()
+	if !context.InSubQuery {
+		context.DefaultTableName = select_.from.DefaultName()
+	}
 
 	// select
 	columns := []string{}
