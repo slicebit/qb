@@ -7,12 +7,38 @@ import (
 
 var emptyBinds = []interface{}{}
 
+var (
+	TTGroup = Table(
+		"group",
+		Column("id", Int()).AutoIncrement().PrimaryKey(),
+		Column("name", Text()).Unique(),
+	)
+
+	TTUser = Table(
+		"user",
+		Column("id", Int()).AutoIncrement().PrimaryKey(),
+		Column("name", Text()).Unique(),
+		Column("main_group_id", Int()),
+		ForeignKey("main_group_id").References("group", "id"),
+	)
+)
+
 var compileTests = []struct {
 	clause Clause
 	expect string
 	binds  []interface{}
 }{
 	{SQLText("1"), "1", emptyBinds},
+	{
+		Exists(Select(TTGroup.C("name")).From(TTGroup).Where(TTGroup.C("id").Eq(TTUser.C("main_group_id")))),
+		"EXISTS(SELECT group.name\nFROM group\nWHERE group.id = user.main_group_id)",
+		emptyBinds,
+	},
+	{
+		NotExists(Select(TTGroup.C("name")).From(TTGroup).Where(TTGroup.C("id").Eq(TTUser.C("main_group_id")))),
+		"NOT EXISTS(SELECT group.name\nFROM group\nWHERE group.id = user.main_group_id)",
+		emptyBinds,
+	},
 }
 
 func TestCompile(t *testing.T) {

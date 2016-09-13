@@ -32,6 +32,7 @@ type Compiler interface {
 	VisitColumn(*CompilerContext, ColumnElem) string
 	VisitCombiner(*CompilerContext, CombinerClause) string
 	VisitDelete(*CompilerContext, DeleteStmt) string
+	VisitExists(*CompilerContext, ExistsClause) string
 	VisitHaving(*CompilerContext, HavingClause) string
 	VisitInsert(*CompilerContext, InsertStmt) string
 	VisitJoin(*CompilerContext, JoinClause) string
@@ -114,6 +115,18 @@ func (c SQLCompiler) VisitDelete(context *CompilerContext, delete DeleteStmt) st
 	}
 
 	return sql
+}
+
+// VisitExists compile a EXISTS clause
+func (SQLCompiler) VisitExists(context *CompilerContext, exists ExistsClause) string {
+	var sql string
+	if exists.Not {
+		sql = "NOT "
+	}
+	sql += "EXISTS(%s)"
+	context.InSubQuery = true
+	defer func() { context.InSubQuery = false }()
+	return fmt.Sprintf(sql, exists.Select.Accept(context))
 }
 
 func (c SQLCompiler) VisitHaving(context *CompilerContext, having HavingClause) string {

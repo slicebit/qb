@@ -46,3 +46,15 @@ func TestGetListFrom(t *testing.T) {
 	assert.Equal(t, 2, l.Clauses[0].(BindClause).Value)
 	assert.Equal(t, 4, l.Clauses[1].(BindClause).Value)
 }
+
+func TestExists(t *testing.T) {
+	s := Select()
+
+	e := Exists(s)
+	assert.False(t, e.Not)
+	assert.Equal(t, s, e.Select)
+
+	ne := NotExists(s)
+	assert.True(t, ne.Not)
+	assert.Equal(t, s, ne.Select)
+}

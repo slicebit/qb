@@ -78,3 +78,30 @@ func GetListFrom(values ...interface{}) Clause {
 	}
 	return List(clauses...)
 }
+
+// Exists returns a EXISTS clause
+func Exists(sel SelectStmt) ExistsClause {
+	return ExistsClause{
+		Select: sel,
+		Not:    false,
+	}
+}
+
+// NotExists returns a NOT EXISTS clause
+func NotExists(sel SelectStmt) ExistsClause {
+	return ExistsClause{
+		Select: sel,
+		Not:    true,
+	}
+}
+
+// ExistsClause is a EXISTS clause
+type ExistsClause struct {
+	Select SelectStmt
+	Not    bool
+}
+
+// Accept calls compiler VisitExists methos
+func (c ExistsClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitExists(context, c)
+}
