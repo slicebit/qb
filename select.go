@@ -130,13 +130,24 @@ type joinOnClauseCandidate struct {
 	target TableElem
 }
 
+func getTable(sel Selectable) (TableElem, bool) {
+	switch t := sel.(type) {
+	case TableElem:
+		return t, true
+	case *TableElem:
+		return *t, true
+	default:
+		return TableElem{}, false
+	}
+}
+
 // GuessJoinOnClause finds a join 'ON' clause between two tables
 func GuessJoinOnClause(left Selectable, right Selectable) Clause {
-	leftTable, ok := left.(TableElem)
+	leftTable, ok := getTable(left)
 	if !ok {
 		panic("left Selectable is not a Table: Cannot guess join onClause")
 	}
-	rightTable, ok := right.(TableElem)
+	rightTable, ok := getTable(right)
 	if !ok {
 		panic("right Selectable is not a Table: Cannot guess join onClause")
 	}

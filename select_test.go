@@ -296,7 +296,7 @@ func (suite *SelectTestSuite) TestGuessJoinOnClause() {
 	})
 
 	assert.Panics(suite.T(), func() {
-		GuessJoinOnClause(t1, t2)
+		GuessJoinOnClause(t1, &t2)
 	})
 
 	assert.Equal(suite.T(), "t3.c1 = t1.c1", asDefSQL(GuessJoinOnClause(t3, t1)))
