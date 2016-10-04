@@ -107,13 +107,18 @@ func (s SelectStmt) Limit(offset int, count int) SelectStmt {
 	return s
 }
 
+// Accept calls the compiler VisitSelect method
+func (s SelectStmt) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitSelect(context, s)
+}
+
 // Build compiles the select statement and returns the Stmt
 func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	defer dialect.Reset()
 
 	context := NewCompilerContext(dialect)
 	statement := Statement()
-	statement.AddSQLClause(context.Compiler.VisitSelect(context, s))
+	statement.AddSQLClause(s.Accept(context))
 	statement.AddBinding(context.Binds...)
 
 	return statement
