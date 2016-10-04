@@ -1,9 +1,13 @@
-![alt text](https://github.com/aacanakin/qb/raw/master/qb_logo_128.png "qb: the database toolkit for go")
+![alt text](https://github.com/slicebit/qb/raw/master/qb_logo_128.png "qb: the database toolkit for go")
 
 # qb - the database toolkit for go
 
 [![Join the chat at https://gitter.im/aacanakin/qb](https://badges.gitter.im/aacanakin/qb.svg)](https://gitter.im/aacanakin/qb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/slicebit/qb.svg?branch=master)](https://travis-ci.org/slicebit/qb) [![Coverage Status](https://coveralls.io/repos/github/aacanakin/qb/badge.svg?branch=master)](https://coveralls.io/github/aacanakin/qb?branch=master) [![License (LGPL version 2.1)](https://img.shields.io/badge/license-GNU%20LGPL%20version%202.1-brightgreen.svg?style=flat)](http://opensource.org/licenses/LGPL-2.1) [![Go Report Card](https://goreportcard.com/badge/github.com/aacanakin/qb)](https://goreportcard.com/report/github.com/aacanakin/qb) [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](http://godoc.org/github.com/aacanakin/qb)
+[![Build Status](https://travis-ci.org/slicebit/qb.svg?branch=master)](https://travis-ci.org/slicebit/qb)
+[![Coverage Status](https://coveralls.io/repos/github/aacanakin/qb/badge.svg?branch=master)](https://coveralls.io/github/aacanakin/qb?branch=master)
+[![License (LGPL version 2.1)](https://img.shields.io/badge/license-GNU%20LGPL%20version%202.1-brightgreen.svg?style=flat)](http://opensource.org/licenses/LGPL-2.1)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aacanakin/qb)](https://goreportcard.com/report/github.com/slicebit/qb)
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](http://godoc.org/github.com/slicebit/qb)
 
 **This project is currently pre 1.**
 
@@ -16,7 +20,7 @@ qb is a database toolkit for easier db queries in go. It is inspired from python
 
 [Documentation](https://qb.readme.io)
 -------------
-The documentation is hosted in [readme.io](https://qb.readme.io) which has great support for markdown docs. Currently, the docs are about 80% - 90% complete. The doc files will be added to this repo soon. Moreover, you can check the godoc from [here](https://godoc.org/github.com/aacanakin/qb). Contributions & Feedbacks in docs are welcome.
+The documentation is hosted in [readme.io](https://qb.readme.io) which has great support for markdown docs. Currently, the docs are about 80% - 90% complete. The doc files will be added to this repo soon. Moreover, you can check the godoc from [here](https://godoc.org/github.com/slicebit/qb). Contributions & Feedbacks in docs are welcome.
 
 Features
 --------
@@ -32,21 +36,21 @@ Installation
 ------------
 Installation with glide;
 ```sh
-glide get github.com/aacanakin/qb
+glide get github.com/slicebit/qb
 ```
 
 0.2 installation with glide;
 ```sh
-glide get github.com/aacanakin/qb#0.2
+glide get github.com/slicebit/qb#0.2
 ```
 
 Installation using go get;
 ```sh
-go get -u github.com/aacanakin/qb
+go get -u github.com/slicebit/qb
 ```
 If you want to install test dependencies then;
 ```sh
-go get -u -t github.com/aacanakin/qb
+go get -u -t github.com/slicebit/qb
 ```
 
 Quick Start
@@ -56,7 +60,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/aacanakin/qb"
+	"github.com/slicebit/qb"
 	_ "github.com/mattn/go-sqlite3"
 )
 
