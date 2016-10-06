@@ -152,6 +152,13 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
+func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {
+	col := Column("test", Int()).AutoIncrement()
+	assert.Panics(suite.T(), func() {
+		col.String(suite.engine.Dialect())
+	})
+}
+
 func TestSqliteTestSuite(t *testing.T) {
 	suite.Run(t, new(SqliteTestSuite))
 }

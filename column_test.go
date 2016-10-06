@@ -29,7 +29,7 @@ func TestColumn(t *testing.T) {
 	precisionCol := Column("f", Type("FLOAT").Precision(2, 5)).Null()
 	assert.Equal(t, "f FLOAT(2, 5) NULL", precisionCol.String(sqlite))
 
-	col = Column("id", Int()).PrimaryKey().AutoIncrement()
+	col = Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 
 	assert.Equal(t, "id INTEGER PRIMARY KEY", col.String(sqlite))
 	assert.Equal(t, "`id` INT PRIMARY KEY AUTO_INCREMENT", col.String(mysql))
