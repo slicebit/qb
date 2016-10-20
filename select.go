@@ -24,7 +24,7 @@ func Select(clauses ...Clause) SelectStmt {
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
 	SelectList  []Clause
-	from        Selectable
+	FromClause  Selectable
 	groupBy     []ColumnElem
 	orderBy     *OrderByClause
 	having      []HavingClause
@@ -41,7 +41,7 @@ func (s SelectStmt) Select(clauses ...Clause) SelectStmt {
 
 // From sets the from selectable of select statement
 func (s SelectStmt) From(selectable Selectable) SelectStmt {
-	s.from = selectable
+	s.FromClause = selectable
 	return s
 }
 
@@ -54,22 +54,22 @@ func (s SelectStmt) Where(clauses ...Clause) SelectStmt {
 
 // InnerJoin appends an inner join clause to the select statement
 func (s SelectStmt) InnerJoin(right Selectable, onClause ...Clause) SelectStmt {
-	return s.From(Join("INNER JOIN", s.from, right, onClause...))
+	return s.From(Join("INNER JOIN", s.FromClause, right, onClause...))
 }
 
 // CrossJoin appends an cross join clause to the select statement
 func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
-	return s.From(Join("CROSS JOIN", s.from, right, nil))
+	return s.From(Join("CROSS JOIN", s.FromClause, right, nil))
 }
 
 // LeftJoin appends an left outer join clause to the select statement
 func (s SelectStmt) LeftJoin(right Selectable, onClause ...Clause) SelectStmt {
-	return s.From(Join("LEFT OUTER JOIN", s.from, right, onClause...))
+	return s.From(Join("LEFT OUTER JOIN", s.FromClause, right, onClause...))
 }
 
 // RightJoin appends a right outer join clause to select statement
 func (s SelectStmt) RightJoin(right Selectable, onClause ...Clause) SelectStmt {
-	return s.From(Join("RIGHT OUTER JOIN", s.from, right, onClause...))
+	return s.From(Join("RIGHT OUTER JOIN", s.FromClause, right, onClause...))
 }
 
 // OrderBy generates an OrderByClause and sets select statement's orderbyclause
