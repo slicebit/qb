@@ -261,7 +261,7 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 
 	// group by
 	groupByCols := []string{}
-	for _, c := range selectStmt.groupBy {
+	for _, c := range selectStmt.GroupByClause {
 		groupByCols = append(groupByCols, context.Dialect.Escape(c.Name))
 	}
 	if len(groupByCols) > 0 {
