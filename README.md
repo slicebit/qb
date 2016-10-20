@@ -4,9 +4,9 @@
 
 [![Join the chat at https://gitter.im/aacanakin/qb](https://badges.gitter.im/aacanakin/qb.svg)](https://gitter.im/aacanakin/qb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/slicebit/qb.svg?branch=master)](https://travis-ci.org/slicebit/qb)
-[![Coverage Status](https://coveralls.io/repos/github/aacanakin/qb/badge.svg?branch=master)](https://coveralls.io/github/aacanakin/qb?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/slicebit/qb/badge.svg?branch=master)](https://coveralls.io/github/slicebit/qb?branch=master)
 [![License (LGPL version 2.1)](https://img.shields.io/badge/license-GNU%20LGPL%20version%202.1-brightgreen.svg?style=flat)](http://opensource.org/licenses/LGPL-2.1)
-[![Go Report Card](https://goreportcard.com/badge/github.com/aacanakin/qb)](https://goreportcard.com/report/github.com/slicebit/qb)
+[![Go Report Card](https://goreportcard.com/badge/github.com/slicebit/qb)](https://goreportcard.com/report/github.com/slicebit/qb)
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](http://godoc.org/github.com/slicebit/qb)
 
 **This project is currently pre 1.**
