@@ -222,13 +222,13 @@ func (c SQLCompiler) VisitList(context *CompilerContext, list ListClause) string
 }
 
 // VisitOrderBy compiles a ORDER BY sql clause
-func (c SQLCompiler) VisitOrderBy(context *CompilerContext, orderBy OrderByClause) string {
+func (c SQLCompiler) VisitOrderBy(context *CompilerContext, OrderByClause OrderByClause) string {
 	cols := []string{}
-	for _, c := range orderBy.columns {
+	for _, c := range OrderByClause.columns {
 		cols = append(cols, c.Accept(context))
 	}
 
-	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), orderBy.t)
+	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), OrderByClause.t)
 }
 
 // VisitSelect compiles a SELECT statement
@@ -237,31 +237,31 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 	addLine := func(s string) {
 		lines = append(lines, s)
 	}
-	if !context.InSubQuery && selectStmt.from != nil {
-		context.DefaultTableName = selectStmt.from.DefaultName()
+	if !context.InSubQuery && selectStmt.FromClause != nil {
+		context.DefaultTableName = selectStmt.FromClause.DefaultName()
 	}
 
 	// select
 	columns := []string{}
-	for _, c := range selectStmt.sel {
+	for _, c := range selectStmt.SelectList {
 		sql := c.Accept(context)
 		columns = append(columns, sql)
 	}
 	addLine(fmt.Sprintf("SELECT %s", strings.Join(columns, ", ")))
 
 	// from
-	if selectStmt.from != nil {
-		addLine(fmt.Sprintf("FROM %s", selectStmt.from.Accept(context)))
+	if selectStmt.FromClause != nil {
+		addLine(fmt.Sprintf("FROM %s", selectStmt.FromClause.Accept(context)))
 	}
 
 	// where
-	if selectStmt.where != nil {
-		addLine(selectStmt.where.Accept(context))
+	if selectStmt.WhereClause != nil {
+		addLine(selectStmt.WhereClause.Accept(context))
 	}
 
 	// group by
 	groupByCols := []string{}
-	for _, c := range selectStmt.groupBy {
+	for _, c := range selectStmt.GroupByClause {
 		groupByCols = append(groupByCols, context.Dialect.Escape(c.Name))
 	}
 	if len(groupByCols) > 0 {
@@ -269,19 +269,19 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 	}
 
 	// having
-	for _, h := range selectStmt.having {
+	for _, h := range selectStmt.HavingClause {
 		sql := h.Accept(context)
 		addLine(sql)
 	}
 
 	// order by
-	if selectStmt.orderBy != nil {
-		sql := selectStmt.orderBy.Accept(context)
+	if selectStmt.OrderByClause != nil {
+		sql := selectStmt.OrderByClause.Accept(context)
 		addLine(sql)
 	}
 
-	if (selectStmt.offset != nil) && (selectStmt.count != nil) {
-		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *selectStmt.count, *selectStmt.offset))
+	if (selectStmt.OffsetValue != nil) && (selectStmt.LimitValue != nil) {
+		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *selectStmt.LimitValue, *selectStmt.OffsetValue))
 	}
 
 	return strings.Join(lines, "\n")

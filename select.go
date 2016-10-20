@@ -15,101 +15,101 @@ type Selectable interface {
 // Select generates a select statement and returns it
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
-		sel:     clauses,
-		groupBy: []ColumnElem{},
-		having:  []HavingClause{},
+		SelectList:    clauses,
+		GroupByClause: []ColumnElem{},
+		HavingClause:  []HavingClause{},
 	}
 }
 
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
-	sel     []Clause
-	from    Selectable
-	groupBy []ColumnElem
-	orderBy *OrderByClause
-	having  []HavingClause
-	where   *WhereClause
-	offset  *int
-	count   *int
+	SelectList    []Clause
+	FromClause    Selectable
+	GroupByClause []ColumnElem
+	OrderByClause *OrderByClause
+	HavingClause  []HavingClause
+	WhereClause   *WhereClause
+	OffsetValue   *int
+	LimitValue    *int
 }
 
 // Select sets the selected columns
 func (s SelectStmt) Select(clauses ...Clause) SelectStmt {
-	s.sel = clauses
+	s.SelectList = clauses
 	return s
 }
 
 // From sets the from selectable of select statement
 func (s SelectStmt) From(selectable Selectable) SelectStmt {
-	s.from = selectable
+	s.FromClause = selectable
 	return s
 }
 
 // Where sets the where clause of select statement
 func (s SelectStmt) Where(clauses ...Clause) SelectStmt {
 	where := Where(clauses...)
-	s.where = &where
+	s.WhereClause = &where
 	return s
 }
 
 // InnerJoin appends an inner join clause to the select statement
 func (s SelectStmt) InnerJoin(right Selectable, onClause ...Clause) SelectStmt {
-	return s.From(Join("INNER JOIN", s.from, right, onClause...))
+	return s.From(Join("INNER JOIN", s.FromClause, right, onClause...))
 }
 
 // CrossJoin appends an cross join clause to the select statement
 func (s SelectStmt) CrossJoin(right Selectable) SelectStmt {
-	return s.From(Join("CROSS JOIN", s.from, right, nil))
+	return s.From(Join("CROSS JOIN", s.FromClause, right, nil))
 }
 
 // LeftJoin appends an left outer join clause to the select statement
 func (s SelectStmt) LeftJoin(right Selectable, onClause ...Clause) SelectStmt {
-	return s.From(Join("LEFT OUTER JOIN", s.from, right, onClause...))
+	return s.From(Join("LEFT OUTER JOIN", s.FromClause, right, onClause...))
 }
 
 // RightJoin appends a right outer join clause to select statement
 func (s SelectStmt) RightJoin(right Selectable, onClause ...Clause) SelectStmt {
-	return s.From(Join("RIGHT OUTER JOIN", s.from, right, onClause...))
+	return s.From(Join("RIGHT OUTER JOIN", s.FromClause, right, onClause...))
 }
 
 // OrderBy generates an OrderByClause and sets select statement's orderbyclause
 // OrderBy(usersTable.C("id")).Asc()
 // OrderBy(usersTable.C("email")).Desc()
 func (s SelectStmt) OrderBy(columns ...ColumnElem) SelectStmt {
-	s.orderBy = &OrderByClause{columns, "ASC"}
+	s.OrderByClause = &OrderByClause{columns, "ASC"}
 	return s
 }
 
 // Asc sets the t type of current order by clause
 // NOTE: Please use it after calling OrderBy()
 func (s SelectStmt) Asc() SelectStmt {
-	s.orderBy.t = "ASC"
+	s.OrderByClause.t = "ASC"
 	return s
 }
 
 // Desc sets the t type of current order by clause
 // NOTE: Please use it after calling OrderBy()
 func (s SelectStmt) Desc() SelectStmt {
-	s.orderBy.t = "DESC"
+	s.OrderByClause.t = "DESC"
 	return s
 }
 
 // GroupBy appends columns to group by clause of the select statement
 func (s SelectStmt) GroupBy(cols ...ColumnElem) SelectStmt {
-	s.groupBy = append(s.groupBy, cols...)
+	s.GroupByClause = append(s.GroupByClause, cols...)
 	return s
 }
 
 // Having appends a having clause to select statement
 func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface{}) SelectStmt {
-	s.having = append(s.having, HavingClause{aggregate, op, value})
+	s.HavingClause = append(s.HavingClause, HavingClause{aggregate, op, value})
 	return s
 }
 
 // Limit sets the offset & count values of the select statement
-func (s SelectStmt) Limit(offset int, count int) SelectStmt {
-	s.offset = &offset
-	s.count = &count
+func (s SelectStmt) Limit(offset int, limit int) SelectStmt {
+	s.OffsetValue = &offset
+	s.LimitValue = &limit
 	return s
 }
 

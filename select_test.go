@@ -147,10 +147,10 @@ func (suite *SelectTestSuite) TestJoin() {
 		InnerJoin(suite.users, suite.sessions.C("user_id"), suite.users.C("id")).
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
-	assert.Equal(suite.T(), suite.sessions.C("user_id"), selInnerJoin.from.C("user_id"))
-	assert.Panics(suite.T(), func() { selInnerJoin.from.C("invalid") })
+	assert.Equal(suite.T(), suite.sessions.C("user_id"), selInnerJoin.FromClause.C("user_id"))
+	assert.Panics(suite.T(), func() { selInnerJoin.FromClause.C("invalid") })
 
-	assert.Equal(suite.T(), len(suite.sessions.All())+len(suite.users.All()), len(selInnerJoin.from.All()))
+	assert.Equal(suite.T(), len(suite.sessions.All())+len(suite.users.All()), len(selInnerJoin.FromClause.All()))
 
 	var statement *Stmt
 
