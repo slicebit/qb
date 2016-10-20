@@ -29,7 +29,7 @@ func TestInsert(t *testing.T) {
 	})
 
 	statement = ins.Build(sqlite)
-	assert.Contains(t, statement.SQL(), "INSERT INTO users")
+	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")
 	assert.Contains(t, statement.SQL(), "id", "email")
 	assert.Contains(t, statement.SQL(), "VALUES(?, ?)")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")

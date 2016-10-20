@@ -76,8 +76,8 @@ func (suite *DialectTestSuite) TestSqliteDialect() {
 	assert.Equal(suite.T(), false, suite.sqlite.Escaping())
 	suite.sqlite.SetEscaping(true)
 	assert.Equal(suite.T(), true, suite.sqlite.Escaping())
-	assert.Equal(suite.T(), "test", suite.sqlite.Escape("test"))
-	assert.Equal(suite.T(), []string{"test"}, suite.sqlite.EscapeAll([]string{"test"}))
+	assert.Equal(suite.T(), "\"test\"", suite.sqlite.Escape("test"))
+	assert.Equal(suite.T(), []string{"\"test\""}, suite.sqlite.EscapeAll([]string{"test"}))
 	assert.Equal(suite.T(), "sqlite3", suite.sqlite.Driver())
 }
 

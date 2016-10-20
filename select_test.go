@@ -46,7 +46,7 @@ func (suite *SelectTestSuite) TestSimpleSelect() {
 
 	var statement *Stmt
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM users;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\";", statement.SQL())
 
 	statement = sel.Build(suite.mysql)
 	assert.Equal(suite.T(), "SELECT `id`\nFROM `users`;", statement.SQL())
@@ -56,7 +56,7 @@ func (suite *SelectTestSuite) TestSimpleSelect() {
 
 	sel = sel.Select(Count(suite.users.C("id")))
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT COUNT(id)\nFROM users;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT COUNT(\"id\")\nFROM \"users\";", statement.SQL())
 }
 
 func (suite *SelectTestSuite) TestSelectWhere() {
@@ -72,7 +72,7 @@ func (suite *SelectTestSuite) TestSelectWhere() {
 	var statement *Stmt
 
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM users\nWHERE (email = ? AND id != ?);", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"users\"\nWHERE (\"email\" = ? AND \"id\" != ?);", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, statement.Bindings())
 
 	statement = sel.Build(suite.mysql)
@@ -93,7 +93,7 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 
 	var statement *Stmt
 	statement = selOrderByDesc.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"user_id\" = ?\nORDER BY \"id\" DESC\nLIMIT 20 OFFSET 0;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByDesc.Build(suite.mysql)
@@ -110,7 +110,7 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		OrderBy(suite.sessions.C("id"))
 
 	statement = selWithoutOrder.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"user_id\" = ?\nORDER BY \"id\" ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selWithoutOrder.Build(suite.mysql)
@@ -127,7 +127,7 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		OrderBy(suite.sessions.C("id")).Asc()
 
 	statement = selOrderByAsc.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\"\nWHERE \"user_id\" = ?\nORDER BY \"id\" ASC;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selOrderByAsc.Build(suite.mysql)
@@ -155,7 +155,7 @@ func (suite *SelectTestSuite) TestJoin() {
 	var statement *Stmt
 
 	statement = selInnerJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nINNER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nINNER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = ?;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selInnerJoin.Build(suite.mysql)
@@ -173,7 +173,7 @@ func (suite *SelectTestSuite) TestJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	statement = selLeftJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\", \"sessions\".\"auth_token\"\nFROM \"sessions\"\nLEFT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = ?;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selLeftJoin.Build(suite.mysql)
@@ -191,7 +191,7 @@ func (suite *SelectTestSuite) TestJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	statement = selRightJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT sessions.id\nFROM sessions\nRIGHT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nRIGHT OUTER JOIN \"users\" ON \"sessions\".\"user_id\" = \"users\".\"id\"\nWHERE \"sessions\".\"user_id\" = ?;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selRightJoin.Build(suite.mysql)
@@ -209,7 +209,7 @@ func (suite *SelectTestSuite) TestJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	statement = selCrossJoin.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT sessions.id\nFROM sessions\nCROSS JOIN users\nWHERE sessions.user_id = ?;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT \"sessions\".\"id\"\nFROM \"sessions\"\nCROSS JOIN \"users\"\nWHERE \"sessions\".\"user_id\" = ?;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{5}, statement.Bindings())
 
 	statement = selCrossJoin.Build(suite.mysql)
@@ -229,7 +229,7 @@ func (suite *SelectTestSuite) TestGroupByHaving() {
 
 	var statement *Stmt
 	statement = sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT COUNT(id)\nFROM sessions\nGROUP BY user_id\nHAVING SUM(id) > ?;", statement.SQL())
+	assert.Equal(suite.T(), "SELECT COUNT(\"id\")\nFROM \"sessions\"\nGROUP BY \"user_id\"\nHAVING SUM(\"id\") > ?;", statement.SQL())
 	assert.Equal(suite.T(), []interface{}{4}, statement.Bindings())
 
 	statement = sel.Build(suite.mysql)
@@ -245,7 +245,7 @@ func (suite *SelectTestSuite) TestAlias() {
 	sessionA := Alias("newname", suite.sessions)
 	sel := Select(sessionA.C("id")).From(sessionA)
 	st := sel.Build(suite.sqlite)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions AS newname;", st.SQL())
+	assert.Equal(suite.T(), "SELECT \"id\"\nFROM \"sessions\" AS \"newname\";", st.SQL())
 
 	sel = Select(sessionA.All()...).From(sessionA)
 	sql := sel.Build(suite.mysql).SQL()

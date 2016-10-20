@@ -19,23 +19,23 @@ func TestColumn(t *testing.T) {
 	assert.Equal(t, "id", col.Name)
 	assert.Equal(t, Varchar().Size(40), col.Type)
 
-	assert.Equal(t, "id VARCHAR(40)", col.String(sqlite))
+	assert.Equal(t, "\"id\" VARCHAR(40)", col.String(sqlite))
 	assert.Equal(t, "`id` VARCHAR(40)", col.String(mysql))
 	assert.Equal(t, "\"id\" VARCHAR(40)", col.String(postgres))
 
 	col = Column("s", Varchar().Size(255)).Unique().NotNull().Default("hello")
-	assert.Equal(t, "s VARCHAR(255) UNIQUE NOT NULL DEFAULT 'hello'", col.String(sqlite))
+	assert.Equal(t, "\"s\" VARCHAR(255) UNIQUE NOT NULL DEFAULT 'hello'", col.String(sqlite))
 
 	precisionCol := Column("f", Type("FLOAT").Precision(2, 5)).Null()
-	assert.Equal(t, "f FLOAT(2, 5) NULL", precisionCol.String(sqlite))
+	assert.Equal(t, "\"f\" FLOAT(2, 5) NULL", precisionCol.String(sqlite))
 
 	col = Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 
-	assert.Equal(t, "id INTEGER PRIMARY KEY", col.String(sqlite))
+	assert.Equal(t, "\"id\" INTEGER PRIMARY KEY", col.String(sqlite))
 	assert.Equal(t, "`id` INT PRIMARY KEY AUTO_INCREMENT", col.String(mysql))
 	assert.Equal(t, "\"id\" SERIAL PRIMARY KEY", col.String(postgres))
 
-	assert.Equal(t, "c INT TEST", Column("c", Int()).Constraint("TEST").String(sqlite))
+	assert.Equal(t, "\"c\" INT TEST", Column("c", Int()).Constraint("TEST").String(sqlite))
 
 	// like
 	like := col.Like("s%")
@@ -43,7 +43,7 @@ func TestColumn(t *testing.T) {
 	likeMysql, likeBindingsMysql := asSQLBinds(like, mysql)
 	likePostgres, likeBindingsPostgres := asSQLBinds(like, postgres)
 
-	assert.Equal(t, "id LIKE ?", likeSqlite)
+	assert.Equal(t, "\"id\" LIKE ?", likeSqlite)
 	assert.Equal(t, []interface{}{"s%"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` LIKE ?", likeMysql)
 	assert.Equal(t, []interface{}{"s%"}, likeBindingsMysql)
@@ -56,7 +56,7 @@ func TestColumn(t *testing.T) {
 	notInMysql, likeBindingsMysql := asSQLBinds(notIn, mysql)
 	notInPostgres, likeBindingsPostgres := asSQLBinds(notIn, postgres)
 
-	assert.Equal(t, "id NOT IN (?, ?)", notInSqlite)
+	assert.Equal(t, "\"id\" NOT IN (?, ?)", notInSqlite)
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` NOT IN (?, ?)", notInMysql)
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsMysql)
@@ -69,7 +69,7 @@ func TestColumn(t *testing.T) {
 	inMysql, likeBindingsMysql := asSQLBinds(in, mysql)
 	inPostgres, likeBindingsPostgres := asSQLBinds(in, postgres)
 
-	assert.Equal(t, "id IN (?, ?)", inSqlite)
+	assert.Equal(t, "\"id\" IN (?, ?)", inSqlite)
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` IN (?, ?)", inMysql)
 	assert.Equal(t, []interface{}{"id1", "id2"}, likeBindingsMysql)
@@ -82,7 +82,7 @@ func TestColumn(t *testing.T) {
 	notEqMysql, likeBindingsMysql := asSQLBinds(notEq, mysql)
 	notEqPostgres, likeBindingsPostgres := asSQLBinds(notEq, postgres)
 
-	assert.Equal(t, "id != ?", notEqSqlite)
+	assert.Equal(t, "\"id\" != ?", notEqSqlite)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` != ?", notEqMysql)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
@@ -95,7 +95,7 @@ func TestColumn(t *testing.T) {
 	eqMysql, likeBindingsMysql := asSQLBinds(eq, mysql)
 	eqPostgres, likeBindingsPostgres := asSQLBinds(eq, postgres)
 
-	assert.Equal(t, "id = ?", eqSqlite)
+	assert.Equal(t, "\"id\" = ?", eqSqlite)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` = ?", eqMysql)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
@@ -108,7 +108,7 @@ func TestColumn(t *testing.T) {
 	gtMysql, likeBindingsMysql := asSQLBinds(gt, mysql)
 	gtPostgres, likeBindingsPostgres := asSQLBinds(gt, postgres)
 
-	assert.Equal(t, "id > ?", gtSqlite)
+	assert.Equal(t, "\"id\" > ?", gtSqlite)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` > ?", gtMysql)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
@@ -121,7 +121,7 @@ func TestColumn(t *testing.T) {
 	ltMysql, likeBindingsMysql := asSQLBinds(lt, mysql)
 	ltPostgres, likeBindingsPostgres := asSQLBinds(lt, postgres)
 
-	assert.Equal(t, "id < ?", ltSqlite)
+	assert.Equal(t, "\"id\" < ?", ltSqlite)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` < ?", ltMysql)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
@@ -134,7 +134,7 @@ func TestColumn(t *testing.T) {
 	gteMysql, likeBindingsMysql := asSQLBinds(gte, mysql)
 	gtePostgres, likeBindingsPostgres := asSQLBinds(gte, postgres)
 
-	assert.Equal(t, "id >= ?", gteSqlite)
+	assert.Equal(t, "\"id\" >= ?", gteSqlite)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` >= ?", gteMysql)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
@@ -147,7 +147,7 @@ func TestColumn(t *testing.T) {
 	lteMysql, likeBindingsMysql := asSQLBinds(lte, mysql)
 	ltePostgres, likeBindingsPostgres := asSQLBinds(lte, postgres)
 
-	assert.Equal(t, "id <= ?", lteSqlite)
+	assert.Equal(t, "\"id\" <= ?", lteSqlite)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsSqlite)
 	assert.Equal(t, "`id` <= ?", lteMysql)
 	assert.Equal(t, []interface{}{"id1"}, likeBindingsMysql)
@@ -157,7 +157,7 @@ func TestColumn(t *testing.T) {
 	var sql string
 
 	sql = col.Accept(NewCompilerContext(sqlite))
-	assert.Equal(t, "id", sql)
+	assert.Equal(t, "\"id\"", sql)
 
 	sql = col.Accept(NewCompilerContext(mysql))
 	assert.Equal(t, "`id`", sql)

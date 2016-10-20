@@ -28,7 +28,7 @@ func TestUpdate(t *testing.T) {
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
 		Build(sqlite)
 
-	assert.Equal(t, "UPDATE users\nSET email = ?;", statement.SQL())
+	assert.Equal(t, "UPDATE \"users\"\nSET \"email\" = ?;", statement.SQL())
 	assert.Equal(t, []interface{}{"robert@de.niro"}, statement.Bindings())
 
 	statement = Update(users).

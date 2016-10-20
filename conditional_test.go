@@ -29,7 +29,7 @@ func TestConditionals(t *testing.T) {
 	like := Like(country, "%land%")
 
 	sql, bindings = compile(like, sqlite)
-	assert.Equal(t, "country LIKE ?", sql)
+	assert.Equal(t, "\"country\" LIKE ?", sql)
 	assert.Equal(t, []interface{}{"%land%"}, bindings)
 
 	sql, _ = compile(like, mysql)
@@ -43,7 +43,7 @@ func TestConditionals(t *testing.T) {
 	notIn := NotIn(country, "USA", "England", "Sweden")
 
 	sql, bindings = compile(notIn, sqlite)
-	assert.Equal(t, "country NOT IN (?, ?, ?)", sql)
+	assert.Equal(t, "\"country\" NOT IN (?, ?, ?)", sql)
 	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = compile(notIn, mysql)
@@ -57,7 +57,7 @@ func TestConditionals(t *testing.T) {
 	in := In(country, "USA", "England", "Sweden")
 
 	sql, bindings = compile(in, sqlite)
-	assert.Equal(t, "country IN (?, ?, ?)", sql)
+	assert.Equal(t, "\"country\" IN (?, ?, ?)", sql)
 	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
 
 	sql, bindings = compile(in, mysql)
@@ -71,7 +71,7 @@ func TestConditionals(t *testing.T) {
 	notEq := NotEq(country, "USA")
 
 	sql, bindings = compile(notEq, sqlite)
-	assert.Equal(t, "country != ?", sql)
+	assert.Equal(t, "\"country\" != ?", sql)
 	assert.Equal(t, []interface{}{"USA"}, bindings)
 
 	sql, bindings = compile(notEq, mysql)
@@ -85,7 +85,7 @@ func TestConditionals(t *testing.T) {
 	eq := Eq(country, "Turkey")
 
 	sql, bindings = compile(eq, sqlite)
-	assert.Equal(t, "country = ?", sql)
+	assert.Equal(t, "\"country\" = ?", sql)
 	assert.Equal(t, []interface{}{"Turkey"}, bindings)
 
 	sql, bindings = compile(eq, mysql)
@@ -101,7 +101,7 @@ func TestConditionals(t *testing.T) {
 	gt := Gt(score, 1500)
 
 	sql, bindings = compile(gt, sqlite)
-	assert.Equal(t, "score > ?", sql)
+	assert.Equal(t, "\"score\" > ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = compile(gt, mysql)
@@ -115,7 +115,7 @@ func TestConditionals(t *testing.T) {
 	lt := Lt(score, 1500)
 
 	sql, bindings = compile(lt, sqlite)
-	assert.Equal(t, "score < ?", sql)
+	assert.Equal(t, "\"score\" < ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = compile(lt, mysql)
@@ -130,7 +130,7 @@ func TestConditionals(t *testing.T) {
 	gte := Gte(score, 1500)
 
 	sql, bindings = compile(gte, sqlite)
-	assert.Equal(t, "score >= ?", sql)
+	assert.Equal(t, "\"score\" >= ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = compile(gte, mysql)
@@ -144,7 +144,7 @@ func TestConditionals(t *testing.T) {
 	lte := Lte(score, 1500)
 
 	sql, bindings = compile(lte, sqlite)
-	assert.Equal(t, "score <= ?", sql)
+	assert.Equal(t, "\"score\" <= ?", sql)
 	assert.Equal(t, []interface{}{1500}, bindings)
 
 	sql, bindings = compile(lte, mysql)

@@ -30,6 +30,9 @@ func (d *SqliteDialect) CompileType(t TypeElem) string {
 
 // Escape wraps the string with escape characters of the dialect
 func (d *SqliteDialect) Escape(str string) string {
+	if d.escaping {
+		return fmt.Sprintf(`"%s"`, str)
+	}
 	return str
 }
 
