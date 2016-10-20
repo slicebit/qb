@@ -17,7 +17,7 @@ func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
 		SelectList:    clauses,
 		GroupByClause: []ColumnElem{},
-		having:        []HavingClause{},
+		HavingClause:  []HavingClause{},
 	}
 }
 
@@ -27,7 +27,7 @@ type SelectStmt struct {
 	FromClause    Selectable
 	GroupByClause []ColumnElem
 	OrderByClause *OrderByClause
-	having        []HavingClause
+	HavingClause  []HavingClause
 	WhereClause   *WhereClause
 	offset        *int
 	count         *int
@@ -102,7 +102,7 @@ func (s SelectStmt) GroupBy(cols ...ColumnElem) SelectStmt {
 
 // Having appends a having clause to select statement
 func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface{}) SelectStmt {
-	s.having = append(s.having, HavingClause{aggregate, op, value})
+	s.HavingClause = append(s.HavingClause, HavingClause{aggregate, op, value})
 	return s
 }
 

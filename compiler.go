@@ -269,7 +269,7 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 	}
 
 	// having
-	for _, h := range selectStmt.having {
+	for _, h := range selectStmt.HavingClause {
 		sql := h.Accept(context)
 		addLine(sql)
 	}
