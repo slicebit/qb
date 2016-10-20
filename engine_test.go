@@ -127,7 +127,7 @@ func TestTx(t *testing.T) {
 	assert.Equal(t, nil, row.Scan(&count))
 	assert.Equal(t, 1, count)
 
-	tx, err = engine.Begin()
+	tx, _ = engine.Begin()
 
 	assert.Nil(t, nil)
 

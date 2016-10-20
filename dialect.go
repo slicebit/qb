@@ -12,7 +12,7 @@ func NewDialect(driver string) Dialect {
 // A DialectFactory is a Dialect Factory
 type DialectFactory func() Dialect
 
-// Global registry of dialects
+// DialectRegistry is a global registry of dialects
 var DialectRegistry = make(map[string]DialectFactory)
 
 // RegisterDialect add a new dialect to the registry
