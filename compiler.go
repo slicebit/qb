@@ -280,8 +280,8 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 		addLine(sql)
 	}
 
-	if (selectStmt.offset != nil) && (selectStmt.count != nil) {
-		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *selectStmt.count, *selectStmt.offset))
+	if (selectStmt.OffsetValue != nil) && (selectStmt.LimitValue != nil) {
+		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *selectStmt.LimitValue, *selectStmt.OffsetValue))
 	}
 
 	return strings.Join(lines, "\n")

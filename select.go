@@ -29,8 +29,8 @@ type SelectStmt struct {
 	OrderByClause *OrderByClause
 	HavingClause  []HavingClause
 	WhereClause   *WhereClause
-	offset        *int
-	count         *int
+	OffsetValue   *int
+	LimitValue    *int
 }
 
 // Select sets the selected columns
@@ -107,9 +107,9 @@ func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface
 }
 
 // Limit sets the offset & count values of the select statement
-func (s SelectStmt) Limit(offset int, count int) SelectStmt {
-	s.offset = &offset
-	s.count = &count
+func (s SelectStmt) Limit(offset int, limit int) SelectStmt {
+	s.OffsetValue = &offset
+	s.LimitValue = &limit
 	return s
 }
 
