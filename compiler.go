@@ -243,7 +243,7 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 
 	// select
 	columns := []string{}
-	for _, c := range selectStmt.sel {
+	for _, c := range selectStmt.SelectList {
 		sql := c.Accept(context)
 		columns = append(columns, sql)
 	}

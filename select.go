@@ -15,15 +15,15 @@ type Selectable interface {
 // Select generates a select statement and returns it
 func Select(clauses ...Clause) SelectStmt {
 	return SelectStmt{
-		sel:     clauses,
-		groupBy: []ColumnElem{},
-		having:  []HavingClause{},
+		SelectList: clauses,
+		groupBy:    []ColumnElem{},
+		having:     []HavingClause{},
 	}
 }
 
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
-	sel         []Clause
+	SelectList  []Clause
 	from        Selectable
 	groupBy     []ColumnElem
 	orderBy     *OrderByClause
@@ -35,7 +35,7 @@ type SelectStmt struct {
 
 // Select sets the selected columns
 func (s SelectStmt) Select(clauses ...Clause) SelectStmt {
-	s.sel = clauses
+	s.SelectList = clauses
 	return s
 }
 
