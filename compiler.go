@@ -222,13 +222,13 @@ func (c SQLCompiler) VisitList(context *CompilerContext, list ListClause) string
 }
 
 // VisitOrderBy compiles a ORDER BY sql clause
-func (c SQLCompiler) VisitOrderBy(context *CompilerContext, orderBy OrderByClause) string {
+func (c SQLCompiler) VisitOrderBy(context *CompilerContext, OrderByClause OrderByClause) string {
 	cols := []string{}
-	for _, c := range orderBy.columns {
+	for _, c := range OrderByClause.columns {
 		cols = append(cols, c.Accept(context))
 	}
 
-	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), orderBy.t)
+	return fmt.Sprintf("ORDER BY %s %s", strings.Join(cols, ", "), OrderByClause.t)
 }
 
 // VisitSelect compiles a SELECT statement
@@ -275,8 +275,8 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 	}
 
 	// order by
-	if selectStmt.orderBy != nil {
-		sql := selectStmt.orderBy.Accept(context)
+	if selectStmt.OrderByClause != nil {
+		sql := selectStmt.OrderByClause.Accept(context)
 		addLine(sql)
 	}
 

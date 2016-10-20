@@ -26,7 +26,7 @@ type SelectStmt struct {
 	SelectList    []Clause
 	FromClause    Selectable
 	GroupByClause []ColumnElem
-	orderBy       *OrderByClause
+	OrderByClause *OrderByClause
 	having        []HavingClause
 	WhereClause   *WhereClause
 	offset        *int
@@ -76,21 +76,21 @@ func (s SelectStmt) RightJoin(right Selectable, onClause ...Clause) SelectStmt {
 // OrderBy(usersTable.C("id")).Asc()
 // OrderBy(usersTable.C("email")).Desc()
 func (s SelectStmt) OrderBy(columns ...ColumnElem) SelectStmt {
-	s.orderBy = &OrderByClause{columns, "ASC"}
+	s.OrderByClause = &OrderByClause{columns, "ASC"}
 	return s
 }
 
 // Asc sets the t type of current order by clause
 // NOTE: Please use it after calling OrderBy()
 func (s SelectStmt) Asc() SelectStmt {
-	s.orderBy.t = "ASC"
+	s.OrderByClause.t = "ASC"
 	return s
 }
 
 // Desc sets the t type of current order by clause
 // NOTE: Please use it after calling OrderBy()
 func (s SelectStmt) Desc() SelectStmt {
-	s.orderBy.t = "DESC"
+	s.OrderByClause.t = "DESC"
 	return s
 }
 
