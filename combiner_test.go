@@ -25,7 +25,7 @@ func TestCombiners(t *testing.T) {
 	ctx := NewCompilerContext(sqlite)
 	sql = and.Accept(ctx)
 
-	assert.Equal(t, "(email = ? AND id != ?)", sql)
+	assert.Equal(t, "(\"email\" = ? AND \"id\" != ?)", sql)
 	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
 	ctx = NewCompilerContext(mysql)
@@ -43,7 +43,7 @@ func TestCombiners(t *testing.T) {
 	ctx = NewCompilerContext(sqlite)
 	sql = or.Accept(ctx)
 
-	assert.Equal(t, "(email = ? OR id != ?)", sql)
+	assert.Equal(t, "(\"email\" = ? OR \"id\" != ?)", sql)
 	assert.Equal(t, []interface{}{"al@pacino.com", 1}, ctx.Binds)
 
 	ctx = NewCompilerContext(mysql)

@@ -41,7 +41,7 @@ func TestUpsert(t *testing.T) {
 	})
 
 	statement = ups.Build(sqlite)
-	assert.Contains(t, statement.SQL(), "REPLACE INTO users")
+	assert.Contains(t, statement.SQL(), `REPLACE INTO "users"`)
 	assert.Contains(t, statement.SQL(), "id", "email", "created_at")
 	assert.Contains(t, statement.SQL(), "VALUES(?, ?, ?)")
 	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
