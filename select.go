@@ -23,14 +23,15 @@ func Select(clauses ...Clause) SelectStmt {
 
 // SelectStmt is the base struct for building select statements
 type SelectStmt struct {
-	SelectList    []Clause
-	FromClause    Selectable
-	GroupByClause []ColumnElem
-	OrderByClause *OrderByClause
-	HavingClause  []HavingClause
-	WhereClause   *WhereClause
-	OffsetValue   *int
-	LimitValue    *int
+	SelectList      []Clause
+	FromClause      Selectable
+	GroupByClause   []ColumnElem
+	OrderByClause   *OrderByClause
+	HavingClause    []HavingClause
+	WhereClause     *WhereClause
+	ForUpdateClause *ForUpdateClause
+	OffsetValue     *int
+	LimitValue      *int
 }
 
 // Select sets the selected columns
@@ -110,6 +111,12 @@ func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface
 func (s SelectStmt) Limit(offset int, limit int) SelectStmt {
 	s.OffsetValue = &offset
 	s.LimitValue = &limit
+	return s
+}
+
+// ForUpdate adds a "FOR UPDATE" clause
+func (s SelectStmt) ForUpdate(tables ...TableElem) SelectStmt {
+	s.ForUpdateClause = &ForUpdateClause{tables}
 	return s
 }
 
@@ -299,6 +306,16 @@ type HavingClause struct {
 // Accept calls the compiler VisitHaving function
 func (c HavingClause) Accept(context *CompilerContext) string {
 	return context.Compiler.VisitHaving(context, c)
+}
+
+// ForUpdateClause is a FOR UPDATE expression
+type ForUpdateClause struct {
+	Tables []TableElem
+}
+
+// Accept calls the compiler VisitForUpdate method
+func (s ForUpdateClause) Accept(context *CompilerContext) string {
+	return context.Compiler.VisitForUpdate(context, s)
 }
 
 // Alias returns a new AliasClause

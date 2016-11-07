@@ -59,6 +59,16 @@ var compileTests = []struct {
 		"SELECT EXISTS(SELECT 1\nFROM group\nWHERE group.id = user.main_group_id)",
 		emptyBinds,
 	},
+	{
+		Select(SQLText("1")).From(TTGroup).ForUpdate(),
+		"SELECT 1\nFROM group\nFOR UPDATE",
+		emptyBinds,
+	},
+	{
+		Select(SQLText("1")).From(TTGroup).ForUpdate(TTUser, TTGroup),
+		"SELECT 1\nFROM group\nFOR UPDATE OF user, group",
+		emptyBinds,
+	},
 }
 
 func TestCompile(t *testing.T) {

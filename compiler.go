@@ -39,6 +39,7 @@ type Compiler interface {
 	VisitCombiner(*CompilerContext, CombinerClause) string
 	VisitDelete(*CompilerContext, DeleteStmt) string
 	VisitExists(*CompilerContext, ExistsClause) string
+	VisitForUpdate(*CompilerContext, ForUpdateClause) string
 	VisitHaving(*CompilerContext, HavingClause) string
 	VisitIn(*CompilerContext, InClause) string
 	VisitInsert(*CompilerContext, InsertStmt) string
@@ -141,6 +142,19 @@ func (SQLCompiler) VisitExists(context *CompilerContext, exists ExistsClause) st
 	context.InSubQuery = true
 	defer func() { context.InSubQuery = false }()
 	return fmt.Sprintf(sql, exists.Select.Accept(context))
+}
+
+// VisitForUpdate compiles a 'FOR UPDATE' clause
+func (c SQLCompiler) VisitForUpdate(context *CompilerContext, forUpdate ForUpdateClause) string {
+	var sql = "FOR UPDATE"
+	if len(forUpdate.Tables) != 0 {
+		var tablenames []string
+		for _, table := range forUpdate.Tables {
+			tablenames = append(tablenames, table.Name)
+		}
+		sql += " OF " + strings.Join(tablenames, ", ")
+	}
+	return sql
 }
 
 // VisitHaving compiles a HAVING clause
@@ -282,6 +296,10 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 
 	if (selectStmt.OffsetValue != nil) && (selectStmt.LimitValue != nil) {
 		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *selectStmt.LimitValue, *selectStmt.OffsetValue))
+	}
+
+	if selectStmt.ForUpdateClause != nil {
+		addLine(selectStmt.ForUpdateClause.Accept(context))
 	}
 
 	return strings.Join(lines, "\n")
