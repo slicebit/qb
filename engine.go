@@ -2,10 +2,11 @@ package qb
 
 import (
 	"database/sql"
-	"github.com/jmoiron/sqlx"
-	"github.com/serenize/snaker"
 	"log"
 	"os"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/serenize/snaker"
 )
 
 // New generates a new engine and returns it as an engine pointer
@@ -135,7 +136,7 @@ func (e *Engine) Dsn() string {
 	return e.dsn
 }
 
-// Begin begins a transaction and return a *yago.Tx
+// Begin begins a transaction and return a *qb.Tx
 func (e *Engine) Begin() (*Tx, error) {
 	tx, err := e.db.Beginx()
 	if err != nil {
