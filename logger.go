@@ -38,11 +38,11 @@ type DefaultLogger struct {
 
 // SetLogFlags sets the logflags
 // It is for changing engine log flags
-func (l DefaultLogger) SetLogFlags(logFlags int) {
+func (l *DefaultLogger) SetLogFlags(logFlags int) {
 	l.logFlags = logFlags
 }
 
 // LogFlags gets the logflags as an int
-func (l DefaultLogger) LogFlags() int {
+func (l *DefaultLogger) LogFlags() int {
 	return l.logFlags
 }

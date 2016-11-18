@@ -56,6 +56,11 @@ func (e *Engine) SetLogger(logger Logger) {
 	e.logger = logger
 }
 
+// SetLogFlags sets the log flags on the current logger
+func (e *Engine) SetLogFlags(flags int) {
+	e.logger.SetLogFlags(flags)
+}
+
 func (e *Engine) log(statement *Stmt) {
 	logFlags := e.logger.LogFlags()
 	if logFlags == LQuery || logFlags == (LQuery|LBindings) {
