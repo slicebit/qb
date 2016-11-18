@@ -2,10 +2,11 @@ package qb
 
 import (
 	"database/sql"
-	"github.com/jmoiron/sqlx"
-	"github.com/serenize/snaker"
 	"log"
 	"os"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/serenize/snaker"
 )
 
 // New generates a new engine and returns it as an engine pointer
@@ -56,16 +57,18 @@ func (e *Engine) SetLogger(logger Logger) {
 	e.logger = logger
 }
 
+// SetLogFlags sets the log flags on the current logger
+func (e *Engine) SetLogFlags(flags LogFlags) {
+	e.logger.SetLogFlags(flags)
+}
+
 func (e *Engine) log(statement *Stmt) {
 	logFlags := e.logger.LogFlags()
-	if logFlags == LQuery || logFlags == (LQuery|LBindings) {
-		e.logger.Println(statement.SQL())
+	if logFlags & LQuery != 0 {
+		e.logger.Println("SQL:", statement.SQL())
 	}
-	if logFlags == LBindings || logFlags == (LQuery|LBindings) {
-		e.logger.Println(statement.Bindings())
-	}
-	if logFlags != LDefault {
-		e.logger.Println()
+	if logFlags & LBindings != 0 {
+		e.logger.Println("Bindings:", statement.Bindings())
 	}
 }
 
@@ -130,7 +133,7 @@ func (e *Engine) Dsn() string {
 	return e.dsn
 }
 
-// Begin begins a transaction and return a *yago.Tx
+// Begin begins a transaction and return a *qb.Tx
 func (e *Engine) Begin() (*Tx, error) {
 	tx, err := e.db.Beginx()
 	if err != nil {

@@ -1,9 +1,10 @@
 package qb
 
 import (
-	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLogger(t *testing.T) {
@@ -24,9 +25,21 @@ func TestLogger(t *testing.T) {
 	_, err = engine.Exec(actors.Insert().Values(map[string]interface{}{"id": 5}))
 	assert.Nil(t, err)
 
-	engine.Logger().SetLogFlags(LBindings)
+	engine.Logger().SetLogFlags(LQuery|LBindings)
 	_, err = engine.Exec(actors.Insert().Values(map[string]interface{}{"id": 10}))
 	assert.Nil(t, err)
 
 	assert.Equal(t, engine.Logger().LogFlags(), LQuery|LBindings)
+}
+
+func TestLoggerFlags(t *testing.T) {
+	engine, err := New("postgres", "user=root dbname=pqtest")
+	assert.Equal(t, nil, err)
+
+	// before setting flags, this is on the default
+	assert.Equal(t, engine.Logger().LogFlags(), LDefault)
+
+	engine.SetLogFlags(LBindings)
+	// after setting flags, we have the expected value
+	assert.Equal(t, engine.Logger().LogFlags(), LBindings)
 }
