@@ -58,20 +58,17 @@ func (e *Engine) SetLogger(logger Logger) {
 }
 
 // SetLogFlags sets the log flags on the current logger
-func (e *Engine) SetLogFlags(flags int) {
+func (e *Engine) SetLogFlags(flags LogFlags) {
 	e.logger.SetLogFlags(flags)
 }
 
 func (e *Engine) log(statement *Stmt) {
 	logFlags := e.logger.LogFlags()
-	if logFlags == LQuery || logFlags == (LQuery|LBindings) {
-		e.logger.Println(statement.SQL())
+	if logFlags & LQuery != 0 {
+		e.logger.Println("SQL:", statement.SQL())
 	}
-	if logFlags == LBindings || logFlags == (LQuery|LBindings) {
-		e.logger.Println(statement.Bindings())
-	}
-	if logFlags != LDefault {
-		e.logger.Println()
+	if logFlags & LBindings != 0 {
+		e.logger.Println("Bindings:", statement.Bindings())
 	}
 }
 

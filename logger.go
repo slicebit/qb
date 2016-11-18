@@ -2,15 +2,19 @@ package qb
 
 import "log"
 
-// There are the log flags qb can use
-// The default log flag is not at all logging
+// These are the log flags qb can use
 const (
-	LDefault = iota
+	// LDefault is the default flag that logs nothing
+	LDefault LogFlags = 0
 	// LQuery Flag to log queries
-	LQuery
+	LQuery LogFlags = 1 << iota
 	// LBindings Flag to log bindings
 	LBindings
 )
+
+// LogFlags is the type we use for flags that can be passed
+// to the logger
+type LogFlags uint
 
 // Logger is the std logger interface of the qb engine
 type Logger interface {
@@ -26,23 +30,23 @@ type Logger interface {
 	Panicf(string, ...interface{})
 	Panicln(...interface{})
 
-	LogFlags() int
-	SetLogFlags(int)
+	LogFlags() LogFlags
+	SetLogFlags(LogFlags)
 }
 
 // DefaultLogger is the default logger of qb engine unless engine.SetLogger() is not called
 type DefaultLogger struct {
-	logFlags int
+	logFlags LogFlags
 	*log.Logger
 }
 
 // SetLogFlags sets the logflags
 // It is for changing engine log flags
-func (l *DefaultLogger) SetLogFlags(logFlags int) {
+func (l *DefaultLogger) SetLogFlags(logFlags LogFlags) {
 	l.logFlags = logFlags
 }
 
 // LogFlags gets the logflags as an int
-func (l *DefaultLogger) LogFlags() int {
+func (l *DefaultLogger) LogFlags() LogFlags {
 	return l.logFlags
 }
