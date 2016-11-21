@@ -119,8 +119,8 @@ func (e *Engine) Ping() error {
 }
 
 // Close closes the sqlx db connection
-func (e *Engine) Close() {
-	e.db.Close()
+func (e *Engine) Close() error {
+	return e.db.Close()
 }
 
 // Driver returns the driver as string
