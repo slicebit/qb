@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+	"errors"
 )
 
 type SqliteTestSuite struct {
@@ -150,6 +151,15 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
+}
+
+func TestSQLiteExtractError(t *testing.T) {
+	engine, err := New("sqlite3", "./qb_test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := errors.New("some error")
+	assert.Equal(t, NewQbError(myErr, nil), engine.dialect.ExtractError(myErr, nil))
 }
 
 func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {

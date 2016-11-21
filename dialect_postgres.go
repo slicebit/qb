@@ -3,6 +3,8 @@ package qb
 import (
 	"fmt"
 	"strings"
+
+	"github.com/lib/pq"
 )
 
 // PostgresDialect is a type of dialect that can be used with postgres driver
@@ -78,6 +80,26 @@ func (d *PostgresDialect) Driver() string {
 // GetCompiler returns a PostgresCompiler
 func (d *PostgresDialect) GetCompiler() Compiler {
 	return PostgresCompiler{SQLCompiler{d}}
+}
+
+// ExtractError will try to extract better errors from the underlying driver
+// and return a qb.Error instead of the basic
+func (d *PostgresDialect) ExtractError(err error, stmt *Stmt) Error {
+	qbErr := NewQbError(err, stmt)
+	pqErr, ok := err.(*pq.Error)
+	if !ok {
+		return qbErr
+	}
+	switch {
+	case pqErr.Code[:2] == "23":
+		// we have an IntegrityError, return a specific error
+		return IntegrityError{
+			QbError:    qbErr,
+			Constraint: pqErr.Constraint,
+		}
+	default:
+		return qbErr
+	}
 }
 
 // PostgresCompiler is a SQLCompiler specialised for PostgreSQL

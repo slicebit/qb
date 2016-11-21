@@ -2,12 +2,14 @@ package qb
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
+	"errors"
 	"os"
 	"testing"
 	"time"
+
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 var postgresDsn = "user=postgres dbname=qb_test sslmode=disable"
@@ -94,6 +96,16 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	_, err = suite.engine.Exec(ins)
 
+	// duplicate constraint should return a proper ConstraintViolation
+	_, err = suite.engine.Exec(ins)
+	assert.Error(suite.T(), err)
+	integErr, ok := err.(IntegrityError)
+	if !ok {
+		suite.T().Fatal()
+	}
+	assert.Equal(suite.T(), "user_pkey", integErr.Constraint)
+	assert.Equal(suite.T(), "constraint error: user_pkey", integErr.Error())
+
 	ins = Insert(sessions).Values(map[string]interface{}{
 		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
@@ -135,6 +147,9 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// find user using Query()
 	rows, err := suite.engine.Query(sel)
 	assert.Nil(suite.T(), err)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
 	rowLength := 0
 	for rows.Next() {
 		rowLength++
@@ -206,4 +221,13 @@ func init() {
 	if dsn != "" {
 		postgresDsn = dsn
 	}
+}
+
+func TestPostGresDialectExtractError(t *testing.T) {
+	pg, err := New("postgres", postgresDsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := errors.New("some error")
+	assert.Equal(t, NewQbError(myErr, nil), pg.dialect.ExtractError(myErr, nil))
 }

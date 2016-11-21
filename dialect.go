@@ -32,6 +32,7 @@ type Dialect interface {
 	AutoIncrement(column *ColumnElem) string
 	SupportsUnsigned() bool
 	Driver() string
+	ExtractError(err error, stmt *Stmt) Error
 }
 
 // common escape all

@@ -73,6 +73,12 @@ func (d *MysqlDialect) GetCompiler() Compiler {
 	return MysqlCompiler{SQLCompiler{d}}
 }
 
+// ExtractError implements the dialect interface.
+// ATM the mysql dialect does not extract any specific error
+func (d *MysqlDialect) ExtractError(err error, stmt *Stmt) Error {
+	return NewQbError(err, stmt)
+}
+
 // MysqlCompiler is a SQLCompiler specialised for Mysql
 type MysqlCompiler struct {
 	SQLCompiler

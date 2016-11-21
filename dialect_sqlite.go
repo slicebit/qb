@@ -72,6 +72,12 @@ func (d *SqliteDialect) GetCompiler() Compiler {
 	return SqliteCompiler{SQLCompiler{d}}
 }
 
+// ExtractError implements the dialect interface.
+// ATM the sqlite dialect does not extract any specific error
+func (d *SqliteDialect) ExtractError(err error, stmt *Stmt) Error {
+	return NewQbError(err, stmt)
+}
+
 // SqliteCompiler is a SQLCompiler specialised for Sqlite
 type SqliteCompiler struct {
 	SQLCompiler
