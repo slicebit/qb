@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -229,5 +229,14 @@ func TestPostGresDialectExtractError(t *testing.T) {
 		t.Fatal(err)
 	}
 	myErr := errors.New("some error")
+	assert.Equal(t, NewQbError(myErr, nil), pg.dialect.ExtractError(myErr, nil))
+}
+
+func TestPostGresDialectExtractPGError(t *testing.T) {
+	pg, err := New("postgres", postgresDsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := pq.Error{}
 	assert.Equal(t, NewQbError(myErr, nil), pg.dialect.ExtractError(myErr, nil))
 }
