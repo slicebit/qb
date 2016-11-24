@@ -11,7 +11,7 @@ func NewQbError(err error, stmt *Stmt) QbError {
 }
 
 type QbError struct {
-	orig error
+	orig      error
 	Statement *Stmt
 }
 
