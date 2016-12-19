@@ -152,6 +152,33 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
+func (suite *SqliteTestSuite) TestUpsert() {
+	users := Table(
+		"users",
+		Column("id", Varchar().Size(36)),
+		Column("email", Varchar()).Unique(),
+		Column("created_at", Timestamp()).NotNull(),
+		PrimaryKey("id"),
+	)
+
+	now := time.Now().UTC().String()
+
+	ups := Upsert(users).Values(map[string]interface{}{
+		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
+		"email":      "al@pacino.com",
+		"created_at": now,
+	})
+
+	sql, binds := asSQLBinds(ups, suite.engine.Dialect())
+	assert.Contains(suite.T(), sql, `REPLACE INTO "users"`)
+	assert.Contains(suite.T(), sql, "id", "email", "created_at")
+	assert.Contains(suite.T(), sql, "VALUES(?, ?, ?)")
+	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
+	assert.Contains(suite.T(), binds, "al@pacino.com")
+	assert.Contains(suite.T(), binds, now)
+	assert.Equal(suite.T(), 3, len(binds))
+}
+
 func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {
 	col := Column("test", Int()).AutoIncrement()
 	assert.Panics(suite.T(), func() {

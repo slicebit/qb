@@ -220,6 +220,49 @@ func (suite *PostgresTestSuite) TestAutoIncrement() {
 		suite.engine.Dialect().AutoIncrement(&col))
 }
 
+func (suite *PostgresTestSuite) TestUpsert() {
+	users := Table(
+		"users",
+		Column("id", Varchar().Size(36)),
+		Column("email", Varchar()).Unique(),
+		Column("created_at", Timestamp()).NotNull(),
+		PrimaryKey("id"),
+	)
+	now := time.Now().UTC().String()
+	ups := Upsert(users).Values(map[string]interface{}{
+		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
+		"email":      "al@pacino.com",
+		"created_at": now,
+	})
+	sql, binds := asSQLBinds(ups, suite.engine.Dialect())
+
+	assert.Contains(suite.T(), sql, "INSERT INTO \"users\"")
+	assert.Contains(suite.T(), sql, "\"id\"", "\"email\"")
+	assert.Contains(suite.T(), sql, "VALUES($1, $2, $3)")
+	assert.Contains(suite.T(), sql, "ON CONFLICT", "DO UPDATE SET")
+	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
+	assert.Contains(suite.T(), binds, "al@pacino.com")
+	assert.Equal(suite.T(), 6, len(binds))
+
+	ups = Upsert(users).
+		Values(map[string]interface{}{
+			"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
+			"email": "al@pacino.com",
+		}).
+		Returning(users.C("id"), users.C("email"))
+
+	sql, binds = asSQLBinds(ups, suite.engine.Dialect())
+	assert.Contains(suite.T(), sql, "INSERT INTO \"users\"")
+	assert.Contains(suite.T(), sql, "\"id\"", "\"email\"")
+	assert.Contains(suite.T(), sql, "ON CONFLICT")
+	assert.Contains(suite.T(), sql, "DO UPDATE SET")
+	assert.Contains(suite.T(), sql, "VALUES($1, $2)")
+	assert.Contains(suite.T(), sql, "RETURNING \"id\", \"email\"")
+	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
+	assert.Contains(suite.T(), binds, "al@pacino.com")
+	assert.Equal(suite.T(), 4, len(binds))
+}
+
 func TestPostgresTestSuite(t *testing.T) {
 	suite.Run(t, new(PostgresTestSuite))
 }
