@@ -6,60 +6,34 @@ import (
 )
 
 func TestInsert(t *testing.T) {
-	sqlite := NewDialect("sqlite3")
-	sqlite.SetEscaping(true)
-
-	mysql := NewDialect("mysql")
-	mysql.SetEscaping(true)
-
-	postgres := NewDialect("postgres")
-	postgres.SetEscaping(true)
-
 	users := Table(
 		"users",
 		Column("id", Varchar().Size(36)),
 		Column("email", Varchar()).Unique(),
 	)
 
-	var statement *Stmt
-
 	ins := Insert(users).Values(map[string]interface{}{
 		"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email": "al@pacino.com",
 	})
 
-	statement = ins.Build(sqlite)
-	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")
-	assert.Contains(t, statement.SQL(), "id", "email")
-	assert.Contains(t, statement.SQL(), "VALUES(?, ?)")
-	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
-	assert.Contains(t, statement.Bindings(), "al@pacino.com")
+	sql, binds := asDefSQLBinds(ins)
+	assert.Contains(t, sql, "INSERT INTO users")
+	assert.Contains(t, sql, "id", "email")
+	assert.Contains(t, sql, "VALUES(?, ?)")
+	assert.Contains(t, binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
+	assert.Contains(t, binds, "al@pacino.com")
 
-	statement = ins.Build(mysql)
-	assert.Contains(t, statement.SQL(), "INSERT INTO `users`")
-	assert.Contains(t, statement.SQL(), "`id`", "`email`")
-	assert.Contains(t, statement.SQL(), "VALUES(?, ?)")
-	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
-	assert.Contains(t, statement.Bindings(), "al@pacino.com")
-
-	statement = ins.Build(postgres)
-	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")
-	assert.Contains(t, statement.SQL(), "\"id\"", "\"email\"")
-	assert.Contains(t, statement.SQL(), "VALUES($1, $2)")
-	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d")
-	assert.Contains(t, statement.Bindings(), "al@pacino.com")
-
-	statement = Insert(users).
+	sql, binds = asDefSQLBinds(Insert(users).
 		Values(map[string]interface{}{
 			"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 			"email": "al@pacino.com",
 		}).
-		Returning(users.C("id"), users.C("email")).
-		Build(postgres)
+		Returning(users.C("id"), users.C("email")))
 
-	assert.Contains(t, statement.SQL(), "INSERT INTO \"users\"")
-	assert.Contains(t, statement.SQL(), "\"id\"", "\"email\"")
-	assert.Contains(t, statement.SQL(), "VALUES($1, $2)")
-	assert.Contains(t, statement.SQL(), "RETURNING \"id\", \"email\";")
-	assert.Contains(t, statement.Bindings(), "9883cf81-3b56-4151-ae4e-3903c5bc436d", "al@pacino.com")
+	assert.Contains(t, sql, "INSERT INTO users")
+	assert.Contains(t, sql, "id", "email")
+	assert.Contains(t, sql, "VALUES(?, ?)")
+	assert.Contains(t, sql, "RETURNING id, email")
+	assert.Contains(t, binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d", "al@pacino.com")
 }
