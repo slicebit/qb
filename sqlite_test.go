@@ -19,7 +19,6 @@ func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
 	suite.engine, err = New("sqlite3", "./qb_test.db")
-	suite.engine.Logger().SetLogFlags(LQuery | LBindings)
 	suite.engine.Dialect().SetEscaping(true)
 
 	suite.metadata = MetaData()
