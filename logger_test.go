@@ -25,7 +25,7 @@ func TestLogger(t *testing.T) {
 	_, err = engine.Exec(actors.Insert().Values(map[string]interface{}{"id": 5}))
 	assert.Nil(t, err)
 
-	engine.Logger().SetLogFlags(LQuery|LBindings)
+	engine.Logger().SetLogFlags(LQuery | LBindings)
 	_, err = engine.Exec(actors.Insert().Values(map[string]interface{}{"id": 10}))
 	assert.Nil(t, err)
 
@@ -33,7 +33,7 @@ func TestLogger(t *testing.T) {
 }
 
 func TestLoggerFlags(t *testing.T) {
-	engine, err := New("postgres", "user=root dbname=pqtest")
+	engine, err := New("sqlite3", ":memory:")
 	assert.Equal(t, nil, err)
 
 	// before setting flags, this is on the default

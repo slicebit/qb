@@ -1,17 +1,28 @@
 package qb
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestMetadataCreateAllDropAllError(t *testing.T) {
+	tmpFile, err := ioutil.TempFile("", "qbtestdb")
+	if err != nil {
+		t.Fatalf("Cannot create a temporary file. Got '%s'", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	dsn := "file://" + tmpFile.Name()
+	tmpFile.Close()
+
 	accounts := Table(
 		"account",
 		Column("id", Type("UUID")),
 		PrimaryKey("id"),
 	)
-	engine, err := New("postgres", postgresDsn)
+	engine, err := New("sqlite3", dsn)
 	metadata := MetaData()
 
 	engine.Dialect().SetEscaping(true)
@@ -20,7 +31,7 @@ func TestMetadataCreateAllDropAllError(t *testing.T) {
 	err = metadata.CreateAll(engine)
 	assert.Nil(t, err)
 
-	engineNew, err := New("postgres", postgresDsn)
+	engineNew, err := New("sqlite3", dsn)
 	engineNew.Dialect().SetEscaping(true)
 	metadataNew := MetaData()
 	assert.Nil(t, err)
@@ -59,7 +70,7 @@ func TestMetadataTable(t *testing.T) {
 }
 
 func TestMetadataFailCreateDropAll(t *testing.T) {
-	engine, _ := New("postgres", postgresDsn)
+	engine, _ := New("sqlite3", ":memory:")
 	metadata := MetaData()
 
 	var err error
@@ -72,7 +83,7 @@ func TestMetadataFailCreateDropAll(t *testing.T) {
 }
 
 func TestMetadataWithNoConnection(t *testing.T) {
-	engine, _ := New("postgres", postgresDsn)
+	engine, _ := New("sqlite3", ":memory:")
 	engine.DB().Close()
 
 	metadata := MetaData()
