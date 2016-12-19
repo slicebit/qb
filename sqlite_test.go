@@ -157,6 +157,9 @@ func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {
 	assert.Panics(suite.T(), func() {
 		col.String(suite.engine.Dialect())
 	})
+
+	col.Options.InlinePrimaryKey = true
+	assert.Equal(suite.T(), "INTEGER PRIMARY KEY", suite.engine.Dialect().AutoIncrement(&col))
 }
 
 func TestSqliteTestSuite(t *testing.T) {

@@ -197,6 +197,29 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
+func (suite *PostgresTestSuite) TestAutoIncrement() {
+	col := Column("id", BigInt()).AutoIncrement()
+	assert.Equal(suite.T(),
+		"BIGSERIAL",
+		suite.engine.Dialect().AutoIncrement(&col))
+
+	col = Column("id", SmallInt()).AutoIncrement()
+	assert.Equal(suite.T(),
+		"SMALLSERIAL",
+		suite.engine.Dialect().AutoIncrement(&col))
+
+	col = Column("id", Int()).AutoIncrement()
+	assert.Equal(suite.T(),
+		"SERIAL",
+		suite.engine.Dialect().AutoIncrement(&col))
+
+	col = Column("id", Int()).AutoIncrement()
+	col.Options.InlinePrimaryKey = true
+	assert.Equal(suite.T(),
+		"SERIAL PRIMARY KEY",
+		suite.engine.Dialect().AutoIncrement(&col))
+}
+
 func TestPostgresTestSuite(t *testing.T) {
 	suite.Run(t, new(PostgresTestSuite))
 }
