@@ -40,6 +40,18 @@ func (suite *MysqlTestSuite) TestUUID() {
 	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(UUID()))
 }
 
+func (suite *MysqlTestSuite) TestDialect() {
+	dialect := NewDialect("mysql")
+	assert.Equal(suite.T(), true, dialect.SupportsUnsigned())
+	assert.Equal(suite.T(), "test", dialect.Escape("test"))
+	assert.Equal(suite.T(), false, dialect.Escaping())
+	dialect.SetEscaping(true)
+	assert.Equal(suite.T(), true, dialect.Escaping())
+	assert.Equal(suite.T(), "`test`", dialect.Escape("test"))
+	assert.Equal(suite.T(), []string{"`test`"}, dialect.EscapeAll([]string{"test"}))
+	assert.Equal(suite.T(), "mysql", dialect.Driver())
+}
+
 func (suite *MysqlTestSuite) TestMysql() {
 	type User struct {
 		ID       string         `db:"id"`

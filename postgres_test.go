@@ -38,6 +38,28 @@ func (suite *PostgresTestSuite) TestUUID() {
 	assert.Equal(suite.T(), "UUID", suite.engine.Dialect().CompileType(UUID()))
 }
 
+func (suite *PostgresTestSuite) TestDialect() {
+	dialect := NewDialect("postgres")
+	assert.Equal(suite.T(), false, dialect.SupportsUnsigned())
+	assert.Equal(suite.T(), "test", dialect.Escape("test"))
+	assert.Equal(suite.T(), false, dialect.Escaping())
+	dialect.SetEscaping(true)
+	assert.Equal(suite.T(), true, dialect.Escaping())
+	assert.Equal(suite.T(), "\"test\"", dialect.Escape("test"))
+	assert.Equal(suite.T(), []string{"\"test\""}, dialect.EscapeAll([]string{"test"}))
+	assert.Equal(suite.T(), "postgres", dialect.Driver())
+
+	col := Column("autoinc", Int()).AutoIncrement()
+	assert.Equal(suite.T(), "SERIAL", dialect.AutoIncrement(&col))
+
+	col = Column("autoinc", BigInt()).AutoIncrement()
+	assert.Equal(suite.T(), "BIGSERIAL", dialect.AutoIncrement(&col))
+
+	col = Column("autoinc", SmallInt()).AutoIncrement()
+	assert.Equal(suite.T(), "SMALLSERIAL", dialect.AutoIncrement(&col))
+
+}
+
 func (suite *PostgresTestSuite) TestPostgres() {
 	type User struct {
 		ID          string         `db:"id"`

@@ -31,6 +31,18 @@ func (suite *SqliteTestSuite) TestUUID() {
 	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(UUID()))
 }
 
+func (suite *SqliteTestSuite) TestDialect() {
+	dialect := NewDialect("sqlite")
+	assert.Equal(suite.T(), false, dialect.SupportsUnsigned())
+	assert.Equal(suite.T(), "test", dialect.Escape("test"))
+	assert.Equal(suite.T(), false, dialect.Escaping())
+	dialect.SetEscaping(true)
+	assert.Equal(suite.T(), true, dialect.Escaping())
+	assert.Equal(suite.T(), "\"test\"", dialect.Escape("test"))
+	assert.Equal(suite.T(), []string{"\"test\""}, dialect.EscapeAll([]string{"test"}))
+	assert.Equal(suite.T(), "sqlite3", dialect.Driver())
+}
+
 func (suite *SqliteTestSuite) TestSqlite() {
 	type User struct {
 		ID       string         `db:"id"`
