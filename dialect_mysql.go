@@ -85,14 +85,14 @@ func (MysqlCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) st
 		values   []string
 	)
 
-	for k, v := range upsert.values {
+	for k, v := range upsert.ValuesMap {
 		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
 		context.Binds = append(context.Binds, v)
 		values = append(values, "?")
 	}
 
 	updates := []string{}
-	for k, v := range upsert.values {
+	for k, v := range upsert.ValuesMap {
 		updates = append(updates, fmt.Sprintf(
 			"%s = %s",
 			context.Dialect.Escape(k),
@@ -103,7 +103,7 @@ func (MysqlCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) st
 
 	sql := fmt.Sprintf(
 		"INSERT INTO %s(%s)\nVALUES(%s)\nON DUPLICATE KEY UPDATE %s",
-		context.Dialect.Escape(upsert.table.Name),
+		context.Dialect.Escape(upsert.Table.Name),
 		strings.Join(colNames, ", "),
 		strings.Join(values, ", "),
 		strings.Join(updates, ", "),

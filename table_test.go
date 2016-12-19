@@ -148,7 +148,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 	assert.Contains(suite.T(), ins.Bindings(), "al@pacino.com")
 
 	ups := users.Upsert()
-	assert.Equal(suite.T(), users, ups.table)
+	assert.Equal(suite.T(), users, ups.Table)
 
 	upd := users.
 		Update().

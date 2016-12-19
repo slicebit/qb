@@ -83,7 +83,7 @@ func (SqliteCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) s
 		colNames []string
 		values   []string
 	)
-	for k, v := range upsert.values {
+	for k, v := range upsert.ValuesMap {
 		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
 		context.Binds = append(context.Binds, v)
 		values = append(values, "?")
@@ -91,7 +91,7 @@ func (SqliteCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) s
 
 	sql := fmt.Sprintf(
 		"REPLACE INTO %s(%s)\nVALUES(%s)",
-		context.Compiler.VisitLabel(context, upsert.table.Name),
+		context.Compiler.VisitLabel(context, upsert.Table.Name),
 		strings.Join(colNames, ", "),
 		strings.Join(values, ", "),
 	)

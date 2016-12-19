@@ -97,14 +97,14 @@ func (PostgresCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt)
 		colNames []string
 		values   []string
 	)
-	for k, v := range upsert.values {
+	for k, v := range upsert.ValuesMap {
 		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
 		context.Binds = append(context.Binds, v)
 		values = append(values, fmt.Sprintf("$%d", len(context.Binds)))
 	}
 
 	var updates []string
-	for k, v := range upsert.values {
+	for k, v := range upsert.ValuesMap {
 		context.Binds = append(context.Binds, v)
 		updates = append(updates, fmt.Sprintf(
 			"%s = %s",
@@ -114,23 +114,23 @@ func (PostgresCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt)
 	}
 
 	var uniqueCols []string
-	for _, c := range upsert.table.PrimaryCols() {
+	for _, c := range upsert.Table.PrimaryCols() {
 		uniqueCols = append(uniqueCols, context.Compiler.VisitLabel(context, c.Name))
 	}
 
 	sql := fmt.Sprintf(
 		"INSERT INTO %s(%s)\nVALUES(%s)\nON CONFLICT (%s) DO UPDATE SET %s",
-		context.Compiler.VisitLabel(context, upsert.table.Name),
+		context.Compiler.VisitLabel(context, upsert.Table.Name),
 		strings.Join(colNames, ", "),
 		strings.Join(values, ", "),
 		strings.Join(uniqueCols, ", "),
 		strings.Join(updates, ", "))
 
 	var returning []string
-	for _, r := range upsert.returning {
+	for _, r := range upsert.ReturningCols {
 		returning = append(returning, context.Compiler.VisitLabel(context, r.Name))
 	}
-	if len(upsert.returning) > 0 {
+	if len(returning) > 0 {
 		sql += fmt.Sprintf(
 			"RETURNING %s",
 			strings.Join(returning, ", "),
