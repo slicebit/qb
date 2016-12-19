@@ -70,7 +70,7 @@ func (d *MysqlDialect) Driver() string {
 
 // GetCompiler returns a MysqlCompiler
 func (d *MysqlDialect) GetCompiler() Compiler {
-	return MysqlCompiler{SQLCompiler{d}}
+	return MysqlCompiler{NewSQLCompiler(d)}
 }
 
 // MysqlCompiler is a SQLCompiler specialised for Mysql

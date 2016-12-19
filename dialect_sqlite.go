@@ -69,7 +69,7 @@ func (d *SqliteDialect) Driver() string {
 
 // GetCompiler returns a SqliteCompiler
 func (d *SqliteDialect) GetCompiler() Compiler {
-	return SqliteCompiler{SQLCompiler{d}}
+	return SqliteCompiler{NewSQLCompiler(d)}
 }
 
 // SqliteCompiler is a SQLCompiler specialised for Sqlite

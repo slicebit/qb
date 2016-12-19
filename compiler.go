@@ -55,6 +55,11 @@ type Compiler interface {
 	VisitWhere(*CompilerContext, WhereClause) string
 }
 
+// NewSQLCompiler returns a new SQLCompiler
+func NewSQLCompiler(dialect Dialect) SQLCompiler {
+	return SQLCompiler{Dialect: dialect}
+}
+
 // SQLCompiler aims to provide a SQL ANSI-92 implementation of Compiler
 type SQLCompiler struct {
 	Dialect Dialect

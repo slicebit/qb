@@ -77,7 +77,7 @@ func (d *PostgresDialect) Driver() string {
 
 // GetCompiler returns a PostgresCompiler
 func (d *PostgresDialect) GetCompiler() Compiler {
-	return PostgresCompiler{SQLCompiler{d}}
+	return PostgresCompiler{NewSQLCompiler(d)}
 }
 
 // PostgresCompiler is a SQLCompiler specialised for PostgreSQL
