@@ -2,6 +2,7 @@ package qb
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/lib/pq"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,13 @@ func (suite *PostgresTestSuite) TestDialect() {
 
 	col = qb.Column("autoinc", qb.SmallInt()).AutoIncrement()
 	assert.Equal(suite.T(), "SMALLSERIAL", dialect.AutoIncrement(&col))
+}
 
+func (suite *PostgresTestSuite) TestWrapError() {
+	dialect := qb.NewDialect("postgres")
+	err := errors.New("xxx")
+	qbErr := dialect.WrapError(err)
+	assert.Equal(suite.T(), err, qbErr.Orig)
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {

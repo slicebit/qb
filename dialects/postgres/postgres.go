@@ -82,6 +82,11 @@ func (d *PostgresDialect) GetCompiler() qb.Compiler {
 	return PostgresCompiler{qb.NewSQLCompiler(d)}
 }
 
+// WrapError wraps a native error in a qb Error
+func (d *PostgresDialect) WrapError(err error) qb.Error {
+	return qb.Error{Orig: err}
+}
+
 // PostgresCompiler is a SQLCompiler specialised for PostgreSQL
 type PostgresCompiler struct {
 	qb.SQLCompiler

@@ -74,6 +74,11 @@ func (d *SqliteDialect) GetCompiler() qb.Compiler {
 	return SqliteCompiler{qb.NewSQLCompiler(d)}
 }
 
+// WrapError wraps a native error in a qb Error
+func (d *SqliteDialect) WrapError(err error) qb.Error {
+	return qb.Error{Orig: err}
+}
+
 // SqliteCompiler is a SQLCompiler specialised for Sqlite
 type SqliteCompiler struct {
 	qb.SQLCompiler

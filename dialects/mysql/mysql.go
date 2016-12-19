@@ -75,6 +75,11 @@ func (d *MysqlDialect) GetCompiler() qb.Compiler {
 	return MysqlCompiler{qb.NewSQLCompiler(d)}
 }
 
+// WrapError wraps a native error in a qb Error
+func (d *MysqlDialect) WrapError(err error) qb.Error {
+	return qb.Error{Orig: err}
+}
+
 // MysqlCompiler is a SQLCompiler specialised for Mysql
 type MysqlCompiler struct {
 	qb.SQLCompiler

@@ -1,6 +1,7 @@
 package qb
 
 import (
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -21,4 +22,8 @@ func TestDefaultDialect(t *testing.T) {
 	assert.Equal(t,
 		"INT PRIMARY KEY AUTO INCREMENT",
 		dialect.AutoIncrement(&autoincCol))
+
+	err := errors.New("xxx")
+	qbErr := dialect.WrapError(err)
+	assert.Equal(t, err, qbErr.Orig)
 }

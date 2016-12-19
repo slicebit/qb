@@ -57,3 +57,8 @@ func (d *DefaultDialect) Driver() string {
 func (d *DefaultDialect) GetCompiler() Compiler {
 	return SQLCompiler{d}
 }
+
+// WrapError wraps a native error in a qb Error
+func (d *DefaultDialect) WrapError(err error) Error {
+	return Error{Orig: err}
+}

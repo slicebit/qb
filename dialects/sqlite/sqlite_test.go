@@ -2,6 +2,7 @@ package qb
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
@@ -47,6 +48,13 @@ func (suite *SqliteTestSuite) TestDialect() {
 	assert.Equal(suite.T(), "\"test\"", dialect.Escape("test"))
 	assert.Equal(suite.T(), []string{"\"test\""}, dialect.EscapeAll([]string{"test"}))
 	assert.Equal(suite.T(), "sqlite3", dialect.Driver())
+}
+
+func (suite *SqliteTestSuite) TestWrapError() {
+	dialect := qb.NewDialect("sqlite")
+	err := errors.New("xxx")
+	qbErr := dialect.WrapError(err)
+	assert.Equal(suite.T(), err, qbErr.Orig)
 }
 
 func (suite *SqliteTestSuite) TestSqlite() {
