@@ -34,8 +34,8 @@ type Dialect interface {
 	Driver() string
 }
 
-// common escape all
-func escapeAll(dialect Dialect, strings []string) []string {
+// EscapeAll common escape all
+func EscapeAll(dialect Dialect, strings []string) []string {
 	for k, v := range strings {
 		strings[k] = dialect.Escape(v)
 	}

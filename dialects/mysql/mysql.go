@@ -3,6 +3,8 @@ package qb
 import (
 	"fmt"
 	"strings"
+
+	"github.com/slicebit/qb"
 )
 
 // MysqlDialect is a type of dialect that can be used with mysql driver
@@ -11,20 +13,20 @@ type MysqlDialect struct {
 }
 
 // NewMysqlDialect returns a new MysqlDialect
-func NewMysqlDialect() Dialect {
+func NewMysqlDialect() qb.Dialect {
 	return &MysqlDialect{false}
 }
 
 func init() {
-	RegisterDialect("mysql", NewMysqlDialect)
+	qb.RegisterDialect("mysql", NewMysqlDialect)
 }
 
 // CompileType compiles a type into its DDL
-func (d *MysqlDialect) CompileType(t TypeElem) string {
+func (d *MysqlDialect) CompileType(t qb.TypeElem) string {
 	if t.Name == "UUID" {
 		return "VARCHAR(36)"
 	}
-	return DefaultCompileType(t, d.SupportsUnsigned())
+	return qb.DefaultCompileType(t, d.SupportsUnsigned())
 }
 
 // Escape wraps the string with escape characters of the dialect
@@ -37,7 +39,7 @@ func (d *MysqlDialect) Escape(str string) string {
 
 // EscapeAll wraps all elements of string array
 func (d *MysqlDialect) EscapeAll(strings []string) []string {
-	return escapeAll(d, strings[0:])
+	return qb.EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect
@@ -51,7 +53,7 @@ func (d *MysqlDialect) Escaping() bool {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *MysqlDialect) AutoIncrement(column *ColumnElem) string {
+func (d *MysqlDialect) AutoIncrement(column *qb.ColumnElem) string {
 	colSpec := d.CompileType(column.Type)
 	if column.Options.InlinePrimaryKey {
 		colSpec += " PRIMARY KEY"
@@ -69,17 +71,17 @@ func (d *MysqlDialect) Driver() string {
 }
 
 // GetCompiler returns a MysqlCompiler
-func (d *MysqlDialect) GetCompiler() Compiler {
-	return MysqlCompiler{NewSQLCompiler(d)}
+func (d *MysqlDialect) GetCompiler() qb.Compiler {
+	return MysqlCompiler{qb.NewSQLCompiler(d)}
 }
 
 // MysqlCompiler is a SQLCompiler specialised for Mysql
 type MysqlCompiler struct {
-	SQLCompiler
+	qb.SQLCompiler
 }
 
 // VisitUpsert generates INSERT INTO ... VALUES ... ON DUPLICATE KEY UPDATE ...
-func (MysqlCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+func (MysqlCompiler) VisitUpsert(context *qb.CompilerContext, upsert qb.UpsertStmt) string {
 	var (
 		colNames []string
 		values   []string

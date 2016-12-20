@@ -3,6 +3,8 @@ package qb
 import (
 	"fmt"
 	"strings"
+
+	"github.com/slicebit/qb"
 )
 
 // SqliteDialect is a type of dialect that can be used with sqlite driver
@@ -11,21 +13,21 @@ type SqliteDialect struct {
 }
 
 // NewSqliteDialect instanciate a SqliteDialect
-func NewSqliteDialect() Dialect {
+func NewSqliteDialect() qb.Dialect {
 	return &SqliteDialect{false}
 }
 
 func init() {
-	RegisterDialect("sqlite3", NewSqliteDialect)
-	RegisterDialect("sqlite", NewSqliteDialect)
+	qb.RegisterDialect("sqlite3", NewSqliteDialect)
+	qb.RegisterDialect("sqlite", NewSqliteDialect)
 }
 
 // CompileType compiles a type into its DDL
-func (d *SqliteDialect) CompileType(t TypeElem) string {
+func (d *SqliteDialect) CompileType(t qb.TypeElem) string {
 	if t.Name == "UUID" {
 		return "VARCHAR(36)"
 	}
-	return DefaultCompileType(t, d.SupportsUnsigned())
+	return qb.DefaultCompileType(t, d.SupportsUnsigned())
 }
 
 // Escape wraps the string with escape characters of the dialect
@@ -38,7 +40,7 @@ func (d *SqliteDialect) Escape(str string) string {
 
 // EscapeAll wraps all elements of string array
 func (d *SqliteDialect) EscapeAll(strings []string) []string {
-	return escapeAll(d, strings[0:])
+	return qb.EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect
@@ -52,7 +54,7 @@ func (d *SqliteDialect) Escaping() bool {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *SqliteDialect) AutoIncrement(column *ColumnElem) string {
+func (d *SqliteDialect) AutoIncrement(column *qb.ColumnElem) string {
 	if !column.Options.InlinePrimaryKey {
 		panic("Sqlite does not support non-primarykey autoincrement columns")
 	}
@@ -68,17 +70,17 @@ func (d *SqliteDialect) Driver() string {
 }
 
 // GetCompiler returns a SqliteCompiler
-func (d *SqliteDialect) GetCompiler() Compiler {
-	return SqliteCompiler{NewSQLCompiler(d)}
+func (d *SqliteDialect) GetCompiler() qb.Compiler {
+	return SqliteCompiler{qb.NewSQLCompiler(d)}
 }
 
 // SqliteCompiler is a SQLCompiler specialised for Sqlite
 type SqliteCompiler struct {
-	SQLCompiler
+	qb.SQLCompiler
 }
 
 // VisitUpsert generates the following sql: REPLACE INTO ... VALUES ...
-func (SqliteCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+func (SqliteCompiler) VisitUpsert(context *qb.CompilerContext, upsert qb.UpsertStmt) string {
 	var (
 		colNames []string
 		values   []string

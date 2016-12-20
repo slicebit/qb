@@ -3,6 +3,8 @@ package qb
 import (
 	"fmt"
 	"strings"
+
+	"github.com/slicebit/qb"
 )
 
 // PostgresDialect is a type of dialect that can be used with postgres driver
@@ -12,20 +14,20 @@ type PostgresDialect struct {
 }
 
 // NewPostgresDialect returns a new PostgresDialect
-func NewPostgresDialect() Dialect {
+func NewPostgresDialect() qb.Dialect {
 	return &PostgresDialect{escaping: false, bindingIndex: 0}
 }
 
 func init() {
-	RegisterDialect("postgres", NewPostgresDialect)
+	qb.RegisterDialect("postgres", NewPostgresDialect)
 }
 
 // CompileType compiles a type into its DDL
-func (d *PostgresDialect) CompileType(t TypeElem) string {
+func (d *PostgresDialect) CompileType(t qb.TypeElem) string {
 	if t.Name == "BLOB" {
 		return "bytea"
 	}
-	return DefaultCompileType(t, d.SupportsUnsigned())
+	return qb.DefaultCompileType(t, d.SupportsUnsigned())
 }
 
 // Escape wraps the string with escape characters of the dialect
@@ -38,7 +40,7 @@ func (d *PostgresDialect) Escape(str string) string {
 
 // EscapeAll wraps all elements of string array
 func (d *PostgresDialect) EscapeAll(strings []string) []string {
-	return escapeAll(d, strings[0:])
+	return qb.EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect
@@ -52,7 +54,7 @@ func (d *PostgresDialect) Escaping() bool {
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *PostgresDialect) AutoIncrement(column *ColumnElem) string {
+func (d *PostgresDialect) AutoIncrement(column *qb.ColumnElem) string {
 	var colSpec string
 	if column.Type.Name == "BIGINT" {
 		colSpec = "BIGSERIAL"
@@ -76,23 +78,23 @@ func (d *PostgresDialect) Driver() string {
 }
 
 // GetCompiler returns a PostgresCompiler
-func (d *PostgresDialect) GetCompiler() Compiler {
-	return PostgresCompiler{NewSQLCompiler(d)}
+func (d *PostgresDialect) GetCompiler() qb.Compiler {
+	return PostgresCompiler{qb.NewSQLCompiler(d)}
 }
 
 // PostgresCompiler is a SQLCompiler specialised for PostgreSQL
 type PostgresCompiler struct {
-	SQLCompiler
+	qb.SQLCompiler
 }
 
 // VisitBind renders a bounded value
-func (PostgresCompiler) VisitBind(context *CompilerContext, bind BindClause) string {
+func (PostgresCompiler) VisitBind(context *qb.CompilerContext, bind qb.BindClause) string {
 	context.Binds = append(context.Binds, bind.Value)
 	return fmt.Sprintf("$%d", len(context.Binds))
 }
 
 // VisitUpsert generates INSERT INTO ... VALUES ... ON CONFLICT(...) DO UPDATE SET ...
-func (PostgresCompiler) VisitUpsert(context *CompilerContext, upsert UpsertStmt) string {
+func (PostgresCompiler) VisitUpsert(context *qb.CompilerContext, upsert qb.UpsertStmt) string {
 	var (
 		colNames []string
 		values   []string
