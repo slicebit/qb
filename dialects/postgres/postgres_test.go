@@ -3,7 +3,7 @@ package qb
 import (
 	"database/sql"
 	"errors"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -71,6 +71,34 @@ func (suite *PostgresTestSuite) TestWrapError() {
 	err := errors.New("xxx")
 	qbErr := dialect.WrapError(err)
 	assert.Equal(suite.T(), err, qbErr.Orig)
+
+	for _, tt := range []struct {
+		pgCode string
+		qbCode qb.ErrorCode
+	}{
+		{"0A000", qb.ErrNotSupported},
+		{"20000", qb.ErrProgramming},
+		{"21000", qb.ErrProgramming},
+		{"22000", qb.ErrData},
+		{"23000", qb.ErrIntegrity},
+		{"24000", qb.ErrInternal},
+		{"27000", qb.ErrOperational},
+		{"2D000", qb.ErrInternal},
+		{"34000", qb.ErrOperational},
+		{"39000", qb.ErrInternal},
+		{"3D000", qb.ErrProgramming},
+		{"40000", qb.ErrOperational},
+		{"42000", qb.ErrProgramming},
+		{"54000", qb.ErrOperational},
+		{"F0000", qb.ErrInternal},
+		{"HV000", qb.ErrOperational},
+		{"P0000", qb.ErrInternal},
+		{"ZZ000", qb.ErrDatabase},
+	} {
+		pgErr := pq.Error{Code: pq.ErrorCode(tt.pgCode)}
+		qbErr := dialect.WrapError(pgErr)
+		assert.Equal(suite.T(), tt.qbCode, qbErr.Code)
+	}
 }
 
 func (suite *PostgresTestSuite) TestPostgres() {

@@ -39,10 +39,11 @@ const (
 	// already exists, syntax error in the SQL statement, wrong number of
 	// parameters specified, etc.
 	ErrProgramming
-	// ErrNotSupportError is in case a method or database API was used which
+	// ErrNotSupported is in case a method or database API was used which
 	// is not supported by the database, e.g. requesting a .rollback() on a
 	// connection that does not support transaction or has transactions turned
 	// off.
+	ErrNotSupported
 )
 
 // IsInterfaceError returns true if the error is a Interface error
