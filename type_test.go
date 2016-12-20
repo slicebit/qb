@@ -29,6 +29,7 @@ func (suite *TypeTestSuite) TestTypes() {
 	assert.Equal(suite.T(), "BOOLEAN", dialect.CompileType(Boolean()))
 	assert.Equal(suite.T(), "TIMESTAMP", dialect.CompileType(Timestamp()))
 	assert.Equal(suite.T(), "BLOB", dialect.CompileType(Blob()))
+	assert.Equal(suite.T(), "UUID", dialect.CompileType(UUID()))
 }
 
 func (suite *TypeTestSuite) TestUnsigned() {
