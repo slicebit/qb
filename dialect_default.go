@@ -57,3 +57,9 @@ func (d *DefaultDialect) Driver() string {
 func (d *DefaultDialect) GetCompiler() Compiler {
 	return SQLCompiler{d}
 }
+
+// ExtractError implements the dialect interface.
+// ATM the default dialect does not extract any specific error
+func (d *DefaultDialect) ExtractError(err error, stmt *Stmt) Error {
+	return NewQbError(err, stmt)
+}

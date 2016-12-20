@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"testing"
+	"errors"
 )
 
 type DialectTestSuite struct {
@@ -37,6 +38,8 @@ func (suite *DialectTestSuite) TestDefaultDialect() {
 		"INT PRIMARY KEY AUTO INCREMENT",
 		suite.def.AutoIncrement(&autoincCol))
 
+	err := errors.New("some error")
+	assert.Equal(suite.T(), NewQbError(err, nil), suite.def.ExtractError(err, nil))
 }
 
 func (suite *DialectTestSuite) TestMysqlDialect() {

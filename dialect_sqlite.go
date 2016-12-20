@@ -3,6 +3,8 @@ package qb
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mattn/go-sqlite3"
 )
 
 // SqliteDialect is a type of dialect that can be used with sqlite driver
@@ -70,6 +72,27 @@ func (d *SqliteDialect) Driver() string {
 // GetCompiler returns a SqliteCompiler
 func (d *SqliteDialect) GetCompiler() Compiler {
 	return SqliteCompiler{SQLCompiler{d}}
+}
+
+// ExtractError implements the dialect interface.
+// ATM the sqlite dialect does not extract any specific error
+func (d *SqliteDialect) ExtractError(err error, stmt *Stmt) Error {
+	qbErr := NewQbError(err, stmt)
+	slErr, ok := err.(sqlite3.Error)
+	if !ok {
+		return qbErr
+	}
+	switch {
+	case slErr.Code == sqlite3.ErrConstraint:
+		// we have a Constraint error, return a specific error
+		tokens := strings.Split(slErr.Error(), ": ")
+		return IntegrityError{
+			QbError:    qbErr,
+			Constraint: tokens[len(tokens)-1],
+		}
+	default:
+		return qbErr
+	}
 }
 
 // SqliteCompiler is a SQLCompiler specialised for Sqlite

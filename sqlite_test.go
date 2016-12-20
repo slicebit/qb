@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+	"errors"
+	"github.com/mattn/go-sqlite3"
 )
 
 type SqliteTestSuite struct {
@@ -18,7 +20,7 @@ type SqliteTestSuite struct {
 func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
-	suite.engine, err = New("sqlite3", "./qb_test.db")
+	suite.engine, err = New("sqlite3", ":memory:")
 	suite.engine.Logger().SetLogFlags(LQuery | LBindings)
 	suite.engine.Dialect().SetEscaping(true)
 
@@ -84,6 +86,30 @@ func (suite *SqliteTestSuite) TestSqlite() {
 
 	_, err = suite.engine.Exec(ins)
 	assert.Nil(suite.T(), err)
+
+	// duplicate constraint should return a proper ConstraintViolation
+	_, err = suite.engine.Exec(ins)
+	assert.Error(suite.T(), err, "this insert should return an error")
+	integErr, ok := err.(IntegrityError)
+	if !ok {
+		suite.T().Fatalf("we should have received an integrity error")
+	}
+
+	// we assert on multiple constraints because SQLite returns one of the
+	// two violated constraint in a random order
+	assert.Contains(
+		suite.T(),
+		[]string{"users.email", "users.id"},
+		integErr.Constraint,
+	)
+	assert.Contains(
+		suite.T(),
+		[]string{
+			"UNIQUE constraint failed: users.email",
+			"UNIQUE constraint failed: users.id",
+		},
+		integErr.Orig().Error(),
+	)
 
 	ins = Insert(sessions).Values(map[string]interface{}{
 		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
@@ -152,6 +178,15 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
+func TestSQLiteExtractError(t *testing.T) {
+	engine, err := New("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := errors.New("some error")
+	assert.Equal(t, NewQbError(myErr, nil), engine.dialect.ExtractError(myErr, nil))
+}
+
 func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {
 	col := Column("test", Int()).AutoIncrement()
 	assert.Panics(suite.T(), func() {
@@ -161,4 +196,22 @@ func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {
 
 func TestSqliteTestSuite(t *testing.T) {
 	suite.Run(t, new(SqliteTestSuite))
+}
+
+func TestSQLiteDialectExtractError(t *testing.T) {
+	sq, err := New("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := errors.New("some error")
+	assert.Equal(t, NewQbError(myErr, nil), sq.dialect.ExtractError(myErr, nil))
+}
+
+func TestSQLiteDialectExtractSQLiteError(t *testing.T) {
+	sq, err := New("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := sqlite3.Error{}
+	assert.Equal(t, NewQbError(myErr, nil), sq.dialect.ExtractError(myErr, nil))
 }

@@ -72,12 +72,19 @@ func (e *Engine) log(statement *Stmt) {
 	}
 }
 
+func (e *Engine) wrapError(err error, stmt *Stmt) Error {
+	if err != nil {
+		return e.dialect.ExtractError(err, stmt)
+	}
+	return nil
+}
+
 // Exec executes insert & update type queries and returns sql.Result and error
-func (e *Engine) Exec(builder Builder) (sql.Result, error) {
+func (e *Engine) Exec(builder Builder) (sql.Result, Error) {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
 	res, err := e.db.Exec(statement.SQL(), statement.Bindings()...)
-	return res, err
+	return res, e.wrapError(err, statement)
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
@@ -88,24 +95,29 @@ func (e *Engine) QueryRow(builder Builder) *sql.Row {
 }
 
 // Query wraps *sql.DB.Query()
-func (e *Engine) Query(builder Builder) (*sql.Rows, error) {
+func (e *Engine) Query(builder Builder) (*sql.Rows, Error) {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.Query(statement.SQL(), statement.Bindings()...)
+	row, err := e.db.Query(statement.SQL(), statement.Bindings()...)
+	return row, e.wrapError(err, statement)
 }
 
 // Get maps the single row to a model
-func (e *Engine) Get(builder Builder, model interface{}) error {
+func (e *Engine) Get(builder Builder, model interface{}) Error {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.Get(model, statement.SQL(), statement.Bindings()...)
+	err := e.db.Get(model, statement.SQL(), statement.Bindings()...)
+	return e.wrapError(err, statement)
 }
 
 // Select maps multiple rows to a model array
-func (e *Engine) Select(builder Builder, model interface{}) error {
+func (e *Engine) Select(builder Builder, model interface{}) Error {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.Select(model, statement.SQL(), statement.Bindings()...)
+	return e.wrapError(
+		e.db.Select(model, statement.SQL(), statement.Bindings()...),
+		statement,
+	)
 }
 
 // DB returns sql.DB of wrapped engine connection

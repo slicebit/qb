@@ -2,12 +2,14 @@ package qb
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
+	"errors"
 	"os"
 	"testing"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 var mysqlDsn = "root:@tcp(localhost:3306)/qb_test?charset=utf8"
@@ -104,6 +106,9 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	res, err := suite.engine.Exec(ins)
 	assert.Nil(suite.T(), err)
+	if err != nil {
+		suite.T().Fatal(err)
+	}
 
 	lastInsertID, err := res.LastInsertId()
 	assert.Nil(suite.T(), err)
@@ -163,6 +168,15 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
+}
+
+func TestMySQLExtractError(t *testing.T) {
+	engine, err := New("mysql", mysqlDsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	myErr := errors.New("some error")
+	assert.Equal(t, NewQbError(myErr, nil), engine.dialect.ExtractError(myErr, nil))
 }
 
 func TestMysqlTestSuite(t *testing.T) {
