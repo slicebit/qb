@@ -31,20 +31,18 @@ func (suite *TypeTestSuite) TestTypes() {
 	assert.Equal(suite.T(), "BLOB", dialect.CompileType(Blob()))
 }
 
-func TestTypeTestSuite(t *testing.T) {
-	suite.Run(t, new(TypeTestSuite))
+func (suite *TypeTestSuite) TestUnsigned() {
+	assert.Equal(suite.T(), "BIGINT", DefaultCompileType(BigInt().Signed(), true))
+	assert.Equal(suite.T(), "BIGINT UNSIGNED", DefaultCompileType(BigInt().Unsigned(), true))
+	assert.Equal(suite.T(), "NUMERIC(2, 5) UNSIGNED", DefaultCompileType(Numeric().Precision(2, 5).Unsigned(), true))
+
+	assert.Equal(suite.T(), "INT", DefaultCompileType(Int().Signed(), false))
+	assert.Equal(suite.T(), "SMALLINT", DefaultCompileType(TinyInt().Unsigned(), false))
+	assert.Equal(suite.T(), "INT", DefaultCompileType(SmallInt().Unsigned(), false))
+	assert.Equal(suite.T(), "BIGINT", DefaultCompileType(Int().Unsigned(), false))
+	assert.Equal(suite.T(), "BIGINT", DefaultCompileType(BigInt().Unsigned(), false))
 }
 
-func (suite *TypeTestSuite) TestUnsigned() {
-	dialect := NewDialect("mysql")
-	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(BigInt().Signed()))
-	assert.Equal(suite.T(), "BIGINT UNSIGNED", dialect.CompileType(BigInt().Unsigned()))
-	assert.Equal(suite.T(), "NUMERIC(2, 5) UNSIGNED", dialect.CompileType(Numeric().Precision(2, 5).Unsigned()))
-
-	dialect = NewDialect("")
-	assert.Equal(suite.T(), "INT", dialect.CompileType(Int().Signed()))
-	assert.Equal(suite.T(), "SMALLINT", dialect.CompileType(TinyInt().Unsigned()))
-	assert.Equal(suite.T(), "INT", dialect.CompileType(SmallInt().Unsigned()))
-	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(Int().Unsigned()))
-	assert.Equal(suite.T(), "BIGINT", dialect.CompileType(BigInt().Unsigned()))
+func TestTypeTestSuite(t *testing.T) {
+	suite.Run(t, new(TypeTestSuite))
 }

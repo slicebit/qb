@@ -6,15 +6,6 @@ import (
 )
 
 func TestUpdate(t *testing.T) {
-	sqlite := NewDialect("sqlite3")
-	sqlite.SetEscaping(true)
-
-	mysql := NewDialect("mysql")
-	mysql.SetEscaping(true)
-
-	postgres := NewDialect("postgres")
-	postgres.SetEscaping(true)
-
 	users := Table(
 		"users",
 		Column("id", BigInt()).NotNull(),
@@ -22,28 +13,23 @@ func TestUpdate(t *testing.T) {
 		PrimaryKey("email"),
 	)
 
-	var statement *Stmt
+	sql, binds := asDefSQLBinds(Update(users).
+		Values(map[string]interface{}{"email": "robert@de.niro"}))
 
-	statement = Update(users).
-		Values(map[string]interface{}{"email": "robert@de.niro"}).
-		Build(sqlite)
+	assert.Equal(t, "UPDATE users\nSET email = ?", sql)
+	assert.Equal(t, []interface{}{"robert@de.niro"}, binds)
 
-	assert.Equal(t, "UPDATE \"users\"\nSET \"email\" = ?;", statement.SQL())
-	assert.Equal(t, []interface{}{"robert@de.niro"}, statement.Bindings())
+	sql, binds = asDefSQLBinds(Update(users).
+		Values(map[string]interface{}{"email": "robert@de.niro"}))
 
-	statement = Update(users).
-		Values(map[string]interface{}{"email": "robert@de.niro"}).
-		Build(mysql)
+	assert.Equal(t, "UPDATE users\nSET email = ?", sql)
+	assert.Equal(t, []interface{}{"robert@de.niro"}, binds)
 
-	assert.Equal(t, "UPDATE `users`\nSET `email` = ?;", statement.SQL())
-	assert.Equal(t, []interface{}{"robert@de.niro"}, statement.Bindings())
-
-	statement = Update(users).
+	sql, binds = asDefSQLBinds(Update(users).
 		Values(map[string]interface{}{"email": "robert@de.niro"}).
 		Where(Eq(users.C("email"), "al@pacino")).
-		Returning(users.C("id"), users.C("email")).
-		Build(postgres)
+		Returning(users.C("id"), users.C("email")))
 
-	assert.Equal(t, "UPDATE \"users\"\nSET \"email\" = $1\nWHERE \"email\" = $2\nRETURNING \"id\", \"email\";", statement.SQL())
-	assert.Equal(t, []interface{}{"robert@de.niro", "al@pacino"}, statement.Bindings())
+	assert.Equal(t, "UPDATE users\nSET email = ?\nWHERE email = ?\nRETURNING id, email", sql)
+	assert.Equal(t, []interface{}{"robert@de.niro", "al@pacino"}, binds)
 }

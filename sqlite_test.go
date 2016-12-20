@@ -19,7 +19,6 @@ func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
 	suite.engine, err = New("sqlite3", "./qb_test.db")
-	suite.engine.Logger().SetLogFlags(LQuery | LBindings)
 	suite.engine.Dialect().SetEscaping(true)
 
 	suite.metadata = MetaData()
@@ -30,6 +29,18 @@ func (suite *SqliteTestSuite) SetupTest() {
 
 func (suite *SqliteTestSuite) TestUUID() {
 	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(UUID()))
+}
+
+func (suite *SqliteTestSuite) TestDialect() {
+	dialect := NewDialect("sqlite")
+	assert.Equal(suite.T(), false, dialect.SupportsUnsigned())
+	assert.Equal(suite.T(), "test", dialect.Escape("test"))
+	assert.Equal(suite.T(), false, dialect.Escaping())
+	dialect.SetEscaping(true)
+	assert.Equal(suite.T(), true, dialect.Escaping())
+	assert.Equal(suite.T(), "\"test\"", dialect.Escape("test"))
+	assert.Equal(suite.T(), []string{"\"test\""}, dialect.EscapeAll([]string{"test"}))
+	assert.Equal(suite.T(), "sqlite3", dialect.Driver())
 }
 
 func (suite *SqliteTestSuite) TestSqlite() {
@@ -152,11 +163,41 @@ func (suite *SqliteTestSuite) TestSqlite() {
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
 }
 
+func (suite *SqliteTestSuite) TestUpsert() {
+	users := Table(
+		"users",
+		Column("id", Varchar().Size(36)),
+		Column("email", Varchar()).Unique(),
+		Column("created_at", Timestamp()).NotNull(),
+		PrimaryKey("id"),
+	)
+
+	now := time.Now().UTC().String()
+
+	ups := Upsert(users).Values(map[string]interface{}{
+		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
+		"email":      "al@pacino.com",
+		"created_at": now,
+	})
+
+	sql, binds := asSQLBinds(ups, suite.engine.Dialect())
+	assert.Contains(suite.T(), sql, `REPLACE INTO "users"`)
+	assert.Contains(suite.T(), sql, "id", "email", "created_at")
+	assert.Contains(suite.T(), sql, "VALUES(?, ?, ?)")
+	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
+	assert.Contains(suite.T(), binds, "al@pacino.com")
+	assert.Contains(suite.T(), binds, now)
+	assert.Equal(suite.T(), 3, len(binds))
+}
+
 func (suite *SqliteTestSuite) TestSqliteAutoIncrement() {
 	col := Column("test", Int()).AutoIncrement()
 	assert.Panics(suite.T(), func() {
 		col.String(suite.engine.Dialect())
 	})
+
+	col.Options.InlinePrimaryKey = true
+	assert.Equal(suite.T(), "INTEGER PRIMARY KEY", suite.engine.Dialect().AutoIncrement(&col))
 }
 
 func TestSqliteTestSuite(t *testing.T) {

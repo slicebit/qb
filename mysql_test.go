@@ -21,6 +21,7 @@ type MysqlTestSuite struct {
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
 	suite.engine, err = New("mysql", mysqlDsn)
+	suite.engine.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
 	err = suite.engine.Ping()
@@ -37,6 +38,18 @@ func (suite *MysqlTestSuite) SetupTest() {
 
 func (suite *MysqlTestSuite) TestUUID() {
 	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(UUID()))
+}
+
+func (suite *MysqlTestSuite) TestDialect() {
+	dialect := NewDialect("mysql")
+	assert.Equal(suite.T(), true, dialect.SupportsUnsigned())
+	assert.Equal(suite.T(), "test", dialect.Escape("test"))
+	assert.Equal(suite.T(), false, dialect.Escaping())
+	dialect.SetEscaping(true)
+	assert.Equal(suite.T(), true, dialect.Escaping())
+	assert.Equal(suite.T(), "`test`", dialect.Escape("test"))
+	assert.Equal(suite.T(), []string{"`test`"}, dialect.EscapeAll([]string{"test"}))
+	assert.Equal(suite.T(), "mysql", dialect.Driver())
 }
 
 func (suite *MysqlTestSuite) TestMysql() {
@@ -163,6 +176,35 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	// drop tables
 	assert.Nil(suite.T(), suite.metadata.DropAll(suite.engine))
+}
+
+func (suite *MysqlTestSuite) TestUpsert() {
+	users := Table(
+		"users",
+		Column("id", Varchar().Size(36)),
+		Column("email", Varchar()).Unique(),
+		Column("created_at", Timestamp()).NotNull(),
+		PrimaryKey("id"),
+	)
+
+	now := time.Now().UTC().String()
+
+	ups := Upsert(users).Values(map[string]interface{}{
+		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
+		"email":      "al@pacino.com",
+		"created_at": now,
+	})
+
+	sql, binds := asSQLBinds(ups, suite.engine.Dialect())
+
+	assert.Contains(suite.T(), sql, "INSERT INTO `users`")
+	assert.Contains(suite.T(), sql, "`id`", "`email`", "`created_at`")
+	assert.Contains(suite.T(), sql, "VALUES(?, ?, ?)")
+	assert.Contains(suite.T(), sql, "ON DUPLICATE KEY UPDATE")
+	assert.Contains(suite.T(), sql, "`id` = ?", "`email` = ?", "`created_at` = ?")
+	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
+	assert.Contains(suite.T(), binds, "al@pacino.com")
+	assert.Equal(suite.T(), 6, len(binds))
 }
 
 func TestMysqlTestSuite(t *testing.T) {

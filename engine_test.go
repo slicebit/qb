@@ -1,19 +1,18 @@
 package qb
 
 import (
-	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestEngine(t *testing.T) {
-	engine, err := New("postgres", "user=root dbname=pqtest")
+	engine, err := New("sqlite3", ":memory:")
 
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "postgres", engine.Driver())
+	assert.Equal(t, "sqlite3", engine.Driver())
 	assert.Equal(t, engine.DB().Ping(), engine.Ping())
-	assert.Equal(t, "user=root dbname=pqtest", engine.Dsn())
+	assert.Equal(t, ":memory:", engine.Dsn())
 }
 
 func TestInvalidEngine(t *testing.T) {
@@ -23,8 +22,8 @@ func TestInvalidEngine(t *testing.T) {
 }
 
 func TestEngineExec(t *testing.T) {
-	engine, err := New("postgres", "user=root dbname=pqtest")
-	dialect := NewDialect("postgres")
+	engine, err := New("sqlite3", ":memory:")
+	dialect := NewDialect("sqlite")
 	dialect.SetEscaping(true)
 	engine.SetDialect(dialect)
 
@@ -147,7 +146,8 @@ func TestTx(t *testing.T) {
 }
 
 func TestTxBeginError(t *testing.T) {
-	engine, err := New("postgres", "invalid_connexion")
+	engine, err := New("sqlite3", "file:///dev/null?_txlock=exclusive")
+	assert.Nil(t, err)
 	_, err = engine.Begin()
 	assert.NotNil(t, err)
 }
