@@ -3,23 +3,23 @@ package qb
 // Upsert generates an insert ... on (duplicate key/conflict) update statement
 func Upsert(table TableElem) UpsertStmt {
 	return UpsertStmt{
-		table:     table,
-		values:    map[string]interface{}{},
-		returning: []ColumnElem{},
+		Table:         table,
+		ValuesMap:     map[string]interface{}{},
+		ReturningCols: []ColumnElem{},
 	}
 }
 
 // UpsertStmt is the base struct for any insert ... on conflict/duplicate key ... update ... statements
 type UpsertStmt struct {
-	table     TableElem
-	values    map[string]interface{}
-	returning []ColumnElem
+	Table         TableElem
+	ValuesMap     map[string]interface{}
+	ReturningCols []ColumnElem
 }
 
 // Values accepts map[string]interface{} and forms the values map of insert statement
 func (s UpsertStmt) Values(values map[string]interface{}) UpsertStmt {
 	for k, v := range values {
-		s.values[k] = v
+		s.ValuesMap[k] = v
 	}
 	return s
 }
@@ -28,7 +28,7 @@ func (s UpsertStmt) Values(values map[string]interface{}) UpsertStmt {
 // NOTE: Please use it in only postgres dialect, otherwise it'll crash
 func (s UpsertStmt) Returning(cols ...ColumnElem) UpsertStmt {
 	for _, c := range cols {
-		s.returning = append(s.returning, c)
+		s.ReturningCols = append(s.ReturningCols, c)
 	}
 	return s
 }

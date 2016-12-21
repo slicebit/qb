@@ -3,6 +3,7 @@ package qb
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
+	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -12,34 +13,39 @@ import (
 
 var postgresDsn = "user=postgres dbname=qb_test sslmode=disable"
 
+func asSQLBinds(clause qb.Clause, dialect qb.Dialect) (string, []interface{}) {
+	ctx := qb.NewCompilerContext(dialect)
+	return clause.Accept(ctx), ctx.Binds
+}
+
 type PostgresTestSuite struct {
 	suite.Suite
-	engine   *Engine
-	metadata *MetaDataElem
+	engine   *qb.Engine
+	metadata *qb.MetaDataElem
 }
 
 func TestPostgresBlob(t *testing.T) {
-	assert.Equal(t, "bytea", NewDialect("postgres").CompileType(Blob()))
+	assert.Equal(t, "bytea", qb.NewDialect("postgres").CompileType(qb.Blob()))
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
 	var err error
 
-	suite.engine, err = New("postgres", postgresDsn)
+	suite.engine, err = qb.New("postgres", postgresDsn)
 	suite.engine.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.engine)
 
-	suite.metadata = MetaData()
+	suite.metadata = qb.MetaData()
 }
 
 func (suite *PostgresTestSuite) TestUUID() {
-	assert.Equal(suite.T(), "UUID", suite.engine.Dialect().CompileType(UUID()))
+	assert.Equal(suite.T(), "UUID", suite.engine.Dialect().CompileType(qb.UUID()))
 }
 
 func (suite *PostgresTestSuite) TestDialect() {
-	dialect := NewDialect("postgres")
+	dialect := qb.NewDialect("postgres")
 	assert.Equal(suite.T(), false, dialect.SupportsUnsigned())
 	assert.Equal(suite.T(), "test", dialect.Escape("test"))
 	assert.Equal(suite.T(), false, dialect.Escaping())
@@ -49,13 +55,13 @@ func (suite *PostgresTestSuite) TestDialect() {
 	assert.Equal(suite.T(), []string{"\"test\""}, dialect.EscapeAll([]string{"test"}))
 	assert.Equal(suite.T(), "postgres", dialect.Driver())
 
-	col := Column("autoinc", Int()).AutoIncrement()
+	col := qb.Column("autoinc", qb.Int()).AutoIncrement()
 	assert.Equal(suite.T(), "SERIAL", dialect.AutoIncrement(&col))
 
-	col = Column("autoinc", BigInt()).AutoIncrement()
+	col = qb.Column("autoinc", qb.BigInt()).AutoIncrement()
 	assert.Equal(suite.T(), "BIGSERIAL", dialect.AutoIncrement(&col))
 
-	col = Column("autoinc", SmallInt()).AutoIncrement()
+	col = qb.Column("autoinc", qb.SmallInt()).AutoIncrement()
 	assert.Equal(suite.T(), "SMALLSERIAL", dialect.AutoIncrement(&col))
 
 }
@@ -78,25 +84,25 @@ func (suite *PostgresTestSuite) TestPostgres() {
 		ExpiresAt *time.Time `db:"expires_at"`
 	}
 
-	users := Table(
+	users := qb.Table(
 		"user",
-		Column("id", Type("UUID")),
-		Column("email", Varchar()).Unique().NotNull(),
-		Column("full_name", Varchar()).NotNull(),
-		Column("bio", Text()).Null(),
-		Column("oscars", Int()).Default(0),
-		PrimaryKey("id"),
+		qb.Column("id", qb.Type("UUID")),
+		qb.Column("email", qb.Varchar()).Unique().NotNull(),
+		qb.Column("full_name", qb.Varchar()).NotNull(),
+		qb.Column("bio", qb.Text()).Null(),
+		qb.Column("oscars", qb.Int()).Default(0),
+		qb.PrimaryKey("id"),
 	)
 
-	sessions := Table(
+	sessions := qb.Table(
 		"session",
-		Column("id", Type("BIGSERIAL")),
-		Column("user_id", Type("UUID")),
-		Column("auth_token", Type("UUID")),
-		Column("created_at", Timestamp()).NotNull(),
-		Column("expires_at", Timestamp()).NotNull(),
-		PrimaryKey("id"),
-		ForeignKey("user_id").References("user", "id"),
+		qb.Column("id", qb.Type("BIGSERIAL")),
+		qb.Column("user_id", qb.Type("UUID")),
+		qb.Column("auth_token", qb.Type("UUID")),
+		qb.Column("created_at", qb.Timestamp()).NotNull(),
+		qb.Column("expires_at", qb.Timestamp()).NotNull(),
+		qb.PrimaryKey("id"),
+		qb.ForeignKey("user_id").References("user", "id"),
 	).Index("created_at", "expires_at")
 
 	var err error
@@ -107,7 +113,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.metadata.CreateAll(suite.engine)
 	assert.Nil(suite.T(), err)
 
-	ins := Insert(users).Values(map[string]interface{}{
+	ins := qb.Insert(users).Values(map[string]interface{}{
 		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
@@ -116,7 +122,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	_, err = suite.engine.Exec(ins)
 
-	ins = Insert(sessions).Values(map[string]interface{}{
+	ins = qb.Insert(sessions).Values(map[string]interface{}{
 		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
 		"created_at": time.Now(),
@@ -127,7 +133,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	err = suite.engine.QueryRow(ins).Scan(&id)
 	assert.Nil(suite.T(), err)
 
-	statement := Insert(users).Values(map[string]interface{}{
+	statement := qb.Insert(users).Values(map[string]interface{}{
 		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
@@ -137,7 +143,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	_, err = suite.engine.Exec(statement)
 	assert.NotNil(suite.T(), err)
 
-	statement = Insert(users).Values(map[string]interface{}{
+	statement = qb.Insert(users).Values(map[string]interface{}{
 		"id":        "cf28d117-a12d-4b75-acd8-73a7d3cbb15f",
 		"email":     "jack@nicholson2.com",
 		"full_name": "Jack Nicholson",
@@ -148,7 +154,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Nil(suite.T(), err)
 
 	// find user using QueryRow()
-	sel := Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
+	sel := qb.Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
 		Where(users.C("id").Eq("cf28d117-a12d-4b75-acd8-73a7d3cbb15f"))
 
 	row := suite.engine.QueryRow(sel)
@@ -166,7 +172,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// find user using session api's Find()
 	var user User
 
-	sel = Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
+	sel = qb.Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
 		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
 	err = suite.engine.Get(sel, &user)
@@ -179,7 +185,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	// select using join
 	sessionSlice := []Session{}
 
-	sel = Select(sessions.C("id"), sessions.C("user_id"), sessions.C("auth_token"), sessions.C("created_at"), sessions.C("expires_at")).
+	sel = qb.Select(sessions.C("id"), sessions.C("user_id"), sessions.C("auth_token"), sessions.C("created_at"), sessions.C("expires_at")).
 		From(sessions).
 		InnerJoin(users, sessions.C("user_id"), users.C("id")).
 		Where(sessions.C("user_id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
@@ -195,7 +201,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	// update user
 
-	upd := Update(users).Values(map[string]interface{}{
+	upd := qb.Update(users).Values(map[string]interface{}{
 		"bio": sql.NullString{Valid: false},
 	})
 
@@ -203,7 +209,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 
 	assert.Nil(suite.T(), err)
 
-	sel = Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
+	sel = qb.Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).From(users).
 		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
 	err = suite.engine.Get(sel, &user)
@@ -211,7 +217,7 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	assert.Equal(suite.T(), user.Bio, sql.NullString{Valid: false})
 
 	// delete session
-	del := Delete(sessions).Where(sessions.C("auth_token").Eq("99e591f8-1025-41ef-a833-6904a0f89a38"))
+	del := qb.Delete(sessions).Where(sessions.C("auth_token").Eq("99e591f8-1025-41ef-a833-6904a0f89a38"))
 	_, err = suite.engine.Exec(del)
 	assert.Nil(suite.T(), err)
 
@@ -220,22 +226,22 @@ func (suite *PostgresTestSuite) TestPostgres() {
 }
 
 func (suite *PostgresTestSuite) TestAutoIncrement() {
-	col := Column("id", BigInt()).AutoIncrement()
+	col := qb.Column("id", qb.BigInt()).AutoIncrement()
 	assert.Equal(suite.T(),
 		"BIGSERIAL",
 		suite.engine.Dialect().AutoIncrement(&col))
 
-	col = Column("id", SmallInt()).AutoIncrement()
+	col = qb.Column("id", qb.SmallInt()).AutoIncrement()
 	assert.Equal(suite.T(),
 		"SMALLSERIAL",
 		suite.engine.Dialect().AutoIncrement(&col))
 
-	col = Column("id", Int()).AutoIncrement()
+	col = qb.Column("id", qb.Int()).AutoIncrement()
 	assert.Equal(suite.T(),
 		"SERIAL",
 		suite.engine.Dialect().AutoIncrement(&col))
 
-	col = Column("id", Int()).AutoIncrement()
+	col = qb.Column("id", qb.Int()).AutoIncrement()
 	col.Options.InlinePrimaryKey = true
 	assert.Equal(suite.T(),
 		"SERIAL PRIMARY KEY",
@@ -243,15 +249,15 @@ func (suite *PostgresTestSuite) TestAutoIncrement() {
 }
 
 func (suite *PostgresTestSuite) TestUpsert() {
-	users := Table(
+	users := qb.Table(
 		"users",
-		Column("id", Varchar().Size(36)),
-		Column("email", Varchar()).Unique(),
-		Column("created_at", Timestamp()).NotNull(),
-		PrimaryKey("id"),
+		qb.Column("id", qb.Varchar().Size(36)),
+		qb.Column("email", qb.Varchar()).Unique(),
+		qb.Column("created_at", qb.Timestamp()).NotNull(),
+		qb.PrimaryKey("id"),
 	)
 	now := time.Now().UTC().String()
-	ups := Upsert(users).Values(map[string]interface{}{
+	ups := qb.Upsert(users).Values(map[string]interface{}{
 		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email":      "al@pacino.com",
 		"created_at": now,
@@ -266,7 +272,7 @@ func (suite *PostgresTestSuite) TestUpsert() {
 	assert.Contains(suite.T(), binds, "al@pacino.com")
 	assert.Equal(suite.T(), 6, len(binds))
 
-	ups = Upsert(users).
+	ups = qb.Upsert(users).
 		Values(map[string]interface{}{
 			"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 			"email": "al@pacino.com",

@@ -3,6 +3,7 @@ package qb
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"os"
@@ -12,22 +13,27 @@ import (
 
 var mysqlDsn = "root:@tcp(localhost:3306)/qb_test?charset=utf8"
 
+func asSQLBinds(clause qb.Clause, dialect qb.Dialect) (string, []interface{}) {
+	ctx := qb.NewCompilerContext(dialect)
+	return clause.Accept(ctx), ctx.Binds
+}
+
 type MysqlTestSuite struct {
 	suite.Suite
-	engine   *Engine
-	metadata *MetaDataElem
+	engine   *qb.Engine
+	metadata *qb.MetaDataElem
 }
 
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
-	suite.engine, err = New("mysql", mysqlDsn)
+	suite.engine, err = qb.New("mysql", mysqlDsn)
 	suite.engine.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
 	err = suite.engine.Ping()
 
 	assert.Nil(suite.T(), err)
-	suite.metadata = MetaData()
+	suite.metadata = qb.MetaData()
 
 	assert.Nil(suite.T(), err)
 	assert.NotNil(suite.T(), suite.engine)
@@ -37,11 +43,11 @@ func (suite *MysqlTestSuite) SetupTest() {
 }
 
 func (suite *MysqlTestSuite) TestUUID() {
-	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(UUID()))
+	assert.Equal(suite.T(), "VARCHAR(36)", suite.engine.Dialect().CompileType(qb.UUID()))
 }
 
 func (suite *MysqlTestSuite) TestDialect() {
-	dialect := NewDialect("mysql")
+	dialect := qb.NewDialect("mysql")
 	assert.Equal(suite.T(), true, dialect.SupportsUnsigned())
 	assert.Equal(suite.T(), "test", dialect.Escape("test"))
 	assert.Equal(suite.T(), false, dialect.Escaping())
@@ -69,25 +75,25 @@ func (suite *MysqlTestSuite) TestMysql() {
 		ExpiresAt *time.Time `db:"expires_at"`
 	}
 
-	users := Table(
+	users := qb.Table(
 		"user",
-		Column("id", Varchar().Size(40)),
-		Column("email", Varchar()).Unique().NotNull(),
-		Column("full_name", Varchar()).NotNull(),
-		Column("bio", Text()).Null(),
-		Column("oscars", Int()).Default(0),
-		PrimaryKey("id"),
+		qb.Column("id", qb.Varchar().Size(40)),
+		qb.Column("email", qb.Varchar()).Unique().NotNull(),
+		qb.Column("full_name", qb.Varchar()).NotNull(),
+		qb.Column("bio", qb.Text()).Null(),
+		qb.Column("oscars", qb.Int()).Default(0),
+		qb.PrimaryKey("id"),
 	)
 
-	sessions := Table(
+	sessions := qb.Table(
 		"session",
-		Column("id", BigInt()).AutoIncrement(),
-		Column("user_id", Varchar().Size(40)).NotNull(),
-		Column("auth_token", Varchar().Size(40)).NotNull().Unique(),
-		Column("created_at", Timestamp()).Null(),
-		Column("expires_at", Timestamp()).Null(),
-		PrimaryKey("id"),
-		ForeignKey("user_id").References("user", "id"),
+		qb.Column("id", qb.BigInt()).AutoIncrement(),
+		qb.Column("user_id", qb.Varchar().Size(40)).NotNull(),
+		qb.Column("auth_token", qb.Varchar().Size(40)).NotNull().Unique(),
+		qb.Column("created_at", qb.Timestamp()).Null(),
+		qb.Column("expires_at", qb.Timestamp()).Null(),
+		qb.PrimaryKey("id"),
+		qb.ForeignKey("user_id").References("user", "id"),
 	)
 
 	var err error
@@ -98,7 +104,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	err = suite.metadata.CreateAll(suite.engine)
 	assert.Nil(suite.T(), err)
 
-	ins := Insert(users).Values(map[string]interface{}{
+	ins := qb.Insert(users).Values(map[string]interface{}{
 		"id":        "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"email":     "jack@nicholson.com",
 		"full_name": "Jack Nicholson",
@@ -108,7 +114,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	_, err = suite.engine.Exec(ins)
 	assert.Nil(suite.T(), err)
 
-	ins = Insert(sessions).Values(map[string]interface{}{
+	ins = qb.Insert(sessions).Values(map[string]interface{}{
 		"user_id":    "b6f8bfe3-a830-441a-a097-1777e6bfae95",
 		"auth_token": "e4968197-6137-47a4-ba79-690d8c552248",
 		"created_at": time.Now(),
@@ -128,7 +134,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	// find user
 	var user User
 
-	sel := Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).
+	sel := qb.Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).
 		From(users).
 		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
@@ -141,7 +147,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 
 	// select using join
 	sessionSlice := []Session{}
-	sel = Select(sessions.C("id"), sessions.C("user_id"), sessions.C("auth_token")).
+	sel = qb.Select(sessions.C("id"), sessions.C("user_id"), sessions.C("auth_token")).
 		From(sessions).
 		InnerJoin(users, sessions.C("user_id"), users.C("id")).
 		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
@@ -155,7 +161,7 @@ func (suite *MysqlTestSuite) TestMysql() {
 	assert.Equal(suite.T(), sessionSlice[0].UserID, "b6f8bfe3-a830-441a-a097-1777e6bfae95")
 	assert.Equal(suite.T(), sessionSlice[0].AuthToken, "e4968197-6137-47a4-ba79-690d8c552248")
 
-	upd := Update(users).
+	upd := qb.Update(users).
 		Values(map[string]interface{}{
 			"bio": sql.NullString{String: "nil", Valid: false},
 		}).Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
@@ -163,14 +169,14 @@ func (suite *MysqlTestSuite) TestMysql() {
 	_, err = suite.engine.Exec(upd)
 	assert.Nil(suite.T(), err)
 
-	sel = Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).
+	sel = qb.Select(users.C("id"), users.C("email"), users.C("full_name"), users.C("bio")).
 		From(users).
 		Where(users.C("id").Eq("b6f8bfe3-a830-441a-a097-1777e6bfae95"))
 
 	err = suite.engine.Get(sel, &user)
 	assert.Equal(suite.T(), user.Bio, sql.NullString{String: "", Valid: false})
 
-	del := Delete(sessions).Where(sessions.C("auth_token").Eq("99e591f8-1025-41ef-a833-6904a0f89a38"))
+	del := qb.Delete(sessions).Where(sessions.C("auth_token").Eq("99e591f8-1025-41ef-a833-6904a0f89a38"))
 	_, err = suite.engine.Exec(del)
 	assert.Nil(suite.T(), err)
 
@@ -179,17 +185,17 @@ func (suite *MysqlTestSuite) TestMysql() {
 }
 
 func (suite *MysqlTestSuite) TestUpsert() {
-	users := Table(
+	users := qb.Table(
 		"users",
-		Column("id", Varchar().Size(36)),
-		Column("email", Varchar()).Unique(),
-		Column("created_at", Timestamp()).NotNull(),
-		PrimaryKey("id"),
+		qb.Column("id", qb.Varchar().Size(36)),
+		qb.Column("email", qb.Varchar()).Unique(),
+		qb.Column("created_at", qb.Timestamp()).NotNull(),
+		qb.PrimaryKey("id"),
 	)
 
 	now := time.Now().UTC().String()
 
-	ups := Upsert(users).Values(map[string]interface{}{
+	ups := qb.Upsert(users).Values(map[string]interface{}{
 		"id":         "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 		"email":      "al@pacino.com",
 		"created_at": now,

@@ -25,6 +25,12 @@ install:
 
 script:
     - go test -v -covermode=count -coverprofile=coverage.out
+    - go test -v -covermode=count -coverprofile=sqlite.out ./dialects/sqlite
+    - go test -v -covermode=count -coverprofile=postgres.out ./dialects/postgres
+    - go test -v -covermode=count -coverprofile=mysql.out ./dialects/mysql
+    - tail --lines +2 sqlite.out >> coverage.out
+    - tail --lines +2 postgres.out >> coverage.out
+    - tail --lines +2 mysql.out >> coverage.out
     - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken 0yIEy3NVX2lXn3KxYzHjkla7EWGjvmLAp
 
 before_script:

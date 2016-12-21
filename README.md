@@ -62,6 +62,7 @@ import (
 	"fmt"
 	"github.com/slicebit/qb"
 	_ "github.com/mattn/go-sqlite3"
+    _ "github.com/slicebit/qb/dialects/sqlite"
 )
 
 type User struct {

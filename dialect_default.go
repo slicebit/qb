@@ -22,7 +22,7 @@ func (d *DefaultDialect) Escape(str string) string {
 
 // EscapeAll wraps all elements of string array
 func (d *DefaultDialect) EscapeAll(strings []string) []string {
-	return escapeAll(d, strings[0:])
+	return EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect

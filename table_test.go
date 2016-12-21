@@ -63,6 +63,10 @@ func (suite *TableTestSuite) TestTablePrimaryKey() {
 	)
 
 	assert.Equal(suite.T(), []string{"fname", "lname"}, t.PrimaryKeyConstraint.Columns)
+	cols := t.PrimaryCols()
+	assert.Equal(suite.T(), 2, len(cols))
+	assert.Equal(suite.T(), "fname", cols[0].Name)
+	assert.Equal(suite.T(), "lname", cols[1].Name)
 
 	ddl := t.Create(NewDialect("default"))
 	assert.Contains(suite.T(), ddl, "PRIMARY KEY(fname, lname)")
@@ -148,7 +152,7 @@ func (suite *TableTestSuite) TestTableStarters() {
 	assert.Contains(suite.T(), ins.Bindings(), "al@pacino.com")
 
 	ups := users.Upsert()
-	assert.Equal(suite.T(), users, ups.table)
+	assert.Equal(suite.T(), users, ups.Table)
 
 	upd := users.
 		Update().

@@ -28,4 +28,7 @@ func TestUpsert(t *testing.T) {
 	assert.Panics(t, func() {
 		ups.Build(def)
 	})
+
+	ups = ups.Returning(users.C("email"))
+	assert.Equal(t, []ColumnElem{users.C("email")}, ups.ReturningCols)
 }

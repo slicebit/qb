@@ -1,13 +1,15 @@
-package qb
+package qb_test
 
 import (
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/slicebit/qb"
+	_ "github.com/slicebit/qb/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestEngine(t *testing.T) {
-	engine, err := New("sqlite3", ":memory:")
+	engine, err := qb.New("sqlite3", ":memory:")
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "sqlite3", engine.Driver())
@@ -16,23 +18,23 @@ func TestEngine(t *testing.T) {
 }
 
 func TestInvalidEngine(t *testing.T) {
-	engine, err := New("invalid", "")
+	engine, err := qb.New("invalid", "")
 	assert.NotEqual(t, nil, err)
-	assert.Equal(t, (*Engine)(nil), engine)
+	assert.Equal(t, (*qb.Engine)(nil), engine)
 }
 
 func TestEngineExec(t *testing.T) {
-	engine, err := New("sqlite3", ":memory:")
-	dialect := NewDialect("sqlite")
+	engine, err := qb.New("sqlite3", ":memory:")
+	dialect := qb.NewDialect("sqlite")
 	dialect.SetEscaping(true)
 	engine.SetDialect(dialect)
 
-	usersTable := Table(
+	usersTable := qb.Table(
 		"users",
-		Column("full_name", Varchar()).NotNull(),
+		qb.Column("full_name", qb.Varchar()).NotNull(),
 	)
 
-	ins := Insert(usersTable).
+	ins := qb.Insert(usersTable).
 		Values(map[string]interface{}{
 			"full_name": "Al Pacino",
 		})
@@ -45,17 +47,17 @@ func TestEngineExec(t *testing.T) {
 }
 
 func TestEngineFail(t *testing.T) {
-	engine, err := New("sqlite3", "./qb_test.db")
+	engine, err := qb.New("sqlite3", ":memory:")
 	defer engine.Close()
-	engine.SetDialect(NewDialect("sqlite3"))
+	engine.SetDialect(qb.NewDialect("sqlite3"))
 	assert.Nil(t, err)
 
-	usersTable := Table(
+	usersTable := qb.Table(
 		"users",
-		Column("full_name", Varchar()).NotNull(),
+		qb.Column("full_name", qb.Varchar()).NotNull(),
 	)
 
-	statement := Insert(usersTable).
+	statement := qb.Insert(usersTable).
 		Values(map[string]interface{}{
 			"full_name": "Robert De Niro",
 		})
@@ -65,26 +67,26 @@ func TestEngineFail(t *testing.T) {
 }
 
 func TestTx(t *testing.T) {
-	engine, err := New("sqlite3", ":memory:")
+	engine, err := qb.New("sqlite3", ":memory:")
 	assert.Nil(t, err)
 	defer engine.Close()
 
-	engine.SetDialect(NewDialect("sqlite3"))
+	engine.SetDialect(qb.NewDialect("sqlite3"))
 
-	usersTable := Table(
+	usersTable := qb.Table(
 		"users",
-		Column("full_name", Varchar()).NotNull(),
+		qb.Column("full_name", qb.Varchar()).NotNull(),
 	)
 
 	_, err = engine.DB().Exec(usersTable.Create(engine.Dialect()))
 	assert.Nil(t, err)
 
-	countStmt := Select(Count(usersTable.C("full_name"))).From(usersTable)
+	countStmt := qb.Select(qb.Count(usersTable.C("full_name"))).From(usersTable)
 
 	tx, err := engine.Begin()
 	assert.Equal(t, nil, err)
 
-	assert.Equal(t, tx.tx, tx.Tx())
+	assert.NotNil(t, tx.Tx())
 
 	_, err = tx.Exec(
 		usersTable.Insert().
@@ -146,8 +148,41 @@ func TestTx(t *testing.T) {
 }
 
 func TestTxBeginError(t *testing.T) {
-	engine, err := New("sqlite3", "file:///dev/null?_txlock=exclusive")
+	engine, err := qb.New("sqlite3", "file:///dev/null?_txlock=exclusive")
 	assert.Nil(t, err)
 	_, err = engine.Begin()
 	assert.NotNil(t, err)
+}
+
+func TestEngineQuery(t *testing.T) {
+	engine, err := qb.New("sqlite3", ":memory:")
+	assert.Nil(t, err)
+	rows, err := engine.Query(qb.Select(qb.SQLText("1")))
+	assert.Nil(t, err)
+	assert.True(t, rows.Next())
+	var value int
+	assert.Nil(t, rows.Scan(&value))
+	assert.Equal(t, 1, value)
+	assert.False(t, rows.Next())
+}
+
+func TestEngineGet(t *testing.T) {
+	var s struct {
+		Value int `db:"value"`
+	}
+	engine, err := qb.New("sqlite3", ":memory:")
+	assert.Nil(t, err)
+	assert.Nil(t, engine.Get(qb.Select(qb.SQLText("1 AS value")), &s))
+	assert.Equal(t, 1, s.Value)
+}
+
+func TestEngineSelect(t *testing.T) {
+	var s []struct {
+		Value int `db:"value"`
+	}
+	engine, err := qb.New("sqlite3", ":memory:")
+	assert.Nil(t, err)
+	assert.Nil(t, engine.Select(qb.Select(qb.SQLText("1 AS value")), &s))
+	assert.Equal(t, 1, len(s))
+	assert.Equal(t, 1, s[0].Value)
 }
