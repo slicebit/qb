@@ -47,6 +47,14 @@ func (e Engine) SetDialect(dialect Dialect) {
 	e.dialect = dialect
 }
 
+// TranslateError translates the native errors into qb.Error
+func (e Engine) TranslateError(err error) error {
+	if err != nil {
+		return e.dialect.WrapError(err)
+	}
+	return nil
+}
+
 // Logger returns the active logger of engine
 func (e *Engine) Logger() Logger {
 	return e.logger
@@ -64,10 +72,10 @@ func (e *Engine) SetLogFlags(flags LogFlags) {
 
 func (e *Engine) log(statement *Stmt) {
 	logFlags := e.logger.LogFlags()
-	if logFlags & LQuery != 0 {
+	if logFlags&LQuery != 0 {
 		e.logger.Println("SQL:", statement.SQL())
 	}
-	if logFlags & LBindings != 0 {
+	if logFlags&LBindings != 0 {
 		e.logger.Println("Bindings:", statement.Bindings())
 	}
 }
@@ -77,35 +85,52 @@ func (e *Engine) Exec(builder Builder) (sql.Result, error) {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
 	res, err := e.db.Exec(statement.SQL(), statement.Bindings()...)
-	return res, err
+	return res, e.TranslateError(err)
+}
+
+// Row wraps a *sql.Row in order to translate errors
+type Row struct {
+	*sql.Row
+	TranslateError func(error) error
+}
+
+// Scan wraps sql.Row.Scan()
+func (r Row) Scan(dest ...interface{}) error {
+	return r.TranslateError(r.Row.Scan(dest...))
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
-func (e *Engine) QueryRow(builder Builder) *sql.Row {
+func (e *Engine) QueryRow(builder Builder) Row {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.QueryRow(statement.SQL(), statement.Bindings()...)
+	return Row{
+		e.db.QueryRow(statement.SQL(), statement.Bindings()...),
+		e.TranslateError,
+	}
 }
 
 // Query wraps *sql.DB.Query()
 func (e *Engine) Query(builder Builder) (*sql.Rows, error) {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.Query(statement.SQL(), statement.Bindings()...)
+	rows, err := e.db.Query(statement.SQL(), statement.Bindings()...)
+	return rows, e.TranslateError(err)
 }
 
 // Get maps the single row to a model
 func (e *Engine) Get(builder Builder, model interface{}) error {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.Get(model, statement.SQL(), statement.Bindings()...)
+	return e.TranslateError(
+		e.db.Get(model, statement.SQL(), statement.Bindings()...))
 }
 
 // Select maps multiple rows to a model array
 func (e *Engine) Select(builder Builder, model interface{}) error {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	return e.db.Select(model, statement.SQL(), statement.Bindings()...)
+	return e.TranslateError(
+		e.db.Select(model, statement.SQL(), statement.Bindings()...))
 }
 
 // DB returns sql.DB of wrapped engine connection
@@ -137,7 +162,7 @@ func (e *Engine) Dsn() string {
 func (e *Engine) Begin() (*Tx, error) {
 	tx, err := e.db.Beginx()
 	if err != nil {
-		return nil, err
+		return nil, e.dialect.WrapError(err)
 	}
 	return &Tx{e, tx}, nil
 }
@@ -168,33 +193,39 @@ func (tx *Tx) Exec(builder Builder) (sql.Result, error) {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
 	res, err := tx.tx.Exec(statement.SQL(), statement.Bindings()...)
-	return res, err
+	return res, tx.engine.TranslateError(err)
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
-func (tx *Tx) QueryRow(builder Builder) *sql.Row {
+func (tx *Tx) QueryRow(builder Builder) Row {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
-	return tx.tx.QueryRow(statement.SQL(), statement.Bindings()...)
+	return Row{
+		tx.tx.QueryRow(statement.SQL(), statement.Bindings()...),
+		tx.engine.TranslateError,
+	}
 }
 
 // Query wraps *sql.DB.Query()
 func (tx *Tx) Query(builder Builder) (*sql.Rows, error) {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
-	return tx.tx.Query(statement.SQL(), statement.Bindings()...)
+	rows, err := tx.tx.Query(statement.SQL(), statement.Bindings()...)
+	return rows, tx.engine.TranslateError(err)
 }
 
 // Get maps the single row to a model
 func (tx *Tx) Get(builder Builder, model interface{}) error {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
-	return tx.tx.Get(model, statement.SQL(), statement.Bindings()...)
+	return tx.engine.TranslateError(
+		tx.tx.Get(model, statement.SQL(), statement.Bindings()...))
 }
 
 // Select maps multiple rows to a model array
 func (tx *Tx) Select(builder Builder, model interface{}) error {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
-	return tx.tx.Select(model, statement.SQL(), statement.Bindings()...)
+	return tx.engine.TranslateError(
+		tx.tx.Select(model, statement.SQL(), statement.Bindings()...))
 }
