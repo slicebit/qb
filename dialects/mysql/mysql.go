@@ -1,11 +1,17 @@
-package qb
+package mysql
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/slicebit/qb"
 )
+
+//go:generate go run ./tools/generrors.go
+//go:generate gofmt -w errors.go
+
+const ()
 
 // MysqlDialect is a type of dialect that can be used with mysql driver
 type MysqlDialect struct {
@@ -73,6 +79,58 @@ func (d *MysqlDialect) Driver() string {
 // GetCompiler returns a MysqlCompiler
 func (d *MysqlDialect) GetCompiler() qb.Compiler {
 	return MysqlCompiler{qb.NewSQLCompiler(d)}
+}
+
+// WrapError wraps a native error in a qb Error
+func (d *MysqlDialect) WrapError(err error) qb.Error {
+	qbErr := qb.Error{Orig: err}
+	mErr, ok := err.(*mysql.MySQLError)
+	if !ok {
+		return qbErr
+	}
+	// Error mapping logic is copied from MySQL-python-1.2.5
+	switch mErr.Number {
+	case CR_COMMANDS_OUT_OF_SYNC,
+		ER_DB_CREATE_EXISTS,
+		ER_SYNTAX_ERROR,
+		ER_PARSE_ERROR,
+		ER_NO_SUCH_TABLE,
+		ER_WRONG_DB_NAME,
+		ER_WRONG_TABLE_NAME,
+		ER_FIELD_SPECIFIED_TWICE,
+		ER_INVALID_GROUP_FUNC_USE,
+		ER_UNSUPPORTED_EXTENSION,
+		ER_TABLE_MUST_HAVE_COLUMNS,
+		ER_CANT_DO_THIS_DURING_AN_TRANSACTION:
+		qbErr.Code = qb.ErrProgramming
+	case WARN_DATA_TRUNCATED,
+		ER_WARN_DATA_OUT_OF_RANGE,
+		ER_NO_DEFAULT,
+		ER_PRIMARY_CANT_HAVE_NULL,
+		ER_DATA_TOO_LONG,
+		ER_DATETIME_FUNCTION_OVERFLOW:
+		qbErr.Code = qb.ErrData
+	case ER_DUP_ENTRY,
+		ER_DUP_UNIQUE,
+		ER_NO_REFERENCED_ROW,
+		ER_NO_REFERENCED_ROW_2,
+		ER_ROW_IS_REFERENCED,
+		ER_ROW_IS_REFERENCED_2,
+		ER_CANNOT_ADD_FOREIGN:
+		qbErr.Code = qb.ErrIntegrity
+	case ER_WARNING_NOT_COMPLETE_ROLLBACK,
+		ER_NOT_SUPPORTED_YET,
+		ER_FEATURE_DISABLED,
+		ER_UNKNOWN_STORAGE_ENGINE:
+		qbErr.Code = qb.ErrNotSupported
+	default:
+		if mErr.Number < 1000 {
+			qbErr.Code = qb.ErrInternal
+		} else {
+			qbErr.Code = qb.ErrOperational
+		}
+	}
+	return qbErr
 }
 
 // MysqlCompiler is a SQLCompiler specialised for Mysql

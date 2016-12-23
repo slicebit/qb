@@ -2,7 +2,8 @@ package qb
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"errors"
+	"github.com/mattn/go-sqlite3"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -47,6 +48,34 @@ func (suite *SqliteTestSuite) TestDialect() {
 	assert.Equal(suite.T(), "\"test\"", dialect.Escape("test"))
 	assert.Equal(suite.T(), []string{"\"test\""}, dialect.EscapeAll([]string{"test"}))
 	assert.Equal(suite.T(), "sqlite3", dialect.Driver())
+}
+
+func (suite *SqliteTestSuite) TestWrapError() {
+	dialect := qb.NewDialect("sqlite")
+	err := errors.New("xxx")
+	qbErr := dialect.WrapError(err)
+	assert.Equal(suite.T(), err, qbErr.Orig)
+
+	for _, tt := range []struct {
+		sCode   sqlite3.ErrNo
+		expCode qb.ErrorCode
+	}{
+		{sqlite3.ErrInternal, qb.ErrInternal},
+		{sqlite3.ErrNotFound, qb.ErrInternal},
+		{sqlite3.ErrNomem, qb.ErrInternal},
+		{sqlite3.ErrError, qb.ErrOperational},
+		{sqlite3.ErrIoErr, qb.ErrOperational},
+		{sqlite3.ErrCorrupt, qb.ErrDatabase},
+		{sqlite3.ErrTooBig, qb.ErrData},
+		{sqlite3.ErrConstraint, qb.ErrIntegrity},
+		{sqlite3.ErrMismatch, qb.ErrIntegrity},
+		{sqlite3.ErrMisuse, qb.ErrProgramming},
+		{293012, qb.ErrDatabase},
+	} {
+		sErr := sqlite3.Error{Code: tt.sCode}
+		qErr := dialect.WrapError(sErr)
+		assert.Equal(suite.T(), tt.expCode, qErr.Code)
+	}
 }
 
 func (suite *SqliteTestSuite) TestSqlite() {

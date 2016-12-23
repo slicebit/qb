@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mattn/go-sqlite3"
 	"github.com/slicebit/qb"
 )
 
@@ -72,6 +73,47 @@ func (d *SqliteDialect) Driver() string {
 // GetCompiler returns a SqliteCompiler
 func (d *SqliteDialect) GetCompiler() qb.Compiler {
 	return SqliteCompiler{qb.NewSQLCompiler(d)}
+}
+
+// WrapError wraps a native error in a qb Error
+func (d *SqliteDialect) WrapError(err error) qb.Error {
+	qbErr := qb.Error{Orig: err}
+	sErr, ok := err.(sqlite3.Error)
+	if !ok {
+		return qbErr
+	}
+	switch sErr.Code {
+	case sqlite3.ErrInternal,
+		sqlite3.ErrNotFound,
+		sqlite3.ErrNomem:
+		qbErr.Code = qb.ErrInternal
+	case sqlite3.ErrError,
+		sqlite3.ErrPerm,
+		sqlite3.ErrAbort,
+		sqlite3.ErrBusy,
+		sqlite3.ErrLocked,
+		sqlite3.ErrReadonly,
+		sqlite3.ErrInterrupt,
+		sqlite3.ErrIoErr,
+		sqlite3.ErrFull,
+		sqlite3.ErrCantOpen,
+		sqlite3.ErrProtocol,
+		sqlite3.ErrEmpty,
+		sqlite3.ErrSchema:
+		qbErr.Code = qb.ErrOperational
+	case sqlite3.ErrCorrupt:
+		qbErr.Code = qb.ErrDatabase
+	case sqlite3.ErrTooBig:
+		qbErr.Code = qb.ErrData
+	case sqlite3.ErrConstraint,
+		sqlite3.ErrMismatch:
+		qbErr.Code = qb.ErrIntegrity
+	case sqlite3.ErrMisuse:
+		qbErr.Code = qb.ErrProgramming
+	default:
+		qbErr.Code = qb.ErrDatabase
+	}
+	return qbErr
 }
 
 // SqliteCompiler is a SQLCompiler specialised for Sqlite

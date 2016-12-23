@@ -7,6 +7,11 @@ type DefaultDialect struct {
 	escaping bool
 }
 
+// NewDefaultDialect instanciate a DefaultDialect
+func NewDefaultDialect() Dialect {
+	return &DefaultDialect{false}
+}
+
 // CompileType compiles a type into its DDL
 func (d *DefaultDialect) CompileType(t TypeElem) string {
 	return DefaultCompileType(t, d.SupportsUnsigned())
@@ -56,4 +61,14 @@ func (d *DefaultDialect) Driver() string {
 // GetCompiler returns the default SQLCompiler
 func (d *DefaultDialect) GetCompiler() Compiler {
 	return SQLCompiler{d}
+}
+
+// WrapError wraps a native error in a qb Error
+func (d *DefaultDialect) WrapError(err error) Error {
+	return Error{Orig: err}
+}
+
+func init() {
+	RegisterDialect("default", NewDefaultDialect)
+	RegisterDialect("", NewDefaultDialect)
 }

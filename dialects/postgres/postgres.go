@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/lib/pq"
 	"github.com/slicebit/qb"
 )
 
@@ -80,6 +81,68 @@ func (d *PostgresDialect) Driver() string {
 // GetCompiler returns a PostgresCompiler
 func (d *PostgresDialect) GetCompiler() qb.Compiler {
 	return PostgresCompiler{qb.NewSQLCompiler(d)}
+}
+
+// WrapError wraps a native error in a qb Error
+func (d *PostgresDialect) WrapError(err error) (qbErr qb.Error) {
+	qbErr.Orig = err
+	pgErr, ok := err.(pq.Error)
+	if !ok {
+		return
+	}
+	switch pgErr.Code.Class() {
+	case "0A": // Class 0A - Feature Not Supported
+		qbErr.Code = qb.ErrNotSupported
+	case "20", // Class 20 - Case Not Found
+		"21": //  Class 21 - Cardinality Violation
+		qbErr.Code = qb.ErrProgramming
+	case "22": // Class 22 - Data Exception
+		qbErr.Code = qb.ErrData
+	case "23": // Class 23 - Integrity Constraint Violation
+		qbErr.Code = qb.ErrIntegrity
+	case "24", // Class 24 - Invalid Cursor State
+		"25": //  Class 25 - Invalid Transaction State
+		qbErr.Code = qb.ErrInternal
+	case "26", // Class 26 - Invalid SQL Statement Name
+		"27", //  Class 27 - Triggered Data Change Violation
+		"28": //  Class 28 - Invalid Authorization Specification
+		qbErr.Code = qb.ErrOperational
+	case "2B", // Class 2B - Dependent Privilege Descriptors Still Exist
+		"2D", //  Class 2D - Invalid Transaction Termination
+		"2F": //  Class 2F - SQL Routine Exception
+		qbErr.Code = qb.ErrInternal
+	case "34": // Class 34 - Invalid Cursor Name
+		qbErr.Code = qb.ErrOperational
+	case "38", // Class 38 - External Routine Exception
+		"39", //  Class 39 - External Routine Invocation Exception
+		"3B": //  Class 3B - Savepoint Exception
+		qbErr.Code = qb.ErrInternal
+	case "3D", // Class 3D - Invalid Catalog Name
+		"3F": //  Class 3F - Invalid Schema Name
+		qbErr.Code = qb.ErrProgramming
+	case "40": // Class 40 - Transaction Rollback
+		qbErr.Code = qb.ErrOperational
+	case "42", // Class 42 - Syntax Error or Access Rule Violation
+		"44": //  Class 44 - WITH CHECK OPTION Violation
+		qbErr.Code = qb.ErrProgramming
+	case "53", // Class 53 - Insufficient Resources
+		"54", //  Class 54 - Program Limit Exceeded
+		"55", //  Class 55 - Object Not In Prerequisite State
+		"57", //  Class 57 - Operator Intervention
+		"58": //  Class 58 - System Error (errors external to PostgreSQL itself)
+		qbErr.Code = qb.ErrOperational
+
+	case "F0": // Class F0 - Configuration File Error
+		qbErr.Code = qb.ErrInternal
+	case "HV": // Class HV - Foreign Data Wrapper Error (SQL/MED)
+		qbErr.Code = qb.ErrOperational
+	case "P0", // Class P0 - PL/pgSQL Error
+		"XX": //  Class XX - Internal Error
+		qbErr.Code = qb.ErrInternal
+	default:
+		qbErr.Code = qb.ErrDatabase
+	}
+	return
 }
 
 // PostgresCompiler is a SQLCompiler specialised for PostgreSQL

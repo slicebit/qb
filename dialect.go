@@ -6,7 +6,7 @@ func NewDialect(driver string) Dialect {
 	if ok {
 		return factory()
 	}
-	return &DefaultDialect{false}
+	panic("No such dialect: " + driver)
 }
 
 // A DialectFactory is a Dialect Factory
@@ -32,6 +32,7 @@ type Dialect interface {
 	AutoIncrement(column *ColumnElem) string
 	SupportsUnsigned() bool
 	Driver() string
+	WrapError(err error) Error
 }
 
 // EscapeAll common escape all

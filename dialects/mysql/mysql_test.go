@@ -1,8 +1,9 @@
-package qb
+package mysql
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
+	"errors"
+	"github.com/go-sql-driver/mysql"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -56,6 +57,29 @@ func (suite *MysqlTestSuite) TestDialect() {
 	assert.Equal(suite.T(), "`test`", dialect.Escape("test"))
 	assert.Equal(suite.T(), []string{"`test`"}, dialect.EscapeAll([]string{"test"}))
 	assert.Equal(suite.T(), "mysql", dialect.Driver())
+}
+
+func (suite *MysqlTestSuite) TestWrapError() {
+	dialect := qb.NewDialect("mysql")
+	err := errors.New("xxx")
+	qbErr := dialect.WrapError(err)
+	assert.Equal(suite.T(), err, qbErr.Orig)
+
+	for _, tt := range []struct {
+		mErr   uint16
+		qbCode qb.ErrorCode
+	}{
+		{ER_SYNTAX_ERROR, qb.ErrProgramming},
+		{ER_DATA_TOO_LONG, qb.ErrData},
+		{ER_CANNOT_ADD_FOREIGN, qb.ErrIntegrity},
+		{ER_FEATURE_DISABLED, qb.ErrNotSupported},
+		{ER_CHECKREAD, qb.ErrOperational},
+		{999, qb.ErrInternal},
+	} {
+		mErr := mysql.MySQLError{Number: tt.mErr}
+		qbErr := dialect.WrapError(&mErr)
+		assert.Equal(suite.T(), tt.qbCode, qbErr.Code)
+	}
 }
 
 func (suite *MysqlTestSuite) TestMysql() {
