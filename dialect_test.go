@@ -27,3 +27,9 @@ func TestDefaultDialect(t *testing.T) {
 	qbErr := dialect.WrapError(err)
 	assert.Equal(t, err, qbErr.Orig)
 }
+
+func TestGetDialect(t *testing.T) {
+	assert.Panics(t, func() {
+		NewDialect("unknown")
+	})
+}
