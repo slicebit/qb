@@ -96,7 +96,7 @@ func (suite *PostgresTestSuite) TestWrapError() {
 		{"ZZ000", qb.ErrDatabase},
 	} {
 		pgErr := pq.Error{Code: pq.ErrorCode(tt.pgCode)}
-		qbErr := dialect.WrapError(pgErr)
+		qbErr := dialect.WrapError(&pgErr)
 		assert.Equal(suite.T(), tt.qbCode, qbErr.Code)
 	}
 }
