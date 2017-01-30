@@ -86,7 +86,7 @@ func (d *PostgresDialect) GetCompiler() qb.Compiler {
 // WrapError wraps a native error in a qb Error
 func (d *PostgresDialect) WrapError(err error) (qbErr qb.Error) {
 	qbErr.Orig = err
-	pgErr, ok := err.(pq.Error)
+	pgErr, ok := err.(*pq.Error)
 	if !ok {
 		return
 	}
