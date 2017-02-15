@@ -299,8 +299,15 @@ func (c SQLCompiler) VisitSelect(context *CompilerContext, selectStmt SelectStmt
 		addLine(sql)
 	}
 
-	if (selectStmt.OffsetValue != nil) && (selectStmt.LimitValue != nil) {
-		addLine(fmt.Sprintf("LIMIT %d OFFSET %d", *selectStmt.LimitValue, *selectStmt.OffsetValue))
+	if (selectStmt.OffsetValue != nil) || (selectStmt.LimitValue != nil) {
+		var tokens []string
+		if selectStmt.LimitValue != nil {
+			tokens = append(tokens, fmt.Sprintf("LIMIT %d", *selectStmt.LimitValue))
+		}
+		if selectStmt.OffsetValue != nil {
+			tokens = append(tokens, fmt.Sprintf("OFFSET %d", *selectStmt.OffsetValue))
+		}
+		addLine(strings.Join(tokens, " "))
 	}
 
 	if selectStmt.ForUpdateClause != nil {

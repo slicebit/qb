@@ -59,28 +59,30 @@ func (suite *SelectTestSuite) TestOrderByLimit() {
 		From(suite.sessions).
 		Where(Eq(suite.sessions.C("user_id"), 5)).
 		OrderBy(suite.sessions.C("id")).Desc().
-		Limit(0, 20)
+		Limit(20)
 
 	sql, binds := asDefSQLBinds(selOrderByDesc)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id DESC\nLIMIT 20 OFFSET 0", sql)
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id DESC\nLIMIT 20", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
 
 	selWithoutOrder := Select(suite.sessions.C("id")).
 		From(suite.sessions).
 		Where(Eq(suite.sessions.C("user_id"), 5)).
-		OrderBy(suite.sessions.C("id"))
+		OrderBy(suite.sessions.C("id")).
+		Offset(12)
 
 	sql, binds = asDefSQLBinds(selWithoutOrder)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC", sql)
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC\nOFFSET 12", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
 
 	selOrderByAsc := Select(suite.sessions.C("id")).
 		From(suite.sessions).
 		Where(Eq(suite.sessions.C("user_id"), 5)).
-		OrderBy(suite.sessions.C("id")).Asc()
+		OrderBy(suite.sessions.C("id")).Asc().
+		LimitOffset(20, 12)
 
 	sql, binds = asDefSQLBinds(selOrderByAsc)
-	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC", sql)
+	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC\nLIMIT 20 OFFSET 12", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
 }
 
