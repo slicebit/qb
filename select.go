@@ -107,10 +107,22 @@ func (s SelectStmt) Having(aggregate AggregateClause, op string, value interface
 	return s
 }
 
-// Limit sets the offset & count values of the select statement
-func (s SelectStmt) Limit(offset int, limit int) SelectStmt {
-	s.OffsetValue = &offset
+// Limit sets the limit number of rows
+func (s SelectStmt) Limit(limit int) SelectStmt {
 	s.LimitValue = &limit
+	return s
+}
+
+// Offset sets the offset
+func (s SelectStmt) Offset(value int) SelectStmt {
+	s.OffsetValue = &value
+	return s
+}
+
+// LimitOffset sets the limit & offset values of the select statement
+func (s SelectStmt) LimitOffset(limit, offset int) SelectStmt {
+	s.LimitValue = &limit
+	s.OffsetValue = &offset
 	return s
 }
 
