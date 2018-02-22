@@ -1,4 +1,4 @@
-package qb
+package postgres
 
 import (
 	"fmt"
@@ -8,23 +8,23 @@ import (
 	"github.com/slicebit/qb"
 )
 
-// PostgresDialect is a type of dialect that can be used with postgres driver
-type PostgresDialect struct {
+// Dialect is a type of dialect that can be used with postgres driver
+type Dialect struct {
 	bindingIndex int
 	escaping     bool
 }
 
-// NewPostgresDialect returns a new PostgresDialect
-func NewPostgresDialect() qb.Dialect {
-	return &PostgresDialect{escaping: false, bindingIndex: 0}
+// NewDialect returns a new PostgresDialect
+func NewDialect() qb.Dialect {
+	return &Dialect{escaping: false, bindingIndex: 0}
 }
 
 func init() {
-	qb.RegisterDialect("postgres", NewPostgresDialect)
+	qb.RegisterDialect("postgres", NewDialect)
 }
 
 // CompileType compiles a type into its DDL
-func (d *PostgresDialect) CompileType(t qb.TypeElem) string {
+func (d *Dialect) CompileType(t qb.TypeElem) string {
 	if t.Name == "BLOB" {
 		return "bytea"
 	}
@@ -32,7 +32,7 @@ func (d *PostgresDialect) CompileType(t qb.TypeElem) string {
 }
 
 // Escape wraps the string with escape characters of the dialect
-func (d *PostgresDialect) Escape(str string) string {
+func (d *Dialect) Escape(str string) string {
 	if d.escaping {
 		return fmt.Sprintf("\"%s\"", str)
 	}
@@ -40,22 +40,22 @@ func (d *PostgresDialect) Escape(str string) string {
 }
 
 // EscapeAll wraps all elements of string array
-func (d *PostgresDialect) EscapeAll(strings []string) []string {
+func (d *Dialect) EscapeAll(strings []string) []string {
 	return qb.EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect
-func (d *PostgresDialect) SetEscaping(escaping bool) {
+func (d *Dialect) SetEscaping(escaping bool) {
 	d.escaping = escaping
 }
 
 // Escaping gets the escaping parameter of dialect
-func (d *PostgresDialect) Escaping() bool {
+func (d *Dialect) Escaping() bool {
 	return d.escaping
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *PostgresDialect) AutoIncrement(column *qb.ColumnElem) string {
+func (d *Dialect) AutoIncrement(column *qb.ColumnElem) string {
 	var colSpec string
 	if column.Type.Name == "BIGINT" {
 		colSpec = "BIGSERIAL"
@@ -71,20 +71,20 @@ func (d *PostgresDialect) AutoIncrement(column *qb.ColumnElem) string {
 }
 
 // SupportsUnsigned returns whether driver supports unsigned type mappings or not
-func (d *PostgresDialect) SupportsUnsigned() bool { return false }
+func (d *Dialect) SupportsUnsigned() bool { return false }
 
 // Driver returns the current driver of dialect
-func (d *PostgresDialect) Driver() string {
+func (d *Dialect) Driver() string {
 	return "postgres"
 }
 
 // GetCompiler returns a PostgresCompiler
-func (d *PostgresDialect) GetCompiler() qb.Compiler {
+func (d *Dialect) GetCompiler() qb.Compiler {
 	return PostgresCompiler{qb.NewSQLCompiler(d)}
 }
 
 // WrapError wraps a native error in a qb Error
-func (d *PostgresDialect) WrapError(err error) (qbErr qb.Error) {
+func (d *Dialect) WrapError(err error) (qbErr qb.Error) {
 	qbErr.Orig = err
 	pgErr, ok := err.(*pq.Error)
 	if !ok {

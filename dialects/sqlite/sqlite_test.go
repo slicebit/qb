@@ -1,14 +1,15 @@
-package qb
+package sqlite3
 
 import (
 	"database/sql"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/mattn/go-sqlite3"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 func asSQLBinds(clause qb.Clause, dialect qb.Dialect) (string, []interface{}) {

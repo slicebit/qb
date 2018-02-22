@@ -1,15 +1,16 @@
-package qb
+package postgres
 
 import (
 	"database/sql"
 	"errors"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/lib/pq"
 	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"os"
-	"testing"
-	"time"
 )
 
 var postgresDsn = "user=postgres dbname=qb_test sslmode=disable"

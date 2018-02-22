@@ -1,4 +1,4 @@
-package qb
+package sqlite3
 
 import (
 	"fmt"
@@ -8,23 +8,23 @@ import (
 	"github.com/slicebit/qb"
 )
 
-// SqliteDialect is a type of dialect that can be used with sqlite driver
-type SqliteDialect struct {
+// Dialect is a type of dialect that can be used with sqlite driver
+type Dialect struct {
 	escaping bool
 }
 
-// NewSqliteDialect instanciate a SqliteDialect
-func NewSqliteDialect() qb.Dialect {
-	return &SqliteDialect{false}
+// NewDialect creates a new sqlite3 dialect
+func NewDialect() qb.Dialect {
+	return &Dialect{false}
 }
 
 func init() {
-	qb.RegisterDialect("sqlite3", NewSqliteDialect)
-	qb.RegisterDialect("sqlite", NewSqliteDialect)
+	qb.RegisterDialect("sqlite3", NewDialect)
+	qb.RegisterDialect("sqlite", NewDialect)
 }
 
 // CompileType compiles a type into its DDL
-func (d *SqliteDialect) CompileType(t qb.TypeElem) string {
+func (d *Dialect) CompileType(t qb.TypeElem) string {
 	if t.Name == "UUID" {
 		return "VARCHAR(36)"
 	}
@@ -32,7 +32,7 @@ func (d *SqliteDialect) CompileType(t qb.TypeElem) string {
 }
 
 // Escape wraps the string with escape characters of the dialect
-func (d *SqliteDialect) Escape(str string) string {
+func (d *Dialect) Escape(str string) string {
 	if d.escaping {
 		return fmt.Sprintf(`"%s"`, str)
 	}
@@ -40,22 +40,22 @@ func (d *SqliteDialect) Escape(str string) string {
 }
 
 // EscapeAll wraps all elements of string array
-func (d *SqliteDialect) EscapeAll(strings []string) []string {
+func (d *Dialect) EscapeAll(strings []string) []string {
 	return qb.EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect
-func (d *SqliteDialect) SetEscaping(escaping bool) {
+func (d *Dialect) SetEscaping(escaping bool) {
 	d.escaping = escaping
 }
 
 // Escaping gets the escaping parameter of dialect
-func (d *SqliteDialect) Escaping() bool {
+func (d *Dialect) Escaping() bool {
 	return d.escaping
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *SqliteDialect) AutoIncrement(column *qb.ColumnElem) string {
+func (d *Dialect) AutoIncrement(column *qb.ColumnElem) string {
 	if !column.Options.InlinePrimaryKey {
 		panic("Sqlite does not support non-primarykey autoincrement columns")
 	}
@@ -63,20 +63,20 @@ func (d *SqliteDialect) AutoIncrement(column *qb.ColumnElem) string {
 }
 
 // SupportsUnsigned returns whether driver supports unsigned type mappings or not
-func (d *SqliteDialect) SupportsUnsigned() bool { return false }
+func (d *Dialect) SupportsUnsigned() bool { return false }
 
 // Driver returns the current driver of dialect
-func (d *SqliteDialect) Driver() string {
+func (d *Dialect) Driver() string {
 	return "sqlite3"
 }
 
 // GetCompiler returns a SqliteCompiler
-func (d *SqliteDialect) GetCompiler() qb.Compiler {
+func (d *Dialect) GetCompiler() qb.Compiler {
 	return SqliteCompiler{qb.NewSQLCompiler(d)}
 }
 
 // WrapError wraps a native error in a qb Error
-func (d *SqliteDialect) WrapError(err error) qb.Error {
+func (d *Dialect) WrapError(err error) qb.Error {
 	qbErr := qb.Error{Orig: err}
 	sErr, ok := err.(sqlite3.Error)
 	if !ok {

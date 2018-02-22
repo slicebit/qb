@@ -13,22 +13,22 @@ import (
 
 const ()
 
-// MysqlDialect is a type of dialect that can be used with mysql driver
-type MysqlDialect struct {
+// Dialect is a type of dialect that can be used with mysql driver
+type Dialect struct {
 	escaping bool
 }
 
-// NewMysqlDialect returns a new MysqlDialect
-func NewMysqlDialect() qb.Dialect {
-	return &MysqlDialect{false}
+// NewDialect returns a new MysqlDialect
+func NewDialect() qb.Dialect {
+	return &Dialect{false}
 }
 
 func init() {
-	qb.RegisterDialect("mysql", NewMysqlDialect)
+	qb.RegisterDialect("mysql", NewDialect)
 }
 
 // CompileType compiles a type into its DDL
-func (d *MysqlDialect) CompileType(t qb.TypeElem) string {
+func (d *Dialect) CompileType(t qb.TypeElem) string {
 	if t.Name == "UUID" {
 		return "VARCHAR(36)"
 	}
@@ -36,7 +36,7 @@ func (d *MysqlDialect) CompileType(t qb.TypeElem) string {
 }
 
 // Escape wraps the string with escape characters of the dialect
-func (d *MysqlDialect) Escape(str string) string {
+func (d *Dialect) Escape(str string) string {
 	if d.escaping {
 		return fmt.Sprintf("`%s`", str)
 	}
@@ -44,22 +44,22 @@ func (d *MysqlDialect) Escape(str string) string {
 }
 
 // EscapeAll wraps all elements of string array
-func (d *MysqlDialect) EscapeAll(strings []string) []string {
+func (d *Dialect) EscapeAll(strings []string) []string {
 	return qb.EscapeAll(d, strings[0:])
 }
 
 // SetEscaping sets the escaping parameter of dialect
-func (d *MysqlDialect) SetEscaping(escaping bool) {
+func (d *Dialect) SetEscaping(escaping bool) {
 	d.escaping = escaping
 }
 
 // Escaping gets the escaping parameter of dialect
-func (d *MysqlDialect) Escaping() bool {
+func (d *Dialect) Escaping() bool {
 	return d.escaping
 }
 
 // AutoIncrement generates auto increment sql of current dialect
-func (d *MysqlDialect) AutoIncrement(column *qb.ColumnElem) string {
+func (d *Dialect) AutoIncrement(column *qb.ColumnElem) string {
 	colSpec := d.CompileType(column.Type)
 	if column.Options.InlinePrimaryKey {
 		colSpec += " PRIMARY KEY"
@@ -69,20 +69,20 @@ func (d *MysqlDialect) AutoIncrement(column *qb.ColumnElem) string {
 }
 
 // SupportsUnsigned returns whether driver supports unsigned type mappings or not
-func (d *MysqlDialect) SupportsUnsigned() bool { return true }
+func (d *Dialect) SupportsUnsigned() bool { return true }
 
 // Driver returns the current driver of dialect
-func (d *MysqlDialect) Driver() string {
+func (d *Dialect) Driver() string {
 	return "mysql"
 }
 
 // GetCompiler returns a MysqlCompiler
-func (d *MysqlDialect) GetCompiler() qb.Compiler {
+func (d *Dialect) GetCompiler() qb.Compiler {
 	return MysqlCompiler{qb.NewSQLCompiler(d)}
 }
 
 // WrapError wraps a native error in a qb Error
-func (d *MysqlDialect) WrapError(err error) qb.Error {
+func (d *Dialect) WrapError(err error) qb.Error {
 	qbErr := qb.Error{Orig: err}
 	mErr, ok := err.(*mysql.MySQLError)
 	if !ok {
