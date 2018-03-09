@@ -1,11 +1,11 @@
-package sqlite3
+package sqlite
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/aacanakin/qb"
 	"github.com/mattn/go-sqlite3"
-	"github.com/slicebit/qb"
 )
 
 // Dialect is a type of dialect that can be used with sqlite driver
@@ -19,8 +19,8 @@ func NewDialect() qb.Dialect {
 }
 
 func init() {
-	qb.RegisterDialect("sqlite3", NewDialect)
-	qb.RegisterDialect("sqlite", NewDialect)
+	qb.RegisterDialect("sqlite3", NewDialect())
+	qb.RegisterDialect("sqlite", NewDialect())
 }
 
 // CompileType compiles a type into its DDL

@@ -4,11 +4,17 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/aacanakin/qb"
+	"github.com/aacanakin/qb/dialects/sqlite"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMetadataCreateAllDropAllError(t *testing.T) {
+
+	qb.RegisterDialect("sqlite3", sqlite.NewDialect())
+
 	tmpFile, err := ioutil.TempFile("", "qbtestdb")
 	if err != nil {
 		t.Fatalf("Cannot create a temporary file. Got '%s'", err)

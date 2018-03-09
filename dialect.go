@@ -2,22 +2,19 @@ package qb
 
 // NewDialect returns a dialect pointer given driver
 func NewDialect(driver string) Dialect {
-	factory, ok := DialectRegistry[driver]
+	dialect, ok := DialectRegistry[driver]
 	if ok {
-		return factory()
+		return dialect
 	}
 	panic("No such dialect: " + driver)
 }
 
-// A DialectFactory is a Dialect Factory
-type DialectFactory func() Dialect
-
 // DialectRegistry is a global registry of dialects
-var DialectRegistry = make(map[string]DialectFactory)
+var DialectRegistry = make(map[string]Dialect)
 
 // RegisterDialect add a new dialect to the registry
-func RegisterDialect(name string, factory DialectFactory) {
-	DialectRegistry[name] = factory
+func RegisterDialect(name string, dialect Dialect) {
+	DialectRegistry[name] = dialect
 }
 
 // Dialect is the common interface for driver changes

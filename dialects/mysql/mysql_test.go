@@ -3,13 +3,14 @@ package mysql
 import (
 	"database/sql"
 	"errors"
-	"github.com/go-sql-driver/mysql"
-	"github.com/slicebit/qb"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/aacanakin/qb"
+	"github.com/go-sql-driver/mysql"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 var mysqlDsn = "root:@tcp(localhost:3306)/qb_test?charset=utf8"

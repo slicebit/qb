@@ -69,6 +69,6 @@ func (d *DefaultDialect) WrapError(err error) Error {
 }
 
 func init() {
-	RegisterDialect("default", NewDefaultDialect)
-	RegisterDialect("", NewDefaultDialect)
+	RegisterDialect("default", NewDefaultDialect())
+	RegisterDialect("", NewDefaultDialect())
 }

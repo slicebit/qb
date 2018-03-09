@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aacanakin/qb"
 	"github.com/go-sql-driver/mysql"
-	"github.com/slicebit/qb"
 )
 
 //go:generate go run ./tools/generrors.go
@@ -24,7 +24,7 @@ func NewDialect() qb.Dialect {
 }
 
 func init() {
-	qb.RegisterDialect("mysql", NewDialect)
+	qb.RegisterDialect("mysql", NewDialect())
 }
 
 // CompileType compiles a type into its DDL
