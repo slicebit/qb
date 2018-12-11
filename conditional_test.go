@@ -1,69 +1,114 @@
 package qb
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestConditionals(t *testing.T) {
-	country := Column("country", Varchar()).NotNull()
+type ConditionalTestSuite struct {
+	suite.Suite
+	dialect Dialect
+	ctx     *CompilerContext
+	country ColumnElem
+	score   ColumnElem
+}
 
-	var sql string
-	var bindings interface{}
+func (suite *ConditionalTestSuite) SetupTest() {
+	suite.dialect = NewDefaultDialect()
+	suite.ctx = NewCompilerContext(suite.dialect)
+	suite.country = Column("country", Varchar()).NotNull()
+	suite.score = Column("score", BigInt()).NotNull()
+}
 
-	like := Like(country, "%land%")
+func (suite *ConditionalTestSuite) TestConditionalLike() {
+	like := Like(suite.country, "%land%")
+	sql := like.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
 
-	sql, bindings = asDefSQLBinds(like)
-	assert.Equal(t, "country LIKE ?", sql)
-	assert.Equal(t, []interface{}{"%land%"}, bindings)
+	assert.Equal(suite.T(), "country LIKE ?", sql)
+	assert.Equal(suite.T(), []interface{}{"%land%"}, bindings)
+}
 
-	notIn := NotIn(country, "USA", "England", "Sweden")
+func (suite *ConditionalTestSuite) TestConditionalNotIn() {
+	notIn := NotIn(suite.country, "USA", "England", "Sweden")
+	sql := notIn.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
 
-	sql, bindings = asDefSQLBinds(notIn)
-	assert.Equal(t, "country NOT IN (?, ?, ?)", sql)
-	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
+	assert.Equal(suite.T(), "country NOT IN (?, ?, ?)", sql)
+	assert.Equal(suite.T(), []interface{}{"USA", "England", "Sweden"}, bindings)
+}
 
-	in := In(country, "USA", "England", "Sweden")
+func (suite *ConditionalTestSuite) TestConditionalIn() {
+	in := In(suite.country, "USA", "England", "Sweden")
+	sql := in.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
+	assert.Equal(suite.T(), "country IN (?, ?, ?)", sql)
+	assert.Equal(suite.T(), []interface{}{"USA", "England", "Sweden"}, bindings)
+}
 
-	sql, bindings = asDefSQLBinds(in)
-	assert.Equal(t, "country IN (?, ?, ?)", sql)
-	assert.Equal(t, []interface{}{"USA", "England", "Sweden"}, bindings)
+func (suite *ConditionalTestSuite) TestConditionalNotEq() {
+	notEq := NotEq(suite.country, "USA")
 
-	notEq := NotEq(country, "USA")
+	sql := notEq.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
 
-	sql, bindings = asDefSQLBinds(notEq)
-	assert.Equal(t, "country != ?", sql)
-	assert.Equal(t, []interface{}{"USA"}, bindings)
+	assert.Equal(suite.T(), "country != ?", sql)
+	assert.Equal(suite.T(), []interface{}{"USA"}, bindings)
+}
 
-	eq := Eq(country, "Turkey")
+func (suite *ConditionalTestSuite) TestConditionalEq() {
+	eq := Eq(suite.country, "Turkey")
 
-	sql, bindings = asDefSQLBinds(eq)
-	assert.Equal(t, "country = ?", sql)
-	assert.Equal(t, []interface{}{"Turkey"}, bindings)
+	sql := eq.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
 
-	score := Column("score", BigInt()).NotNull()
+	assert.Equal(suite.T(), "country = ?", sql)
+	assert.Equal(suite.T(), []interface{}{"Turkey"}, bindings)
+}
 
-	gt := Gt(score, 1500)
+func (suite *ConditionalTestSuite) TestConditionalGt() {
+	gt := Gt(suite.score, 1500)
 
-	sql, bindings = asDefSQLBinds(gt)
-	assert.Equal(t, "score > ?", sql)
-	assert.Equal(t, []interface{}{1500}, bindings)
+	sql := gt.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
 
-	lt := Lt(score, 1500)
+	assert.Equal(suite.T(), "score > ?", sql)
+	assert.Equal(suite.T(), []interface{}{1500}, bindings)
+}
 
-	sql, bindings = asDefSQLBinds(lt)
-	assert.Equal(t, "score < ?", sql)
-	assert.Equal(t, []interface{}{1500}, bindings)
+func (suite *ConditionalTestSuite) TestConditionalLt() {
+	lt := Lt(suite.score, 1500)
 
-	gte := Gte(score, 1500)
+	sql := lt.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
 
-	sql, bindings = asDefSQLBinds(gte)
-	assert.Equal(t, "score >= ?", sql)
-	assert.Equal(t, []interface{}{1500}, bindings)
+	assert.Equal(suite.T(), "score < ?", sql)
+	assert.Equal(suite.T(), []interface{}{1500}, bindings)
+}
 
-	lte := Lte(score, 1500)
+func (suite *ConditionalTestSuite) TestConditionalGte() {
+	gte := Gte(suite.score, 1500)
 
-	sql, bindings = asDefSQLBinds(lte)
-	assert.Equal(t, "score <= ?", sql)
-	assert.Equal(t, []interface{}{1500}, bindings)
+	sql := gte.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
+
+	assert.Equal(suite.T(), "score >= ?", sql)
+	assert.Equal(suite.T(), []interface{}{1500}, bindings)
+}
+
+func (suite *ConditionalTestSuite) TestConditionalLte() {
+	lte := Lte(suite.score, 1500)
+
+	sql := lte.Accept(suite.ctx)
+	bindings := suite.ctx.Binds
+
+	assert.Equal(suite.T(), "score <= ?", sql)
+	assert.Equal(suite.T(), []interface{}{1500}, bindings)
+}
+
+func TestConditionalTestSuite(t *testing.T) {
+	suite.Run(t, new(ConditionalTestSuite))
 }

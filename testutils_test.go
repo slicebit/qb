@@ -5,23 +5,23 @@ import (
 	"testing"
 )
 
-func asDefSQL(clause Clause) string {
-	return asSQL(clause, NewDialect("default"))
-}
+// func asDefSQL(clause Clause) string {
+// 	return asSQL(clause, NewDialect("default"))
+// }
 
-func asDefSQLBinds(clause Clause) (string, []interface{}) {
-	return asSQLBinds(clause, NewDialect("default"))
-}
+// func asDefSQLBinds(clause Clause) (string, []interface{}) {
+// 	return asSQLBinds(clause, NewDialect("default"))
+// }
 
-func asSQL(clause Clause, dialect Dialect) string {
-	sql, _ := asSQLBinds(clause, dialect)
-	return sql
-}
+// func asSQL(clause Clause, dialect Dialect) string {
+// 	sql, _ := asSQLBinds(clause, dialect)
+// 	return sql
+// }
 
-func asSQLBinds(clause Clause, dialect Dialect) (string, []interface{}) {
-	ctx := NewCompilerContext(dialect)
-	return clause.Accept(ctx), ctx.Binds
-}
+// func asSQLBinds(clause Clause, dialect Dialect) (string, []interface{}) {
+// 	ctx := NewCompilerContext(dialect)
+// 	return clause.Accept(ctx), ctx.Binds
+// }
 
 type TestingLogWriter struct {
 	t     *testing.T

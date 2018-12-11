@@ -29,7 +29,6 @@ type MysqlTestSuite struct {
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
 	suite.engine, err = qb.New("mysql", mysqlDsn)
-	suite.engine.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
 	err = suite.engine.Ping()

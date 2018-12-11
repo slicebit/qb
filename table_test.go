@@ -1,28 +1,42 @@
 package qb
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type TableTestSuite struct {
 	suite.Suite
+	dialect Dialect
 }
 
-func (suite *TableTestSuite) TestTableSimpleCreateDrop() {
-	dialect := NewDialect("default")
+func (suite *TableTestSuite) SetupTest() {
+	suite.dialect = NewDefaultDialect()
+}
+
+func (suite *TableTestSuite) TestTableSimpleCreate() {
 	usersTable := Table("users", Column("id", Varchar().Size(40)))
 	assert.Equal(suite.T(), 1, len(usersTable.All()))
 
-	ddl := usersTable.Create(dialect)
-	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);", ddl)
+	ddl := usersTable.Create(suite.dialect)
+	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
+	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
+	assert.Contains(suite.T(), ddl, ");")
 
-	statement := usersTable.Build(dialect)
-	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);", statement.SQL())
+	statement := usersTable.Build(suite.dialect)
+	sql := statement.SQL()
+	assert.Contains(suite.T(), sql, "CREATE TABLE users (")
+	assert.Contains(suite.T(), sql, "id VARCHAR(40)")
+	assert.Contains(suite.T(), sql, ");")
 	assert.Equal(suite.T(), []interface{}{}, statement.Bindings())
+}
 
-	assert.Equal(suite.T(), "DROP TABLE users;", usersTable.Drop(dialect))
+func (suite *TableTestSuite) TestTableSimpleDrop() {
+	usersTable := Table("users", Column("id", Varchar().Size(40)))
+
+	assert.Equal(suite.T(), "DROP TABLE users;", usersTable.Drop(suite.dialect))
 }
 
 func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
@@ -38,7 +52,7 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 		ForeignKey("role_id").References("roles", "id"),
 	)
 
-	ddl := usersTable.Create(NewDialect("default"))
+	ddl := usersTable.Create(suite.dialect)
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "auth_token VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "role_id VARCHAR(40)")
@@ -49,26 +63,29 @@ func (suite *TableTestSuite) TestTablePrimaryForeignKey() {
 	assert.Contains(suite.T(), ddl, ");")
 }
 
-func (suite *TableTestSuite) TestTablePrimaryKey() {
-	t := Table(
+func (suite *TableTestSuite) TestTableSimplePrimaryKey() {
+	users := Table(
 		"users",
 		Column("id", Varchar().Size(40)).PrimaryKey(),
 	)
-	assert.Equal(suite.T(), []string{"id"}, t.PrimaryKeyConstraint.Columns)
+	assert.Equal(suite.T(), []string{"id"}, users.PrimaryKeyConstraint.Columns)
+}
 
-	t = Table(
+func (suite *TableTestSuite) TestTableCompositePrimaryKey() {
+
+	users := Table(
 		"users",
 		Column("fname", Varchar().Size(40)).PrimaryKey(),
 		Column("lname", Varchar().Size(40)).PrimaryKey(),
 	)
 
-	assert.Equal(suite.T(), []string{"fname", "lname"}, t.PrimaryKeyConstraint.Columns)
-	cols := t.PrimaryCols()
+	assert.Equal(suite.T(), []string{"fname", "lname"}, users.PrimaryKeyConstraint.Columns)
+	cols := users.PrimaryCols()
 	assert.Equal(suite.T(), 2, len(cols))
 	assert.Equal(suite.T(), "fname", cols[0].Name)
 	assert.Equal(suite.T(), "lname", cols[1].Name)
 
-	ddl := t.Create(NewDialect("default"))
+	ddl := users.Create(suite.dialect)
 	assert.Contains(suite.T(), ddl, "PRIMARY KEY(fname, lname)")
 
 	assert.Panics(suite.T(), func() {
@@ -89,7 +106,7 @@ func (suite *TableTestSuite) TestTableUniqueCompositeUnique() {
 		UniqueKey("email", "device_id"),
 	)
 
-	ddl := usersTable.Create(NewDialect("default"))
+	ddl := usersTable.Create(suite.dialect)
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "email VARCHAR(40) UNIQUE")
@@ -107,7 +124,7 @@ func (suite *TableTestSuite) TestTableIndex() {
 		Index("users", "email"),
 		Index("users", "id", "email"),
 	)
-	ddl := usersTable.Create(NewDialect("default"))
+	ddl := usersTable.Create(suite.dialect)
 	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
 	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
 	assert.Contains(suite.T(), ddl, "email VARCHAR(40) UNIQUE")
@@ -122,8 +139,11 @@ func (suite *TableTestSuite) TestTableIndex() {
 
 func (suite *TableTestSuite) TestTableIndexChain() {
 	usersTable := Table("users", Column("id", Varchar().Size(40))).Index("id")
-	ddl := usersTable.Create(NewDialect("default"))
-	assert.Equal(suite.T(), "CREATE TABLE users (\n\tid VARCHAR(40)\n);\nCREATE INDEX i_id ON users(id);", ddl)
+	ddl := usersTable.Create(suite.dialect)
+	assert.Contains(suite.T(), ddl, "CREATE TABLE users (")
+	assert.Contains(suite.T(), ddl, "id VARCHAR(40)")
+	assert.Contains(suite.T(), ddl, ");")
+	assert.Contains(suite.T(), ddl, "CREATE INDEX i_id ON users(id);")
 }
 
 func (suite *TableTestSuite) TestTableStarters() {
@@ -134,15 +154,13 @@ func (suite *TableTestSuite) TestTableStarters() {
 		PrimaryKey("id"),
 	)
 
-	dialect := NewDialect("default")
-
 	ins := users.
 		Insert().
 		Values(map[string]interface{}{
 			"id":    "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
 			"email": "al@pacino.com",
 		}).
-		Build(dialect)
+		Build(suite.dialect)
 
 	assert.Contains(suite.T(), ins.SQL(), "INSERT INTO users")
 	assert.Contains(suite.T(), ins.SQL(), "id")
@@ -160,25 +178,39 @@ func (suite *TableTestSuite) TestTableStarters() {
 			"email": "al@pacino.com",
 		}).
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
-		Build(dialect)
+		Build(suite.dialect)
 
-	assert.Equal(suite.T(), "UPDATE users\nSET email = ?\nWHERE id = ?;", upd.SQL())
-	assert.Equal(suite.T(), []interface{}{"al@pacino.com", "5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, upd.Bindings())
+	updSQL := upd.SQL()
+	assert.Contains(suite.T(), updSQL, "UPDATE users")
+	assert.Contains(suite.T(), updSQL, "SET email = ?")
+	assert.Contains(suite.T(), updSQL, "WHERE id = ?;")
+
+	assert.Equal(suite.T(), []interface{}{
+		"al@pacino.com",
+		"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55",
+	}, upd.Bindings())
 
 	del := users.
 		Delete().
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
-		Build(dialect)
+		Build(suite.dialect)
 
-	assert.Equal(suite.T(), "DELETE FROM users\nWHERE users.id = ?;", del.SQL())
+	delSQL := del.SQL()
+
+	assert.Contains(suite.T(), delSQL, "DELETE FROM users")
+	assert.Contains(suite.T(), delSQL, "WHERE users.id = ?;")
 	assert.Equal(suite.T(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, del.Bindings())
 
 	sel := users.
 		Select(users.C("id"), users.C("email")).
 		Where(users.C("id").Eq("5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55")).
-		Build(dialect)
+		Build(suite.dialect)
 
-	assert.Equal(suite.T(), "SELECT id, email\nFROM users\nWHERE id = ?;", sel.SQL())
+	selSQL := sel.SQL()
+
+	assert.Contains(suite.T(), selSQL, "SELECT id, email")
+	assert.Contains(suite.T(), selSQL, "FROM users")
+	assert.Contains(suite.T(), selSQL, "WHERE id = ?;")
 	assert.Equal(suite.T(), []interface{}{"5a73ef89-cf0a-4c51-ab8c-cc273ebb3a55"}, sel.Bindings())
 }
 

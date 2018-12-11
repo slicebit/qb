@@ -1,8 +1,9 @@
 package qb
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInsert(t *testing.T) {
@@ -17,19 +18,25 @@ func TestInsert(t *testing.T) {
 		"email": "al@pacino.com",
 	})
 
-	sql, binds := asDefSQLBinds(ins)
+	dialect := NewDefaultDialect()
+	ctx := NewCompilerContext(dialect)
+
+	sql := ins.Accept(ctx)
+	binds := ctx.Binds
+
 	assert.Contains(t, sql, "INSERT INTO users")
 	assert.Contains(t, sql, "id", "email")
 	assert.Contains(t, sql, "VALUES(?, ?)")
 	assert.Contains(t, binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(t, binds, "al@pacino.com")
 
-	sql, binds = asDefSQLBinds(Insert(users).
+	sql = Insert(users).
 		Values(map[string]interface{}{
 			"id":    "9883cf81-3b56-4151-ae4e-3903c5bc436d",
 			"email": "al@pacino.com",
 		}).
-		Returning(users.C("id"), users.C("email")))
+		Returning(users.C("id"), users.C("email")).Accept(ctx)
+	binds = ctx.Binds
 
 	assert.Contains(t, sql, "INSERT INTO users")
 	assert.Contains(t, sql, "id", "email")
