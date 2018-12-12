@@ -33,17 +33,6 @@ Features
 
 Installation
 ------------
-Installation with glide;
-```sh
-glide get github.com/slicebit/qb
-```
-
-0.2 installation with glide;
-```sh
-glide get github.com/slicebit/qb#0.2
-```
-
-Installation using go get;
 ```sh
 go get -u github.com/slicebit/qb
 ```
