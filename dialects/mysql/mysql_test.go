@@ -7,18 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aacanakin/qb"
 	"github.com/go-sql-driver/mysql"
+	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 var mysqlDsn = "root:@tcp(localhost:3306)/qb_test?charset=utf8"
-
-func asSQLBinds(clause qb.Clause, dialect qb.Dialect) (string, []interface{}) {
-	ctx := qb.NewCompilerContext(dialect)
-	return clause.Accept(ctx), ctx.Binds
-}
 
 type MysqlTestSuite struct {
 	suite.Suite
@@ -29,7 +24,6 @@ type MysqlTestSuite struct {
 func (suite *MysqlTestSuite) SetupTest() {
 	var err error
 	suite.engine, err = qb.New("mysql", mysqlDsn)
-	suite.engine.Dialect().SetEscaping(true)
 
 	assert.Nil(suite.T(), err)
 	err = suite.engine.Ping()
@@ -226,13 +220,15 @@ func (suite *MysqlTestSuite) TestUpsert() {
 		"created_at": now,
 	})
 
-	sql, binds := asSQLBinds(ups, suite.engine.Dialect())
+	ctx := qb.NewCompilerContext(NewDialect())
+	sql := ups.Accept(ctx)
+	binds := ctx.Binds
 
-	assert.Contains(suite.T(), sql, "INSERT INTO `users`")
-	assert.Contains(suite.T(), sql, "`id`", "`email`", "`created_at`")
+	assert.Contains(suite.T(), sql, "INSERT INTO users")
+	assert.Contains(suite.T(), sql, "id", "email", "created_at")
 	assert.Contains(suite.T(), sql, "VALUES(?, ?, ?)")
 	assert.Contains(suite.T(), sql, "ON DUPLICATE KEY UPDATE")
-	assert.Contains(suite.T(), sql, "`id` = ?", "`email` = ?", "`created_at` = ?")
+	assert.Contains(suite.T(), sql, "id = ?", "email = ?", "created_at = ?")
 	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
 	assert.Contains(suite.T(), binds, "al@pacino.com")
 	assert.Equal(suite.T(), 6, len(binds))

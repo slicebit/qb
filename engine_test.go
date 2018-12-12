@@ -3,9 +3,9 @@ package qb_test
 import (
 	"testing"
 
-	"github.com/aacanakin/qb"
-	_ "github.com/aacanakin/qb/dialects/sqlite"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/slicebit/qb"
+	_ "github.com/slicebit/qb/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 

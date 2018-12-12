@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aacanakin/qb"
 	"github.com/mattn/go-sqlite3"
+	"github.com/slicebit/qb"
 )
 
 // Dialect is a type of dialect that can be used with sqlite driver

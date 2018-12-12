@@ -1,0 +1,22 @@
+version: '3.3'
+
+services:
+  mysql:
+    container_name: qb-test-mysql
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: qb_test
+    ports:
+      - "3306:3306"
+  postgres:
+    container_name: qb-test-postgres
+    image: library/postgres
+    restart: always
+    environment:
+      POSTGRES_DB: qb_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ""
+    ports:
+      - "5432:5432"

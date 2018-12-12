@@ -6,16 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aacanakin/qb"
 	"github.com/mattn/go-sqlite3"
+	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
-
-func asSQLBinds(clause qb.Clause, dialect qb.Dialect) (string, []interface{}) {
-	ctx := qb.NewCompilerContext(dialect)
-	return clause.Accept(ctx), ctx.Binds
-}
 
 type SqliteTestSuite struct {
 	suite.Suite
@@ -27,7 +22,6 @@ func (suite *SqliteTestSuite) SetupTest() {
 	var err error
 
 	suite.engine, err = qb.New("sqlite3", "./qb_test.db")
-	suite.engine.Dialect().SetEscaping(true)
 
 	suite.metadata = qb.MetaData()
 
@@ -216,8 +210,10 @@ func (suite *SqliteTestSuite) TestUpsert() {
 		"created_at": now,
 	})
 
-	sql, binds := asSQLBinds(ups, suite.engine.Dialect())
-	assert.Contains(suite.T(), sql, `REPLACE INTO "users"`)
+	ctx := qb.NewCompilerContext(NewDialect())
+	sql := ups.Accept(ctx)
+	binds := ctx.Binds
+	assert.Contains(suite.T(), sql, `REPLACE INTO users`)
 	assert.Contains(suite.T(), sql, "id", "email", "created_at")
 	assert.Contains(suite.T(), sql, "VALUES(?, ?, ?)")
 	assert.Contains(suite.T(), binds, "9883cf81-3b56-4151-ae4e-3903c5bc436d")
