@@ -13,7 +13,10 @@ go:
     - tip
 
 install:
-    - go get -u -v -t github.com/aacanakin/qb
+    - go get -v github.com/lib/pq
+    - go get -v github.com/go-sql-driver/mysql
+    - go get -v github.com/mattn/go-sqlite3
+    - go get -t -v ./...
 
 script:
     - go test -v -covermode=count -coverprofile=coverage.out
