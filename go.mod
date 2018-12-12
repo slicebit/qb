@@ -1,4 +1,4 @@
-module github.com/aacanakin/qb
+module github.com/slicebit/qb
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
