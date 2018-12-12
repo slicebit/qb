@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aacanakin/qb"
 	"github.com/lib/pq"
+	"github.com/slicebit/qb"
 )
 
 // Dialect is a type of dialect that can be used with postgres driver

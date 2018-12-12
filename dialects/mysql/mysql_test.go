@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aacanakin/qb"
 	"github.com/go-sql-driver/mysql"
+	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

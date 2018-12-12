@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aacanakin/qb"
 	"github.com/mattn/go-sqlite3"
+	"github.com/slicebit/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
