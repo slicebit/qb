@@ -12,6 +12,9 @@ addons:
 go:
     - tip
 
+before_install:
+  - go get github.com/mattn/goveralls
+
 install:
     - go get -v github.com/lib/pq
     - go get -v github.com/go-sql-driver/mysql
@@ -26,7 +29,7 @@ script:
     - tail --lines +2 sqlite.out >> coverage.out
     - tail --lines +2 postgres.out >> coverage.out
     - tail --lines +2 mysql.out >> coverage.out
-    - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken 0yIEy3NVX2lXn3KxYzHjkla7EWGjvmLAp
+    - $GOPATH/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken 0yIEy3NVX2lXn3KxYzHjkla7EWGjvmLAp
 
 before_script:
   - mysql -e 'create database IF NOT EXISTS qb_test;'
