@@ -11,7 +11,7 @@ import (
 type UpdateTestSuite struct {
 	suite.Suite
 	dialect Dialect
-	ctx     *CompilerContext
+	ctx     Context
 	users   TableElem
 }
 
@@ -33,7 +33,7 @@ func (suite *UpdateTestSuite) TestUpdateSimple() {
 			"email": "robert@de.niro",
 		}).Accept(suite.ctx)
 
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Contains(suite.T(), sql, "UPDATE users")
 	assert.Contains(suite.T(), sql, "SET email = ?")
@@ -46,7 +46,7 @@ func (suite *UpdateTestSuite) TestUpdateWhereReturning() {
 		Where(Eq(suite.users.C("email"), "al@pacino")).
 		Returning(suite.users.C("id"), suite.users.C("email")).
 		Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Contains(suite.T(), sql, "UPDATE users")
 	assert.Contains(suite.T(), sql, "SET email = ?")

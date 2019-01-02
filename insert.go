@@ -35,8 +35,8 @@ func (s InsertStmt) Returning(cols ...ColumnElem) InsertStmt {
 }
 
 // Accept implements Clause.Accept
-func (s InsertStmt) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitInsert(context, s)
+func (s InsertStmt) Accept(context Context) string {
+	return context.Compiler().VisitInsert(context, s)
 }
 
 // Build generates a statement out of InsertStmt object
@@ -44,7 +44,7 @@ func (s InsertStmt) Build(dialect Dialect) *Stmt {
 	statement := Statement()
 	context := NewCompilerContext(dialect)
 	statement.AddSQLClause(s.Accept(context))
-	statement.AddBinding(context.Binds...)
+	statement.AddBinding(context.Binds()...)
 
 	return statement
 }

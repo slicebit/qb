@@ -222,7 +222,7 @@ func (suite *MysqlTestSuite) TestUpsert() {
 
 	ctx := qb.NewCompilerContext(NewDialect())
 	sql := ups.Accept(ctx)
-	binds := ctx.Binds
+	binds := ctx.Binds()
 
 	assert.Contains(suite.T(), sql, "INSERT INTO users")
 	assert.Contains(suite.T(), sql, "id", "email", "created_at")

@@ -12,7 +12,7 @@ type SelectTestSuite struct {
 	suite.Suite
 	users    TableElem
 	sessions TableElem
-	ctx      *CompilerContext
+	ctx      Context
 	dialect  Dialect
 }
 
@@ -60,7 +60,7 @@ func (suite *SelectTestSuite) TestSelectWhere() {
 		)
 
 	sql := sel.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT id\nFROM users\nWHERE (email = ? AND id != ?)", sql)
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 5}, binds)
@@ -74,7 +74,7 @@ func (suite *SelectTestSuite) TestSelectOrderByLimit() {
 		Limit(20)
 
 	sql := selOrderByDesc.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id DESC\nLIMIT 20", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
@@ -88,7 +88,7 @@ func (suite *SelectTestSuite) TestSelectWithoutOrder() {
 		Offset(12)
 
 	sql := selWithoutOrder.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC\nOFFSET 12", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
@@ -102,7 +102,7 @@ func (suite *SelectTestSuite) TestSelectOrderByAsc() {
 		LimitOffset(20, 12)
 
 	sql := selOrderByAsc.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT id\nFROM sessions\nWHERE user_id = ?\nORDER BY id ASC\nLIMIT 20 OFFSET 12", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
@@ -115,7 +115,7 @@ func (suite *SelectTestSuite) TestSelectInnerJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	sql := selInnerJoin.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), suite.sessions.C("user_id"), selInnerJoin.FromClause.C("user_id"))
 	assert.Panics(suite.T(), func() { selInnerJoin.FromClause.C("invalid") })
@@ -132,7 +132,7 @@ func (suite *SelectTestSuite) TestSelectLeftJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	sql := selLeftJoin.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT sessions.id, sessions.auth_token\nFROM sessions\nLEFT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
@@ -145,7 +145,7 @@ func (suite *SelectTestSuite) TestSelectRightJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	sql := selRightJoin.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT sessions.id\nFROM sessions\nRIGHT OUTER JOIN users ON sessions.user_id = users.id\nWHERE sessions.user_id = ?", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
@@ -158,7 +158,7 @@ func (suite *SelectTestSuite) TestSelectCrossJoin() {
 		Where(Eq(suite.sessions.C("user_id"), 5))
 
 	sql := selCrossJoin.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT sessions.id\nFROM sessions\nCROSS JOIN users\nWHERE sessions.user_id = ?", sql)
 	assert.Equal(suite.T(), []interface{}{5}, binds)
@@ -171,7 +171,7 @@ func (suite *SelectTestSuite) TestSelectGroupByHaving() {
 		Having(Sum(suite.sessions.C("id")), ">", 4)
 
 	sql := sel.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "SELECT COUNT(id)\nFROM sessions\nGROUP BY user_id\nHAVING SUM(id) > ?", sql)
 	assert.Equal(suite.T(), []interface{}{4}, binds)

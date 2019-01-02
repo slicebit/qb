@@ -122,20 +122,20 @@ type SqliteCompiler struct {
 }
 
 // VisitUpsert generates the following sql: REPLACE INTO ... VALUES ...
-func (SqliteCompiler) VisitUpsert(context *qb.CompilerContext, upsert qb.UpsertStmt) string {
+func (SqliteCompiler) VisitUpsert(context qb.Context, upsert qb.UpsertStmt) string {
 	var (
 		colNames []string
 		values   []string
 	)
 	for k, v := range upsert.ValuesMap {
-		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
-		context.Binds = append(context.Binds, v)
+		colNames = append(colNames, context.Compiler().VisitLabel(context, k))
+		context.AddBinds(v)
 		values = append(values, "?")
 	}
 
 	sql := fmt.Sprintf(
 		"REPLACE INTO %s(%s)\nVALUES(%s)",
-		context.Compiler.VisitLabel(context, upsert.Table.Name),
+		context.Compiler().VisitLabel(context, upsert.Table.Name),
 		strings.Join(colNames, ", "),
 		strings.Join(values, ", "),
 	)

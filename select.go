@@ -133,8 +133,8 @@ func (s SelectStmt) ForUpdate(tables ...TableElem) SelectStmt {
 }
 
 // Accept calls the compiler VisitSelect method
-func (s SelectStmt) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitSelect(context, s)
+func (s SelectStmt) Accept(context Context) string {
+	return context.Compiler().VisitSelect(context, s)
 }
 
 // Build compiles the select statement and returns the Stmt
@@ -142,7 +142,7 @@ func (s SelectStmt) Build(dialect Dialect) *Stmt {
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))
-	statement.AddBinding(context.Binds...)
+	statement.AddBinding(context.Binds()...)
 
 	return statement
 }
@@ -264,8 +264,8 @@ type JoinClause struct {
 }
 
 // Accept calls the compiler VisitJoin method
-func (c JoinClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitJoin(context, c)
+func (c JoinClause) Accept(context Context) string {
+	return context.Compiler().VisitJoin(context, c)
 }
 
 // All returns the columns from both sides of the join
@@ -303,8 +303,8 @@ type OrderByClause struct {
 }
 
 // Accept generates an order by clause
-func (c OrderByClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitOrderBy(context, c)
+func (c OrderByClause) Accept(context Context) string {
+	return context.Compiler().VisitOrderBy(context, c)
 }
 
 // HavingClause is the base struct for generating having clauses when using select
@@ -316,8 +316,8 @@ type HavingClause struct {
 }
 
 // Accept calls the compiler VisitHaving function
-func (c HavingClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitHaving(context, c)
+func (c HavingClause) Accept(context Context) string {
+	return context.Compiler().VisitHaving(context, c)
 }
 
 // ForUpdateClause is a FOR UPDATE expression
@@ -326,8 +326,8 @@ type ForUpdateClause struct {
 }
 
 // Accept calls the compiler VisitForUpdate method
-func (s ForUpdateClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitForUpdate(context, s)
+func (s ForUpdateClause) Accept(context Context) string {
+	return context.Compiler().VisitForUpdate(context, s)
 }
 
 // Alias returns a new AliasClause
@@ -345,8 +345,8 @@ type AliasClause struct {
 }
 
 // Accept calls the compiler VisitAlias function
-func (c AliasClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitAlias(context, c)
+func (c AliasClause) Accept(context Context) string {
+	return context.Compiler().VisitAlias(context, c)
 }
 
 // C returns the aliased selectable column with the given name.

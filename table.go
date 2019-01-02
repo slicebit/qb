@@ -209,6 +209,6 @@ func (t TableElem) Select(clauses ...Clause) SelectStmt {
 }
 
 // Accept implements Clause.Accept
-func (t TableElem) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitTable(context, t)
+func (t TableElem) Accept(context Context) string {
+	return context.Compiler().VisitTable(context, t)
 }

@@ -11,7 +11,7 @@ import (
 type ColumnTestSuite struct {
 	suite.Suite
 	dialect Dialect
-	ctx     *CompilerContext
+	ctx     Context
 }
 
 func (suite *ColumnTestSuite) SetupTest() {
@@ -47,7 +47,7 @@ func (suite *ColumnTestSuite) TestColumnLike() {
 	like := col.Like("s%")
 
 	sql := like.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id LIKE ?", sql)
 	assert.Equal(suite.T(), []interface{}{"s%"}, binds)
@@ -57,7 +57,7 @@ func (suite *ColumnTestSuite) TestColumnNotIn() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	notIn := col.NotIn("id1", "id2")
 	sql := notIn.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 	assert.Equal(suite.T(), "id NOT IN (?, ?)", sql)
 	assert.Equal(suite.T(), []interface{}{"id1", "id2"}, binds)
 }
@@ -66,7 +66,7 @@ func (suite *ColumnTestSuite) TestColumnIn() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	in := col.In("id1", "id2")
 	sql := in.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id IN (?, ?)", sql)
 	assert.Equal(suite.T(), []interface{}{"id1", "id2"}, binds)
@@ -76,7 +76,7 @@ func (suite *ColumnTestSuite) TestColumnNotEq() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	notEq := col.NotEq("id1")
 	sql := notEq.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id != ?", sql)
 	assert.Equal(suite.T(), []interface{}{"id1"}, binds)
@@ -86,7 +86,7 @@ func (suite *ColumnTestSuite) TestColumnEq() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	eq := col.Eq("id1")
 	sql := eq.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id = ?", sql)
 	assert.Equal(suite.T(), []interface{}{"id1"}, binds)
@@ -96,7 +96,7 @@ func (suite *ColumnTestSuite) TestColumnGt() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	gt := col.Gt("id1")
 	sql := gt.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id > ?", sql)
 	assert.Equal(suite.T(), []interface{}{"id1"}, binds)
@@ -106,7 +106,7 @@ func (suite *ColumnTestSuite) TestColumnLt() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	lt := col.Lt("id1")
 	sql := lt.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id < ?", sql)
 	assert.Equal(suite.T(), []interface{}{"id1"}, binds)
@@ -116,7 +116,7 @@ func (suite *ColumnTestSuite) TestcolumnGte() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	gte := col.Gte("id1")
 	sql := gte.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id >= ?", sql)
 	assert.Equal(suite.T(), []interface{}{"id1"}, binds)
@@ -126,7 +126,7 @@ func (suite *ColumnTestSuite) TestColumnLte() {
 	col := Column("id", Int()).PrimaryKey().AutoIncrement().inlinePrimaryKey()
 	lte := col.Lte("id1")
 	sql := lte.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "id <= ?", sql)
 	assert.Equal(suite.T(), []interface{}{"id1"}, binds)

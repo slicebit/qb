@@ -20,7 +20,7 @@ type PostgresTestSuite struct {
 	suite.Suite
 	engine   *qb.Engine
 	metadata *qb.MetaDataElem
-	ctx      *qb.CompilerContext
+	ctx      qb.Context
 }
 
 func (suite *PostgresTestSuite) SetupTest() {
@@ -338,7 +338,7 @@ func (suite *PostgresTestSuite) TestUpsert() {
 	})
 
 	sql := ups.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Contains(suite.T(), sql, "INSERT INTO users")
 	assert.Contains(suite.T(), sql, "id", "email")
@@ -357,7 +357,7 @@ func (suite *PostgresTestSuite) TestUpsert() {
 
 	ctx := qb.NewCompilerContext(NewDialect())
 	sql = ups.Accept(ctx)
-	binds = ctx.Binds
+	binds = ctx.Binds()
 
 	assert.Contains(suite.T(), sql, "INSERT INTO users")
 	assert.Contains(suite.T(), sql, "id", "email")

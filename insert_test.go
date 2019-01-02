@@ -22,7 +22,7 @@ func TestInsert(t *testing.T) {
 	ctx := NewCompilerContext(dialect)
 
 	sql := ins.Accept(ctx)
-	binds := ctx.Binds
+	binds := ctx.Binds()
 
 	assert.Contains(t, sql, "INSERT INTO users")
 	assert.Contains(t, sql, "id", "email")
@@ -36,7 +36,7 @@ func TestInsert(t *testing.T) {
 			"email": "al@pacino.com",
 		}).
 		Returning(users.C("id"), users.C("email")).Accept(ctx)
-	binds = ctx.Binds
+	binds = ctx.Binds()
 
 	assert.Contains(t, sql, "INSERT INTO users")
 	assert.Contains(t, sql, "id", "email")

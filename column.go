@@ -74,8 +74,8 @@ func (c ColumnElem) String(dialect Dialect) string {
 }
 
 // Accept calls the compiler VisitColumn function
-func (c ColumnElem) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitColumn(context, c)
+func (c ColumnElem) Accept(context Context) string {
+	return context.Compiler().VisitColumn(context, c)
 }
 
 // constraints setters

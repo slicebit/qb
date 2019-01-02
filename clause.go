@@ -3,7 +3,7 @@ package qb
 // Clause is the base interface of all clauses that will get
 // compiled to SQL by Compiler
 type Clause interface {
-	Accept(context *CompilerContext) string
+	Accept(context Context) string
 }
 
 // TableSQLClause is the common interface for ddl generators such as Column(), PrimaryKey(), ForeignKey().Ref(), etc.

@@ -11,7 +11,7 @@ import (
 type CombinerTestSuite struct {
 	suite.Suite
 	dialect Dialect
-	ctx     *CompilerContext
+	ctx     Context
 }
 
 func (suite *CombinerTestSuite) SetupTest() {
@@ -25,7 +25,7 @@ func (suite *CombinerTestSuite) TestCombinerAnd() {
 
 	and := And(Eq(email, "al@pacino.com"), NotEq(id, 1))
 	sql := and.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "(email = ? AND id != ?)", sql)
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 1}, binds)
@@ -37,7 +37,7 @@ func (suite *CombinerTestSuite) TestCombinerOr() {
 
 	or := Or(Eq(email, "al@pacino.com"), NotEq(id, 1))
 	sql := or.Accept(suite.ctx)
-	binds := suite.ctx.Binds
+	binds := suite.ctx.Binds()
 
 	assert.Equal(suite.T(), "(email = ? OR id != ?)", sql)
 	assert.Equal(suite.T(), []interface{}{"al@pacino.com", 1}, binds)

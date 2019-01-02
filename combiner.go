@@ -17,6 +17,6 @@ type CombinerClause struct {
 }
 
 // Accept calls the compiler VisitCombiner entry point
-func (c CombinerClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitCombiner(context, c)
+func (c CombinerClause) Accept(context Context) string {
+	return context.Compiler().VisitCombiner(context, c)
 }

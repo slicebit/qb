@@ -1,8 +1,9 @@
 package qb
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var emptyBinds = []interface{}{}
@@ -74,7 +75,7 @@ var compileTests = []struct {
 func TestCompile(t *testing.T) {
 	compile := func(clause Clause) (string, []interface{}) {
 		context := NewCompilerContext(NewDialect("default"))
-		return clause.Accept(context), context.Binds
+		return clause.Accept(context), context.Binds()
 	}
 
 	for _, tt := range compileTests {

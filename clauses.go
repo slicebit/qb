@@ -11,8 +11,8 @@ type TextClause struct {
 }
 
 // Accept calls the compiler VisitText method
-func (c TextClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitText(context, c)
+func (c TextClause) Accept(context Context) string {
+	return context.Compiler().VisitText(context, c)
 }
 
 // List returns a list-of-clauses clause
@@ -28,8 +28,8 @@ type ListClause struct {
 }
 
 // Accept calls the compiler VisitList method
-func (c ListClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitList(context, c)
+func (c ListClause) Accept(context Context) string {
+	return context.Compiler().VisitList(context, c)
 }
 
 // Bind a value
@@ -45,8 +45,8 @@ type BindClause struct {
 }
 
 // Accept calls the compiler VisitBind method
-func (c BindClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitBind(context, c)
+func (c BindClause) Accept(context Context) string {
+	return context.Compiler().VisitBind(context, c)
 }
 
 // GetClauseFrom returns the value if already a Clause, or make one
@@ -102,6 +102,6 @@ type ExistsClause struct {
 }
 
 // Accept calls compiler VisitExists methos
-func (c ExistsClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitExists(context, c)
+func (c ExistsClause) Accept(context Context) string {
+	return context.Compiler().VisitExists(context, c)
 }

@@ -212,7 +212,7 @@ func (suite *SqliteTestSuite) TestUpsert() {
 
 	ctx := qb.NewCompilerContext(NewDialect())
 	sql := ups.Accept(ctx)
-	binds := ctx.Binds
+	binds := ctx.Binds()
 	assert.Contains(suite.T(), sql, `REPLACE INTO users`)
 	assert.Contains(suite.T(), sql, "id", "email", "created_at")
 	assert.Contains(suite.T(), sql, "VALUES(?, ?, ?)")

@@ -17,8 +17,8 @@ type WhereClause struct {
 }
 
 // Accept compiles the where clause, returns sql
-func (c WhereClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitWhere(context, c)
+func (c WhereClause) Accept(context Context) string {
+	return context.Compiler().VisitWhere(context, c)
 }
 
 // And combine the current clause and the new ones with a And()

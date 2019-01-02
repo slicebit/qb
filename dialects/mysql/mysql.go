@@ -139,15 +139,16 @@ type MysqlCompiler struct {
 }
 
 // VisitUpsert generates INSERT INTO ... VALUES ... ON DUPLICATE KEY UPDATE ...
-func (MysqlCompiler) VisitUpsert(context *qb.CompilerContext, upsert qb.UpsertStmt) string {
+func (MysqlCompiler) VisitUpsert(context qb.Context, upsert qb.UpsertStmt) string {
 	var (
 		colNames []string
 		values   []string
 	)
 
 	for k, v := range upsert.ValuesMap {
-		colNames = append(colNames, context.Compiler.VisitLabel(context, k))
-		context.Binds = append(context.Binds, v)
+		colNames = append(colNames, context.Compiler().VisitLabel(context, k))
+		// context.Binds = append(context.Binds, v)
+		context.AddBinds(v)
 		values = append(values, "?")
 	}
 
@@ -155,15 +156,15 @@ func (MysqlCompiler) VisitUpsert(context *qb.CompilerContext, upsert qb.UpsertSt
 	for k, v := range upsert.ValuesMap {
 		updates = append(updates, fmt.Sprintf(
 			"%s = %s",
-			context.Dialect.Escape(k),
+			context.Dialect().Escape(k),
 			"?",
 		))
-		context.Binds = append(context.Binds, v)
+		context.AddBinds(v)
 	}
 
 	sql := fmt.Sprintf(
 		"INSERT INTO %s(%s)\nVALUES(%s)\nON DUPLICATE KEY UPDATE %s",
-		context.Dialect.Escape(upsert.Table.Name),
+		context.Dialect().Escape(upsert.Table.Name),
 		strings.Join(colNames, ", "),
 		strings.Join(values, ", "),
 		strings.Join(updates, ", "),

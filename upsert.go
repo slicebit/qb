@@ -34,8 +34,8 @@ func (s UpsertStmt) Returning(cols ...ColumnElem) UpsertStmt {
 }
 
 // Accept calls the compiler VisitUpsert function
-func (s UpsertStmt) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitUpsert(context, s)
+func (s UpsertStmt) Accept(context Context) string {
+	return context.Compiler().VisitUpsert(context, s)
 }
 
 // Build generates a statement out of UpdateStmt object
@@ -43,7 +43,7 @@ func (s UpsertStmt) Build(dialect Dialect) *Stmt {
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))
-	statement.AddBinding(context.Binds...)
+	statement.AddBinding(context.Binds()...)
 
 	return statement
 }

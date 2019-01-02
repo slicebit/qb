@@ -72,8 +72,8 @@ type BinaryExpressionClause struct {
 }
 
 // Accept calls the compiler VisitBinary method
-func (c BinaryExpressionClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitBinary(context, c)
+func (c BinaryExpressionClause) Accept(context Context) string {
+	return context.Compiler().VisitBinary(context, c)
 }
 
 // InClause is a IN or NOT IN binary expression
@@ -82,6 +82,6 @@ type InClause struct {
 }
 
 // Accept calls the compiler VisitBinary method
-func (c InClause) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitIn(context, c)
+func (c InClause) Accept(context Context) string {
+	return context.Compiler().VisitIn(context, c)
 }

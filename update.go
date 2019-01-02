@@ -21,8 +21,8 @@ type UpdateStmt struct {
 }
 
 // Accept implements Clause.Accept
-func (s UpdateStmt) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitUpdate(context, s)
+func (s UpdateStmt) Accept(context Context) string {
+	return context.Compiler().VisitUpdate(context, s)
 }
 
 // Build generates a statement out of UpdateStmt object
@@ -30,7 +30,7 @@ func (s UpdateStmt) Build(dialect Dialect) *Stmt {
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))
-	statement.AddBinding(context.Binds...)
+	statement.AddBinding(context.Binds()...)
 
 	return statement
 }

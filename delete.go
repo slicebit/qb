@@ -30,8 +30,8 @@ func (s DeleteStmt) Returning(cols ...ColumnElem) DeleteStmt {
 }
 
 // Accept implements Clause.Accept
-func (s DeleteStmt) Accept(context *CompilerContext) string {
-	return context.Compiler.VisitDelete(context, s)
+func (s DeleteStmt) Accept(context Context) string {
+	return context.Compiler().VisitDelete(context, s)
 }
 
 // Build generates a statement out of DeleteStmt object
@@ -39,7 +39,7 @@ func (s DeleteStmt) Build(dialect Dialect) *Stmt {
 	context := NewCompilerContext(dialect)
 	statement := Statement()
 	statement.AddSQLClause(s.Accept(context))
-	statement.AddBinding(context.Binds...)
+	statement.AddBinding(context.Binds()...)
 
 	return statement
 }
