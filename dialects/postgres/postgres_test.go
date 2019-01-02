@@ -3,7 +3,6 @@ package postgres
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -159,7 +158,6 @@ func (suite *PostgresTestSuite) TestPostgres() {
 	suite.metadata.AddTable(sessionsTable)
 
 	err = suite.metadata.CreateAll(suite.engine)
-	fmt.Println("Metadata create all", err)
 	assert.Nil(suite.T(), err)
 
 	ins := qb.Insert(actorsTable).Values(map[string]interface{}{
