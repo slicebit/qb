@@ -66,6 +66,10 @@ type Error struct {
 	Constraint string
 }
 
+func (err Error) Unwrap() error {
+	return err.Orig
+}
+
 func (err Error) Error() string {
 	switch err.Code {
 	case ErrAny:
