@@ -1,6 +1,7 @@
 package qb
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
@@ -82,9 +83,14 @@ func (e *Engine) log(statement *Stmt) {
 
 // Exec executes insert & update type queries and returns sql.Result and error
 func (e *Engine) Exec(builder Builder) (sql.Result, error) {
+	return e.ExecContext(context.Background(), builder)
+}
+
+// ExecContext executes insert & update type queries and returns sql.Result and error
+func (e *Engine) ExecContext(ctx context.Context, builder Builder) (sql.Result, error) {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	res, err := e.db.Exec(statement.SQL(), statement.Bindings()...)
+	res, err := e.db.ExecContext(ctx, statement.SQL(), statement.Bindings()...)
 	return res, e.TranslateError(err)
 }
 
@@ -101,36 +107,56 @@ func (r Row) Scan(dest ...interface{}) error {
 
 // QueryRow wraps *sql.DB.QueryRow()
 func (e *Engine) QueryRow(builder Builder) Row {
+	return e.QueryRowContext(context.Background(), builder)
+}
+
+// QueryRowContext wraps *sql.DB.QueryRow()
+func (e *Engine) QueryRowContext(ctx context.Context, builder Builder) Row {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
 	return Row{
-		e.db.QueryRow(statement.SQL(), statement.Bindings()...),
+		e.db.QueryRowContext(ctx, statement.SQL(), statement.Bindings()...),
 		e.TranslateError,
 	}
 }
 
 // Query wraps *sql.DB.Query()
 func (e *Engine) Query(builder Builder) (*sql.Rows, error) {
+	return e.QueryContext(context.Background(), builder)
+}
+
+// QueryContext wraps *sql.DB.QueryContext()
+func (e *Engine) QueryContext(ctx context.Context, builder Builder) (*sql.Rows, error) {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
-	rows, err := e.db.Query(statement.SQL(), statement.Bindings()...)
+	rows, err := e.db.QueryContext(ctx, statement.SQL(), statement.Bindings()...)
 	return rows, e.TranslateError(err)
 }
 
 // Get maps the single row to a model
 func (e *Engine) Get(builder Builder, model interface{}) error {
+	return e.GetContext(context.Background(), builder, model)
+}
+
+// GetContext maps the single row to a model
+func (e *Engine) GetContext(ctx context.Context, builder Builder, model interface{}) error {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
 	return e.TranslateError(
-		e.db.Get(model, statement.SQL(), statement.Bindings()...))
+		e.db.GetContext(ctx, model, statement.SQL(), statement.Bindings()...))
 }
 
 // Select maps multiple rows to a model array
 func (e *Engine) Select(builder Builder, model interface{}) error {
+	return e.SelectContext(context.Background(), builder, model)
+}
+
+// SelectContext maps multiple rows to a model array
+func (e *Engine) SelectContext(ctx context.Context, builder Builder, model interface{}) error {
 	statement := builder.Build(e.dialect)
 	e.log(statement)
 	return e.TranslateError(
-		e.db.Select(model, statement.SQL(), statement.Bindings()...))
+		e.db.SelectContext(ctx, model, statement.SQL(), statement.Bindings()...))
 }
 
 // DB returns sql.DB of wrapped engine connection
@@ -141,6 +167,11 @@ func (e *Engine) DB() *sqlx.DB {
 // Ping pings the db using connection and returns error if connectivity is not present
 func (e *Engine) Ping() error {
 	return e.db.Ping()
+}
+
+// PingContext pings the db using connection and returns error if connectivity is not present
+func (e *Engine) PingContext(ctx context.Context) error {
+	return e.db.PingContext(ctx)
 }
 
 // Close closes the sqlx db connection
@@ -160,7 +191,12 @@ func (e *Engine) Dsn() string {
 
 // Begin begins a transaction and return a *qb.Tx
 func (e *Engine) Begin() (*Tx, error) {
-	tx, err := e.db.Beginx()
+	return e.BeginContext(context.Background())
+}
+
+// BeginContext begins a transaction and return a *qb.Tx
+func (e *Engine) BeginContext(ctx context.Context) (*Tx, error) {
+	tx, err := e.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, e.dialect.WrapError(err)
 	}
@@ -190,42 +226,67 @@ func (tx *Tx) Rollback() error {
 
 // Exec executes insert & update type queries and returns sql.Result and error
 func (tx *Tx) Exec(builder Builder) (sql.Result, error) {
+	return tx.ExecContext(context.Background(), builder)
+}
+
+// ExecContext executes insert & update type queries and returns sql.Result and error
+func (tx *Tx) ExecContext(ctx context.Context, builder Builder) (sql.Result, error) {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
-	res, err := tx.tx.Exec(statement.SQL(), statement.Bindings()...)
+	res, err := tx.tx.ExecContext(ctx, statement.SQL(), statement.Bindings()...)
 	return res, tx.engine.TranslateError(err)
 }
 
 // QueryRow wraps *sql.DB.QueryRow()
 func (tx *Tx) QueryRow(builder Builder) Row {
+	return tx.QueryRowContext(context.Background(), builder)
+}
+
+// QueryRowContext wraps *sql.DB.QueryRow()
+func (tx *Tx) QueryRowContext(ctx context.Context, builder Builder) Row {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
 	return Row{
-		tx.tx.QueryRow(statement.SQL(), statement.Bindings()...),
+		tx.tx.QueryRowContext(ctx, statement.SQL(), statement.Bindings()...),
 		tx.engine.TranslateError,
 	}
 }
 
 // Query wraps *sql.DB.Query()
 func (tx *Tx) Query(builder Builder) (*sql.Rows, error) {
+	return tx.QueryContext(context.Background(), builder)
+}
+
+// QueryContext wraps *sql.DB.QueryContext()
+func (tx *Tx) QueryContext(ctx context.Context, builder Builder) (*sql.Rows, error) {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
-	rows, err := tx.tx.Query(statement.SQL(), statement.Bindings()...)
+	rows, err := tx.tx.QueryContext(ctx, statement.SQL(), statement.Bindings()...)
 	return rows, tx.engine.TranslateError(err)
 }
 
 // Get maps the single row to a model
 func (tx *Tx) Get(builder Builder, model interface{}) error {
+	return tx.GetContext(context.Background(), builder, model)
+}
+
+// GetContext maps the single row to a model
+func (tx *Tx) GetContext(ctx context.Context, builder Builder, model interface{}) error {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
 	return tx.engine.TranslateError(
-		tx.tx.Get(model, statement.SQL(), statement.Bindings()...))
+		tx.tx.GetContext(ctx, model, statement.SQL(), statement.Bindings()...))
 }
 
 // Select maps multiple rows to a model array
 func (tx *Tx) Select(builder Builder, model interface{}) error {
+	return tx.SelectContext(context.Background(), builder, model)
+}
+
+// SelectContext maps multiple rows to a model array
+func (tx *Tx) SelectContext(ctx context.Context, builder Builder, model interface{}) error {
 	statement := builder.Build(tx.engine.dialect)
 	tx.engine.log(statement)
 	return tx.engine.TranslateError(
-		tx.tx.Select(model, statement.SQL(), statement.Bindings()...))
+		tx.tx.SelectContext(ctx, model, statement.SQL(), statement.Bindings()...))
 }
