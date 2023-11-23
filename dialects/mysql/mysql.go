@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/slicebit/qb"
+	"github.com/orus-io/qb"
 )
 
 //go:generate go run ./tools/generrors.go

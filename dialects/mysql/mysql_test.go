@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/slicebit/qb"
+	"github.com/orus-io/qb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
