@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/slicebit/qb"
-	_ "github.com/slicebit/qb/dialects/sqlite"
+	"github.com/orus-io/qb"
+	_ "github.com/orus-io/qb/dialects/sqlite"
 	"github.com/stretchr/testify/assert"
 )
 
